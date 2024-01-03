@@ -1,15 +1,27 @@
-# Base System Architecture - Architecture Compliance Suite
+# RISC-V Server SoC Compliance Test Suite
 
-[![BSA-ACS UEFI Build](https://github.com/ARM-software/bsa-acs/actions/workflows/build-bsa-uefi.yml/badge.svg?event=schedule)](https://github.com/ARM-software/bsa-acs/actions/workflows/build-bsa-uefi.yml)
+- [ ] TODO add CI workflows
 
-## Base System Architecture
-**Base System Architecture** (BSA) specification describes a hardware system architecture based on the Arm 64-bit architecture. System software such as operating systems, hypervisors, and firmware rely on this. It addresses PE features and key aspects of system architecture.
+## ARM Base System Architecture Compliance Suite (BSA-ACS)
 
-For more information, download the [BSA specification](https://developer.arm.com/documentation/den0094/c/?lang=en)
+This suite was build on ARM BSA ACS (Architecture Compliance Suite), for more information about ARM BSA-ACS, please refer to [https://github.com/ARM-software/bsa-acs](https://github.com/ARM-software/bsa-acs). 
 
 
-## BSA - Architecture Compliance Suite
+## RISC-V Server SoC Spec
 
+The RISC-V server SoC specification defines a standardized set of capabilities that portable system software such as operating systems and hypervisors, can rely on being present in a RISC-V server SoC. For the spec information, please refer to [https://github.com/riscv-non-isa/server-soc](https://github.com/riscv-non-isa/server-soc).
+
+
+## RISC-V Server SoC Test Spec
+
+Along with the Server SoC Spec, there is a test spec which defines a set of tests to verify if the requirements specified in RISC-V Server SoC specification are implemented. This test suite will be designed based on the test spec. For more information about the test spec, please also refer to [https://github.com/riscv-non-isa/server-soc](https://github.com/riscv-non-isa/server-soc). 
+
+-------------------------
+Following are the original content of BSA ACS need to be updated. 
+-------------------------
+
+
+## BSA Architecture Compliance Suite
 BSA **Architecture Compliance Suite** (ACS) is a collection of self-checking, portable C-based tests.
 This suite includes a set of examples of the invariant behaviors that are provided by the [BSA](https://developer.arm.com/documentation/den0094/c/?lang=en) specification, so that you can verify if these behaviour have been interpreted correctly.
 
