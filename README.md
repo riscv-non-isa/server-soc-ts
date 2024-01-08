@@ -20,9 +20,17 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 ## SoC Test Spec TODO List:
 
 - [ ] Compile current ARM BSA with ARM toolchains.
+	* follow the ARM BSA compiling instructions (under Ubuntu 20.0)
+        * Using following commands to install the pre-prequest: 
+	```bash 
+ 	sudo apt install git curl mtools gdisk gcc openssl automake autotools-dev libtool \
+                       bison flex bc uuid-dev python3 libglib2.0-dev libssl-dev autopoint libslirp-dev \
+                       make g++ gcc-riscv64-unknown-elf gettext
+	```
 - [ ] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
 - [ ] Porting the PAL API to RISC-V Architecture
 - [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
+	* Compiler Version: 9.3.0 (Ubuntu 20.0 apt-get install)
 - [ ] Run the Reduce BSA UEFI test case with Qemu model used by BRS toolchain (https://github.com/vlsunil/qemu.git: branch:riscv\_acpi\_b2\_v7).
 - [ ] Porting more PAL API and added more test cases.
 
