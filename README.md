@@ -16,8 +16,19 @@ The RISC-V server SoC specification defines a standardized set of capabilities t
 
 Along with the Server SoC Spec, there is a test spec which defines a set of tests to verify if the requirements specified in RISC-V Server SoC specification are implemented. This test suite will be designed based on the test spec. For more information about the test spec, please also refer to [https://github.com/riscv-non-isa/server-soc](https://github.com/riscv-non-isa/server-soc). 
 
+
+## SoC Test Spec TODO List:
+
+- [ ] Compile current ARM BSA with ARM toolchains.
+- [ ] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
+- [ ] Porting the PAL API to RISC-V Architecture
+- [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
+- [ ] Run the Reduce BSA UEFI test case with Qemu model used by BRS toolchain (https://github.com/vlsunil/qemu.git: branch:riscv\_acpi\_b2\_v7).
+- [ ] Porting more PAL API and added more test cases.
+
 -------------------------
 Following are the original content of BSA ACS need to be updated. 
+
 -------------------------
 
 
