@@ -19,7 +19,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 
 ## SoC Test Spec TODO List:
 
-- [ ] Compile current ARM BSA with ARM toolchains.
+- [X] Compile current ARM BSA with ARM toolchains.
 	* follow the ARM BSA compiling instructions (under Ubuntu 20.0)
         * Using following commands to install the pre-prequest: 
 	```bash 
