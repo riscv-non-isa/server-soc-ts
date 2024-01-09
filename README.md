@@ -30,9 +30,39 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 - [ ] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
 - [ ] Porting the PAL API to RISC-V Architecture
 - [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
-	* Compiler Version: 9.3.0 (Ubuntu 20.0 apt-get install)
+	* Compiler Version: 9.3.0 (Ubuntu 20.04 apt-get install)
 - [ ] Run the Reduce BSA UEFI test case with Qemu model used by BRS toolchain (https://github.com/vlsunil/qemu.git: branch:riscv\_acpi\_b2\_v7).
 - [ ] Porting more PAL API and added more test cases.
+
+## Compile Server SoC TestSuite
+### 1. Build Env
+    Before you start the  build, ensure that the following requirements are met.
+
+- Ubuntu 20.04 (Currently Tested)
+- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 tag is edk2-stable202302
+- git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
+- Install GCC-ARM 10.3 [toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads).
+- Install the build prerequisite packages to build EDK2.<br />
+	```bash 
+ 	sudo apt install git curl mtools gdisk gcc openssl automake autotools-dev libtool \
+                       bison flex bc uuid-dev python3 libglib2.0-dev libssl-dev autopoint libslirp-dev \
+                       make g++ gcc-riscv64-unknown-elf gettext
+	```
+
+### 2. Clone Repo and Patch the EDK2
+1.  cd local\_edk2\_path
+2.  git submodule update --init --recursive
+3.  git clone git@github.com:riscv-non-isa/server-soc-ts.git ShellPkg/Application/bsa-acs
+4.  git apply ShellPkg/Application/server-soc-ts/patches/edk2-stable202302-server-soc-ts-acpi.diff 
+
+### 3. Build the TestSuite under UEFI
+1.  export GCC49\_AARCH64\_PREFIX= GCC10.3 toolchain path pointing to **/bin/aarch64-linux-gnu-** in case of x86 machine.
+2.  export PACKAGES\_PATH= path pointing to edk2-libc
+3.  source edksetup.sh
+4.  make -C BaseTools/Source/C
+5.  source ShellPkg/Application/bsa-acs/tools/scripts/acsbuild.sh
+
+The EFI executable file is generated at <edk2_path>/Build/Shell/DEBUG\_GCC49/AARCH64/Bsa.efi
 
 -------------------------
 Following are the original content of BSA ACS need to be updated. 
