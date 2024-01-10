@@ -99,6 +99,7 @@ createPeInfoTable (
 
 }
 
+
 EFI_STATUS
 createGicInfoTable (
 )
@@ -122,6 +123,8 @@ createGicInfoTable (
 
 }
 
+
+
 EFI_STATUS
 createTimerInfoTable(
 )
@@ -142,6 +145,7 @@ createTimerInfoTable(
 
   return Status;
 }
+
 
 EFI_STATUS
 createWatchdogInfoTable(
@@ -165,7 +169,7 @@ createWatchdogInfoTable(
 
 }
 
-
+/**** Reduced BSA
 EFI_STATUS
 createPcieVirtInfoTable(
 )
@@ -235,6 +239,8 @@ createPeripheralInfoTable(
   return Status;
 }
 
+*/
+
 VOID
 freeBsaAcsMem()
 {
@@ -243,9 +249,9 @@ freeBsaAcsMem()
   val_gic_free_info_table();
   val_timer_free_info_table();
   val_wd_free_info_table();
-  val_pcie_free_info_table();
-  val_iovirt_free_info_table();
-  val_peripheral_free_info_table();
+  // val_pcie_free_info_table();
+  // val_iovirt_free_info_table();
+  // val_peripheral_free_info_table();
   val_free_shared_mem();
 }
 
@@ -581,6 +587,7 @@ ShellAppMain (
   if (Status)
     return Status;
 
+
   /* Initialise exception vector, so any unexpected exception gets handled by default
      BSA exception handler */
   branch_label = &&print_test_status;
@@ -589,8 +596,8 @@ ShellAppMain (
 
   createTimerInfoTable();
   createWatchdogInfoTable();
-  createPcieVirtInfoTable();
-  createPeripheralInfoTable();
+ // createPcieVirtInfoTable();
+ // createPeripheralInfoTable();
 
   val_allocate_shared_mem();
 
@@ -600,31 +607,31 @@ ShellAppMain (
   Status = val_pe_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Memory Map tests     ***/
-  Status |= val_memory_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_memory_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting GIC tests            ***/
-  Status |= val_gic_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_gic_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting System MMU tests     ***/
-  Status |= val_smmu_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_smmu_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Timer tests          ***/
   Status |= val_timer_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Wakeup semantic tests ***/
-  Status |= val_wakeup_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_wakeup_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Peripheral tests     ***/
-  Status |= val_peripheral_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_peripheral_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Watchdog tests       ***/
-  Status |= val_wd_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_wd_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting PCIe tests           ***/
-  Status |= val_pcie_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_pcie_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting PCIe Exerciser tests ***/
-  Status |= val_exerciser_execute_tests(g_sw_view);
+  // Status |= val_exerciser_execute_tests(g_sw_view);
 
 print_test_status:
   val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------\n", 0);

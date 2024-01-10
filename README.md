@@ -27,7 +27,28 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
                        bison flex bc uuid-dev python3 libglib2.0-dev libssl-dev autopoint libslirp-dev \
                        make g++ gcc-riscv64-unknown-elf gettext
 	```
-- [ ] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
+- [X] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
+    * BSA UEFI Apps: Following Tables reserved:
+      - PE
+      - GIC
+      - Timer
+      - Watchdog
+      
+    * BSA UEFI Apps: Following tests reserved:
+      - PE
+      - Timer
+
+    * VAL: Following modules reserved:
+      - PE 
+      - GIC
+      - Timer
+      - Watchdog
+
+    * PAL: Following modules reserved:
+      - PE
+      - GIC
+      - Watchdog Timer
+
 - [ ] Porting the PAL API to RISC-V Architecture
 - [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
 	* Compiler Version: 9.3.0 (Ubuntu 20.04 apt-get install)

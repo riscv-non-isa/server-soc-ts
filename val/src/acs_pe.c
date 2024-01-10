@@ -66,34 +66,34 @@ val_pe_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
       status |= os_c001_entry(num_pe);
-      status |= os_c002_entry(num_pe);
-      status |= os_c003_entry(num_pe);
-      status |= os_c004_entry(num_pe);
-      status |= os_c006_entry(num_pe);
-      status |= os_c007_entry(num_pe);
-      status |= os_c008_entry(num_pe);
-      status |= os_c009_entry(num_pe);
-      status |= os_c010_entry(num_pe);
-      status |= os_c011_entry(num_pe);
-      status |= os_c012_entry(num_pe);
-      status |= os_c013_entry(num_pe);
+      // status |= os_c002_entry(num_pe);
+      // status |= os_c003_entry(num_pe);
+      // status |= os_c004_entry(num_pe);
+      // status |= os_c006_entry(num_pe);
+      // status |= os_c007_entry(num_pe);
+      // status |= os_c008_entry(num_pe);
+      // status |= os_c009_entry(num_pe);
+      // status |= os_c010_entry(num_pe);
+      // status |= os_c011_entry(num_pe);
+      // status |= os_c012_entry(num_pe);
+      // status |= os_c013_entry(num_pe);
 if (!g_build_sbsa) { /* B_PE_15 is only in BSA checklist */
-      status |= os_c014_entry(num_pe);
+      // status |= os_c014_entry(num_pe);
 }
   }
 
   if (g_sw_view[G_SW_HYP]) {
       val_print(ACS_PRINT_ERR, "\nHypervisor View:\n", 0);
-      status |= hyp_c001_entry(num_pe);
-      status |= hyp_c002_entry(num_pe);
-      status |= hyp_c003_entry(num_pe);
-      status |= hyp_c004_entry(num_pe);
-      status |= hyp_c005_entry(num_pe);
+      // status |= hyp_c001_entry(num_pe);
+      // status |= hyp_c002_entry(num_pe);
+      // status |= hyp_c003_entry(num_pe);
+      // status |= hyp_c004_entry(num_pe);
+      // status |= hyp_c005_entry(num_pe);
   }
 
   if (g_sw_view[G_SW_PS]) {
       val_print(ACS_PRINT_ERR, "\nPlatform Security View:\n", 0);
-      status |= ps_c001_entry(num_pe);
+      // status |= ps_c001_entry(num_pe);
   }
 
   val_print_test_end(status, "PE");

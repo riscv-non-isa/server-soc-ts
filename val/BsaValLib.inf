@@ -34,19 +34,19 @@
   src/acs_gic.c
   src/acs_gic_v2m.c
   src/acs_gic_support.c
-  src/acs_pcie.c
-  src/acs_iovirt.c
-  src/acs_smmu.c
+  # src/acs_pcie.c
+  # src/acs_iovirt.c
+  # src/acs_smmu.c
   src/acs_test_infra.c
   src/acs_timer.c
   src/acs_timer_support.c
   src/acs_wd.c
   src/acs_wakeup.c
-  src/acs_peripherals.c
-  src/acs_memory.c
-  src/acs_exerciser.c
-  src/acs_pgt.c
-  sys_arch_src/smmu_v3/smmu_v3.c
+  # src/acs_peripherals.c
+  # src/acs_memory.c
+  # src/acs_exerciser.c
+  # src/acs_pgt.c
+  # sys_arch_src/smmu_v3/smmu_v3.c
   sys_arch_src/gic/gic.c
   sys_arch_src/gic/bsa_exception.c
   sys_arch_src/gic/AArch64/bsa_exception_asm.S
@@ -54,7 +54,7 @@
   sys_arch_src/gic/v3/gic_v3_extended.c
   sys_arch_src/gic/v3/AArch64/v3_asm.S
   sys_arch_src/gic/v2/gic_v2.c
-  sys_arch_src/pcie/pcie.c
+  # sys_arch_src/pcie/pcie.c
   sys_arch_src/gic/its/bsa_gic_its.c
   sys_arch_src/gic/its/bsa_gic_redistributor.c
 
