@@ -52,7 +52,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 ### 2. Clone Repo and Patch the EDK2
 1.  cd local\_edk2\_path
 2.  git submodule update --init --recursive
-3.  git clone git@github.com:riscv-non-isa/server-soc-ts.git ShellPkg/Application/bsa-acs
+3.  git clone git@github.com:riscv-non-isa/server-soc-ts.git ShellPkg/Application/server-soc-ts
 4.  git apply ShellPkg/Application/server-soc-ts/patches/edk2-stable202302-server-soc-ts-acpi.diff 
 
 ### 3. Build the TestSuite under UEFI
@@ -60,7 +60,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 2.  export PACKAGES\_PATH= path pointing to edk2-libc
 3.  source edksetup.sh
 4.  make -C BaseTools/Source/C
-5.  source ShellPkg/Application/bsa-acs/tools/scripts/acsbuild.sh
+5.  source ShellPkg/Application/server-soc-ts/tools/scripts/acsbuild.sh
 
 The EFI executable file is generated at <edk2_path>/Build/Shell/DEBUG\_GCC49/AARCH64/Bsa.efi
 
