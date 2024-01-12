@@ -28,28 +28,58 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
                        make g++ gcc-riscv64-unknown-elf gettext
 	```
 - [X] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
-    * BSA UEFI Apps: Following Tables reserved:
+    * _BSA UEFI Apps_: Following Tables reserved:
       - PE
       - GIC
       - Timer
       - Watchdog
-      
-    * BSA UEFI Apps: Following tests reserved:
-      - PE
-      - Timer
 
-    * VAL: Following modules reserved:
+    * _BSA UEFI Apps_: Following tests reserved:
+      - Timer
+        * num_pe = val_pe_get_num() // Return number of PE (HARTs)
+        * val_timer_execute_tests() // Will only execute *os\_t001\_entry*: "Check Counter Frequency".
+          - os_t001_entry(num_pe):
+            * val_initialize_test()
+              1. mpid = val_pe_reg_read(MPIDR_EL1) //Get the MPIDR register value.
+              2. index = val_pe_get_index_mpid (mpid ) // Return the PE index, and clean all the data caches whose mpid < PE index.
+              3. val_set_status() // Set up the status of the test (Skip,Pending, Fail etc).
+              4. val_pe_initialize_default_exception_handler( val_pe_default_esr )
+                1. val_pe_default_esr: 
+                  1. val_set_status( FAIL )
+                  2. val_pe_update_elr()
+            * 
+              3. Run on current PE with payload()
+              4. payload
+
+    * _VAL_: Following modules reserved:
       - PE 
       - GIC
       - Timer
       - Watchdog
 
-    * PAL: Following modules reserved:
+    * _PAL_: Following modules reserved:
       - PE
       - GIC
       - Watchdog Timer
 
 - [ ] Porting the PAL API to RISC-V Architecture
+    * _VAL AArch64_:
+      - src/AArch64/PeRegSysSupport.S: Read various system registers using MRS
+      - src/AArch64/PeTestSupport.S
+        * ArmCallWFI
+        * SpeProgramUnderProfiling
+        * DisableSpe
+        * ArmExecuteMemoryBarrier
+      - src/AArch64/ArchTimerSupport.S: Read various timer registers using MRS
+      - src/AArch64/GicSupport.S: Read/Write GIC registers using MRS or MSR
+    * _PAL AArch64_:
+      - src/AArch64/ArmSmc.S: Calling SMC, we should replace this with SBI call.
+      - src/AArch64/AcsTestInfra.S: (AMO instructions to clean and/or invalidate data cache by virtual address)
+        * DataCacheCleanInvalidateVA
+        * DataCacheCleanVA
+        * DataCacheInvalidateVA
+      - src/AArch64/ModuleEntryPoint.S: This is the functions that a PE will execute when power on.
+
 - [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
 	* Compiler Version: 9.3.0 (Ubuntu 20.04 apt-get install)
 - [ ] Run the Reduce BSA UEFI test case with Qemu model used by BRS toolchain (https://github.com/vlsunil/qemu.git: branch:riscv\_acpi\_b2\_v7).

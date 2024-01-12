@@ -604,7 +604,7 @@ ShellAppMain (
   FlushImage();
 
   /***  Starting PE tests             ***/
-  Status = val_pe_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status = val_pe_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Memory Map tests     ***/
   // Status |= val_memory_execute_tests(val_pe_get_num(), g_sw_view);
