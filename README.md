@@ -47,9 +47,24 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
                 1. val_pe_default_esr: 
                   1. val_set_status( FAIL )
                   2. val_pe_update_elr()
-            * 
-              3. Run on current PE with payload()
-              4. payload
+                2. pal_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, val_pe_default_esr) 
+                  2. Cpu->RegisterInterruptHandler ()
+            * val_run_test_payload()
+              1. index = val_pe_get_index_mpid(val_pe_get_mpid())
+              2. val_execute_on_pe( )
+                * Do while: *smc_call == ARM_SMC_ID_PSCI_CPU_ON_AARCH64* and not *timeout*
+                  1. val_set_test_data()        //Set the TEST function pointer in a shared memory location.
+                  2. pal_pe_execute_payload( )  //
+                    1. SmcArgs->Arg2 = (uint64_t)ModuleEntryPoint;
+                    2. pal_pe_call_smc(ArmSmcArgs, gPsciConduit);
+                * val_set_status( )
+              3. val_wait_for_test_completion()
+                * Polling status in shared memory via val_get_status()
+            * payload()
+              1. val_timer_get_info() //read timer register.
+              2. val_set_status ();
+            * val_check_for_error( )
+            * val_report_status()
 
     * _VAL_: Following modules reserved:
       - PE 
@@ -76,8 +91,26 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
       - src/AArch64/ArmSmc.S: Calling SMC, we should replace this with SBI call.
       - src/AArch64/AcsTestInfra.S: (AMO instructions to clean and/or invalidate data cache by virtual address)
         * DataCacheCleanInvalidateVA
+          ```asm
+              dc  civac, x0  //Clean and Invalidate data cache by address to Point of Coherency.
+              dsb sy         //Full System Barrier.
+              isb            //Instruction Barrier.
+              ret
+          ```
         * DataCacheCleanVA
+          ```asm
+              dc  cvac, x0  //Clean data cache by address to Point of Coherency.
+              dsb ish       //Inner Shareable is the required shareability domain Barrier.
+              isb           //Instruction Barrier.
+              ret
+          ```
         * DataCacheInvalidateVA
+          ```asm
+              dc  ivac, x0  //invalidate data cache by address to Point of Coherency.
+              dsb ish       //Inner Shareable is the required shareability domain Barrier.
+              isb           //Instruction Barrier.
+              ret
+          ```
       - src/AArch64/ModuleEntryPoint.S: This is the functions that a PE will execute when power on.
 
 - [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
