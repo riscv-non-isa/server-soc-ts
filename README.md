@@ -140,13 +140,13 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 4.  git apply ShellPkg/Application/server-soc-ts/patches/edk2-stable202302-server-soc-ts-acpi.diff 
 
 ### 3. Build the TestSuite under UEFI
-1.  export GCC49\_AARCH64\_PREFIX= GCC10.3 toolchain path pointing to **/bin/aarch64-linux-gnu-** in case of x86 machine.
+1.  export GCC5\_RISCV64\_PREFIX= GCC10.3 toolchain path pointing to **/bin/riscv64-linux-gnu-** in case of x86 machine.
 2.  export PACKAGES\_PATH= path pointing to edk2-libc
 3.  source edksetup.sh
 4.  make -C BaseTools/Source/C
 5.  source ShellPkg/Application/server-soc-ts/tools/scripts/acsbuild.sh
 
-The EFI executable file is generated at <edk2_path>/Build/Shell/DEBUG\_GCC49/AARCH64/Bsa.efi
+The EFI executable file is generated at <edk2_path>/Build/Shell/DEBUG\_GCC5/RISCV64/Bsa.efi
 
 -------------------------
 Following are the original content of BSA ACS need to be updated. 

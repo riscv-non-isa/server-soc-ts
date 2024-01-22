@@ -1,5 +1,25 @@
+diff --git a/MdePkg/Include/RiscV64/ProcessorBind.h b/MdePkg/Include/RiscV64/ProcessorBind.h
+index 1d42d92..87c956a 100644
+--- a/MdePkg/Include/RiscV64/ProcessorBind.h
++++ b/MdePkg/Include/RiscV64/ProcessorBind.h
+@@ -152,6 +152,15 @@ typedef INT64 INTN __attribute__ ((aligned (8)));
+ /// Define this macro to unify the usage.
+ ///
+ #define ASM_GLOBAL  .globl
++
++#define GCC_ASM_EXPORT(func__)  \
++         .global  _CONCATENATE (__USER_LABEL_PREFIX__, func__)    ;\
++         .type ASM_PFX(func__), %function
++
++#define GCC_ASM_IMPORT(func__)  \
++         .extern  _CONCATENATE (__USER_LABEL_PREFIX__, func__)
++
++
+ #endif
+ 
+ /**
 diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
-index dd0d88603f..be93c3de1d 100644
+index dd0d886..be93c3d 100644
 --- a/ShellPkg/ShellPkg.dsc
 +++ b/ShellPkg/ShellPkg.dsc
 @@ -65,6 +65,10 @@

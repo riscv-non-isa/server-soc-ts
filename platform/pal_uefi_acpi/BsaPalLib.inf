@@ -25,9 +25,9 @@
   LIBRARY_CLASS                  = BsaPalLib|UEFI_APPLICATION UEFI_DRIVER
 
 [Sources.common]
-  src/AArch64/ArmSmc.S
-  src/AArch64/AcsTestInfra.S
-  src/AArch64/ModuleEntryPoint.S
+  src/RISCV64/ArmSmc.S
+  src/RISCV64/AcsTestInfra.S
+  src/RISCV64/ModuleEntryPoint.S
   src/pal_misc.c
   src/pal_acpi.c
   src/pal_pe.c
@@ -72,4 +72,4 @@
   gEfiAcpiTableGuid
 
 [BuildOptions]
-  GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
+  GCC:*_*_*_ASM_FLAGS  =  -march=rv64gc

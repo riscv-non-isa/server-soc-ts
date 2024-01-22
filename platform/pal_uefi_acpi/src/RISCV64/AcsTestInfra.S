@@ -31,7 +31,12 @@ GCC_ASM_EXPORT(DataCacheCleanVA)
 
 ASM_PFX(DataCacheCleanInvalidateVA):
 #  dc  civac, x0
-   cbo.flush 0(a0)
+#   cbo.flush 0(a0)
+/*
+   templorily comment the cbo instruction until we move to GCC13:
+   https://gcc.gnu.org/gcc-13/changes.html
+   (CMO is supported by gcc-13)
+ */
 #  dsb sy
    fence 
 #  isb
@@ -43,19 +48,29 @@ ASM_PFX(DataCacheCleanInvalidateVA):
   ret
 
 ASM_PFX(DataCacheCleanVA):
-#  dc  cvac, x0
-   cbo.clean 0(a0)
-#  dsb ish
+##  dc  cvac, x0
+#   cbo.clean 0(a0)
+/*
+   templorily comment the cbo instruction until we move to GCC13:
+   https://gcc.gnu.org/gcc-13/changes.html
+   (CMO is supported by gcc-13)
+ */
+##  dsb ish
    fence 
-#  isb
+##  isb
    fence.i
   ret
 
 ASM_PFX(DataCacheInvalidateVA):
-#  dc  ivac, x0
-   cbo.inval 0(a0)
-#  dsb ish
+##  dc  ivac, x0
+#   cbo.inval 0(a0)
+/*
+   templorily comment the cbo instruction until we move to GCC13:
+   https://gcc.gnu.org/gcc-13/changes.html
+   (CMO is supported by gcc-13)
+ */
+##  dsb ish
    fence
-#  isb
+##  isb
    fence.i
   ret

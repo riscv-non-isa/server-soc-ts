@@ -24,10 +24,10 @@
   LIBRARY_CLASS                  = BsaValLib|UEFI_APPLICATION UEFI_DRIVER
 
 [Sources.common]
-  src/AArch64/PeRegSysSupport.S
-  src/AArch64/PeTestSupport.S
-  src/AArch64/ArchTimerSupport.S
-  src/AArch64/GicSupport.S
+  src/RISCV64/PeRegSysSupport.S
+  src/RISCV64/PeTestSupport.S
+  src/RISCV64/ArchTimerSupport.S
+  src/RISCV64/GicSupport.S
   src/acs_status.c
   src/acs_pe.c
   src/acs_pe_infra.c
@@ -63,4 +63,4 @@
   MdePkg/MdePkg.dec
 
 [BuildOptions]
-  GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
+  GCC:*_*_*_ASM_FLAGS  =  -march=rv64gc

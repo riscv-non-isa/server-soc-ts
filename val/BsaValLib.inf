@@ -24,10 +24,10 @@
   LIBRARY_CLASS                  = BsaValLib|UEFI_APPLICATION UEFI_DRIVER
 
 [Sources.common]
-  src/AArch64/PeRegSysSupport.S
-  src/AArch64/PeTestSupport.S
-  src/AArch64/ArchTimerSupport.S
-  src/AArch64/GicSupport.S
+  src/RISCV64/PeRegSysSupport.S
+  src/RISCV64/PeTestSupport.S
+  src/RISCV64/ArchTimerSupport.S
+  src/RISCV64/GicSupport.S
   src/acs_status.c
   src/acs_pe.c
   src/acs_pe_infra.c
@@ -49,10 +49,10 @@
   # sys_arch_src/smmu_v3/smmu_v3.c
   sys_arch_src/gic/gic.c
   sys_arch_src/gic/bsa_exception.c
-  sys_arch_src/gic/AArch64/bsa_exception_asm.S
+  sys_arch_src/gic/RISCV64/bsa_exception_asm.S
   sys_arch_src/gic/v3/gic_v3.c
   sys_arch_src/gic/v3/gic_v3_extended.c
-  sys_arch_src/gic/v3/AArch64/v3_asm.S
+  sys_arch_src/gic/v3/RISCV64/v3_asm.S
   sys_arch_src/gic/v2/gic_v2.c
   # sys_arch_src/pcie/pcie.c
   sys_arch_src/gic/its/bsa_gic_its.c
@@ -62,4 +62,4 @@
   MdePkg/MdePkg.dec
 
 [BuildOptions]
-  GCC:*_*_*_ASM_FLAGS  =  -march=armv8.2-a
+  GCC:*_*_*_ASM_FLAGS  =  -march=rv64gc
