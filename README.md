@@ -30,11 +30,24 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 - [X] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
     * _BSA UEFI Apps_: Following Tables reserved:
       - PE
+        - val_pe_create_info_table（）
+          * pal_psci_get_conduit(void)  // Parse FADT table to check whether PSCI supported, return SMC or HVC.
+            - [ ] **should ported to return SBI**
+          * pal_pe_create_info_table()  // Check MADT table, count the GICC Entry as the PE count. Fill in MPIDR from GICC entry.
+            - [ ] **need to hack the MADT table so only 1 HARTs will be presented**
+          * PalAllocateSecondaryStack(gMpidrMax);
       - GIC
+        - pal_gic_create_info_table( ) // Parse MADT Table, check the APIC entry.
+        
       - Timer
+        - pal_timer_create_info_table() // Parse the GTDT Table.
       - Watchdog
+        - pal_wd_create_info_table() // parse the GTDT Table.
+
 
     * _BSA UEFI Apps_: Following tests reserved:
+      - val_pe_context_save () 
+        - [ ] **should be ported**
       - Timer
         * num_pe = val_pe_get_num() // Return number of PE (HARTs)
         * val_timer_execute_tests() // Will only execute *os\_t001\_entry*: "Check Counter Frequency".
@@ -65,7 +78,9 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
               2. val_set_status ();
             * val_check_for_error( )
             * val_report_status()
-
+      val_pe_context_restore()
+        - [ ] **should be ported**
+      
     * _VAL_: Following modules reserved:
       - PE 
       - GIC
@@ -80,16 +95,21 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 - [ ] Porting the PAL API to RISC-V Architecture
     * _VAL AArch64_:
       - src/AArch64/PeRegSysSupport.S: Read various system registers using MRS
+        - [ ] **Required** as called in val\_pe\_get\_mpid()
       - src/AArch64/PeTestSupport.S
         * ArmCallWFI
         * SpeProgramUnderProfiling
         * DisableSpe
         * ArmExecuteMemoryBarrier
       - src/AArch64/ArchTimerSupport.S: Read various timer registers using MRS
+        - [ ] **Required** as called in val_timer_get_info()
       - src/AArch64/GicSupport.S: Read/Write GIC registers using MRS or MSR
+        * No Required Now.
     * _PAL AArch64_:
       - src/AArch64/ArmSmc.S: Calling SMC, we should replace this with SBI call.
+        - No Required if only **execute on 1 HARTs**.
       - src/AArch64/AcsTestInfra.S: (AMO instructions to clean and/or invalidate data cache by virtual address)
+        - [X] **Required** as called in val_set_status()/val_get_status()
         * DataCacheCleanInvalidateVA
           ```asm
               dc  civac, x0  //Clean and Invalidate data cache by address to Point of Coherency.
