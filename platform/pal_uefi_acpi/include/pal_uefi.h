@@ -100,6 +100,13 @@ typedef struct {
   UINT64   mpidr;       ///< PE MPIDR
   UINT32   pmu_gsiv;    ///< PMU Interrupt ID
   UINT32   gmain_gsiv;  ///< GIC Maintenance Interrupt ID
+
+  /* RV porting */
+  UINT64   hart_id;
+  UINT32   acpi_processor_uid;
+  UINT32   ext_intc_id;
+  UINT64   imsic_base;
+  UINT32   imsic_size;
 }PE_INFO_ENTRY;
 
 typedef struct {
@@ -130,7 +137,11 @@ typedef enum {
   ENTRY_TYPE_GICR_GICRD,
   ENTRY_TYPE_GICITS,
   ENTRY_TYPE_GIC_MSI_FRAME,
-  ENTRY_TYPE_GICH
+  ENTRY_TYPE_GICH,
+
+  /* RV porting */
+  ENTRY_TYPE_RINTC,
+  ENTRY_TYPE_PLIC
 }GIC_INFO_TYPE_e;
 
 /* Interrupt Trigger Type */

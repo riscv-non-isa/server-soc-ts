@@ -35,7 +35,7 @@ extern INT32 gPsciConduit;
 #define UPDATE_AFF_MAX(src,dest,mask)  ((dest & mask) > (src & mask) ? (dest & mask) : (src & mask))
 
 #define ENABLED_BIT(flags)  (flags & 0x1)
-#define ONLINE_CAP_BIT(flags)  ((flags > 3) & 0x1)
+#define ONLINE_CAP_BIT(flags)  ((flags > 1) & 0x1)
 
 UINT64
 pal_get_madt_ptr();
@@ -180,11 +180,11 @@ PalAllocateSecondaryStack(UINT64 mpidr)
 VOID
 pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
 {
-  EFI_ACPI_6_1_GIC_STRUCTURE    *Entry = NULL;
+  EFI_ACPI_6_5_RINTC_STRUCTURE  *Entry = NULL;
   PE_INFO_ENTRY                 *Ptr = NULL;
   UINT32                        TableLength = 0;
   UINT32                        Length = 0;
-  UINT64                        MpidrAff0Max = 0, MpidrAff1Max = 0, MpidrAff2Max = 0, MpidrAff3Max = 0;
+  // UINT64                        MpidrAff0Max = 0, MpidrAff1Max = 0, MpidrAff2Max = 0, MpidrAff3Max = 0;
   UINT32                        Flags;
 
   if (PeTable == NULL) {
@@ -205,51 +205,79 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
     return;
   }
 
-  Entry = (EFI_ACPI_6_1_GIC_STRUCTURE *) (gMadtHdr + 1);
+  Entry = (EFI_ACPI_6_5_RINTC_STRUCTURE *) (gMadtHdr + 1);
   Length = sizeof (EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER);
   Ptr = PeTable->pe_info;
 
   do {
 
-    if (Entry->Type == EFI_ACPI_6_1_GIC) {
-      //Fill in the cpu num and the mpidr in pe info table
+    // if (Entry->Type == EFI_ACPI_6_1_GIC) {
+    //   //Fill in the cpu num and the mpidr in pe info table
+    //   Flags           = Entry->Flags;
+    //   bsa_print(ACS_PRINT_INFO, L"  Flags %x\n", Flags);
+    //   bsa_print(ACS_PRINT_DEBUG, L"  PE Enabled %d, Online Capable %d\n", ENABLED_BIT(Flags), ONLINE_CAP_BIT(Flags));
+
+    //   /* As per MADT (GICC CPU Interface Flags) Processor is usable when
+    //        Enabled bit is set
+    //        Enabled bit is clear and Online Capable bit is set
+    //        if both bits are clear, PE is not usable
+    //   */
+    //   if ((ENABLED_BIT(Flags) == 1) || (ONLINE_CAP_BIT(Flags) == 1))
+    //   {
+    //       Ptr->mpidr      = Entry->MPIDR;
+    //       Ptr->pe_num     = PeTable->header.num_of_pe;
+    //       Ptr->pmu_gsiv   = Entry->PerformanceInterruptGsiv;
+    //       Ptr->gmain_gsiv = Entry->VGICMaintenanceInterrupt;
+    //       bsa_print(ACS_PRINT_DEBUG, L"  MPIDR %llx PE num %x\n", Ptr->mpidr, Ptr->pe_num);
+    //       pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
+    //       Ptr++;
+    //       PeTable->header.num_of_pe++;
+
+    //       MpidrAff0Max = UPDATE_AFF_MAX(MpidrAff0Max, Entry->MPIDR, 0x000000ff);
+    //       MpidrAff1Max = UPDATE_AFF_MAX(MpidrAff1Max, Entry->MPIDR, 0x0000ff00);
+    //       MpidrAff2Max = UPDATE_AFF_MAX(MpidrAff2Max, Entry->MPIDR, 0x00ff0000);
+    //       MpidrAff3Max = UPDATE_AFF_MAX(MpidrAff3Max, Entry->MPIDR, 0xff00000000);
+    //   }
+    // }
+
+    if ((Entry->Type == EFI_ACPI_6_5_RINTC)) {
+      //Fill in the hart num and the id in pe info table
       Flags           = Entry->Flags;
       bsa_print(ACS_PRINT_INFO, L"  Flags %x\n", Flags);
       bsa_print(ACS_PRINT_DEBUG, L"  PE Enabled %d, Online Capable %d\n", ENABLED_BIT(Flags), ONLINE_CAP_BIT(Flags));
 
-      /* As per MADT (GICC CPU Interface Flags) Processor is usable when
+      /* As per MADT (RISC-V INTC Flags) a processor is usable when
            Enabled bit is set
            Enabled bit is clear and Online Capable bit is set
-           if both bits are clear, PE is not usable
+           if both bits are clear, processor is not usable
       */
-      if ((ENABLED_BIT(Flags) == 1) || (ONLINE_CAP_BIT(Flags) == 1))
-      {
-          Ptr->mpidr      = Entry->MPIDR;
-          Ptr->pe_num     = PeTable->header.num_of_pe;
-          Ptr->pmu_gsiv   = Entry->PerformanceInterruptGsiv;
-          Ptr->gmain_gsiv = Entry->VGICMaintenanceInterrupt;
-          bsa_print(ACS_PRINT_DEBUG, L"  MPIDR %llx PE num %x\n", Ptr->mpidr, Ptr->pe_num);
-          pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
-          Ptr++;
-          PeTable->header.num_of_pe++;
-
-          MpidrAff0Max = UPDATE_AFF_MAX(MpidrAff0Max, Entry->MPIDR, 0x000000ff);
-          MpidrAff1Max = UPDATE_AFF_MAX(MpidrAff1Max, Entry->MPIDR, 0x0000ff00);
-          MpidrAff2Max = UPDATE_AFF_MAX(MpidrAff2Max, Entry->MPIDR, 0x00ff0000);
-          MpidrAff3Max = UPDATE_AFF_MAX(MpidrAff3Max, Entry->MPIDR, 0xff00000000);
+      if ((ENABLED_BIT(Flags) == 1) || (ONLINE_CAP_BIT(Flags) == 1)) {
+        Ptr->hart_id = Entry->HartId;
+        Ptr->pe_num     = PeTable->header.num_of_pe;
+        Ptr->acpi_processor_uid = Entry->ProcessorUid;
+        Ptr->ext_intc_id = Entry->ExternalINTCId;
+        Ptr->imsic_base = Entry->IMSICBase;
+        Ptr->imsic_size = Entry->IMSICSize;
+        bsa_print(ACS_PRINT_DEBUG, L"  HartID %lx PE num %x\n", Ptr->hart_id, Ptr->pe_num);
+        bsa_print(ACS_PRINT_DEBUG, L"    IMSIC Base %lx IMSIC Soze %x\n", Ptr->imsic_base, Ptr->imsic_size);
+        pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
+        Ptr++;
+        PeTable->header.num_of_pe++;
       }
     }
 
     Length += Entry->Length;
-    Entry = (EFI_ACPI_6_1_GIC_STRUCTURE *) ((UINT8 *)Entry + (Entry->Length));
+    Entry = (EFI_ACPI_6_5_RINTC_STRUCTURE *) ((UINT8 *)Entry + (Entry->Length));
 
   }while(Length < TableLength);
 
-  gMpidrMax = MpidrAff0Max | MpidrAff1Max | MpidrAff2Max | MpidrAff3Max;
+  // gMpidrMax = MpidrAff0Max | MpidrAff1Max | MpidrAff2Max | MpidrAff3Max;
   g_num_pe = PeTable->header.num_of_pe;
+
   pal_pe_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
-  pal_pe_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
-  PalAllocateSecondaryStack(gMpidrMax);
+  // RV porting TODO: secondary stack allocationg should be ported for RV multi-processor tests
+  // pal_pe_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
+  // PalAllocateSecondaryStack(gMpidrMax);
 
 }
 

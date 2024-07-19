@@ -137,7 +137,7 @@
 [Sources.RISCV64]
   ../
   BsaAcsMain.c
-  ../test_pool/pe/operating_system/test_os_c001.c
+  # ../test_pool/pe/operating_system/test_os_c001.c
   # ../test_pool/pe/operating_system/test_os_c002.c
   # ../test_pool/pe/operating_system/test_os_c003.c
   # ../test_pool/pe/operating_system/test_os_c004.c
@@ -178,10 +178,10 @@
   # ../test_pool/gic/hypervisor/test_hyp_g002.c
   # ../test_pool/gic/hypervisor/test_hyp_g003.c
   ../test_pool/timer/operating_system/test_os_t001.c
-  ../test_pool/timer/operating_system/test_os_t002.c
-  ../test_pool/timer/operating_system/test_os_t003.c
-  ../test_pool/timer/operating_system/test_os_t004.c
-  ../test_pool/timer/operating_system/test_os_t005.c
+  # ../test_pool/timer/operating_system/test_os_t002.c
+  # ../test_pool/timer/operating_system/test_os_t003.c
+  # ../test_pool/timer/operating_system/test_os_t004.c
+  # ../test_pool/timer/operating_system/test_os_t005.c
   # ../test_pool/watchdog/operating_system/test_os_w001.c
   # ../test_pool/watchdog/operating_system/test_os_w002.c
   # ../test_pool/pcie/operating_system/test_os_p001.c

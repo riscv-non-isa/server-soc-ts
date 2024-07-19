@@ -84,6 +84,7 @@ typedef struct {
 **/
 #define CONDUIT_SMC       0
 #define CONDUIT_HVC       1
+#define CONDUIT_SBI       2   /* Use SBI for RISC-V */
 #define CONDUIT_UNKNOWN  -1
 #define CONDUIT_NONE     -2
 

@@ -1,0 +1,2 @@
+fs0:
+DEBUG_GCC5\RISCV64\Bsa.efi -v 1

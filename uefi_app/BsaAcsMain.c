@@ -587,18 +587,21 @@ ShellAppMain (
   if (Status)
     return Status;
 
-
+  val_print(ACS_PRINT_TEST, "\n Init exception vector\n", 0);
   /* Initialise exception vector, so any unexpected exception gets handled by default
      BSA exception handler */
   branch_label = &&print_test_status;
   val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
   val_pe_initialize_default_exception_handler(val_pe_default_esr);
 
+  val_print(ACS_PRINT_TEST, "\n Create Timer Info Table\n", 0);
   createTimerInfoTable();
+  val_print(ACS_PRINT_TEST, "\n Create WDT Info Table\n", 0);
   createWatchdogInfoTable();
  // createPcieVirtInfoTable();
  // createPeripheralInfoTable();
 
+  val_print(ACS_PRINT_TEST, "\n Allocate shared mem and flush image\n", 0);
   val_allocate_shared_mem();
 
   FlushImage();
@@ -616,6 +619,7 @@ ShellAppMain (
   // Status |= val_smmu_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Timer tests          ***/
+  val_print(ACS_PRINT_TEST, "\n Starting Timer tests\n", 0);
   Status |= val_timer_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Wakeup semantic tests ***/

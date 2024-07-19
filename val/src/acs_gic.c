@@ -144,7 +144,7 @@ test_done:
 uint32_t
 val_gic_create_info_table(uint64_t *gic_info_table)
 {
-  uint32_t gic_version, num_msi_frame;
+  // uint32_t gic_version, num_msi_frame;
 
   if (gic_info_table == NULL) {
       val_print(ACS_PRINT_ERR, "Input for Create Info table cannot be NULL\n", 0);
@@ -157,28 +157,29 @@ val_gic_create_info_table(uint64_t *gic_info_table)
   pal_gic_create_info_table(g_gic_info_table);
 
   /* print GIC version */
-  gic_version = val_gic_get_info(GIC_INFO_VERSION);
-  num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
-  if ((gic_version != 2) || (num_msi_frame == 0)) /* check if not a GICv2m system */
-      val_print(ACS_PRINT_TEST, " GIC INFO: GIC version                :    v%d\n", gic_version);
-  else
-      val_print(ACS_PRINT_TEST, " GIC INFO: GIC version                :    v2m\n", 0);
+  val_print(ACS_PRINT_INFO, " RV porting: INTC info print to be added\n", 0);
+  // gic_version = val_gic_get_info(GIC_INFO_VERSION);
+  // num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
+  // if ((gic_version != 2) || (num_msi_frame == 0)) /* check if not a GICv2m system */
+  //     val_print(ACS_PRINT_TEST, " GIC INFO: GIC version                :    v%d\n", gic_version);
+  // else
+  //     val_print(ACS_PRINT_TEST, " GIC INFO: GIC version                :    v2m\n", 0);
 
-  val_print(ACS_PRINT_TEST, " GIC_INFO: Number of GICD             : %4d\n",
-                                                             g_gic_info_table->header.num_gicd);
-  val_print(ACS_PRINT_TEST, " GIC_INFO: Number of GICR RD          : %4d\n",
-                                                             g_gic_info_table->header.num_gicr_rd);
-  if (g_gic_info_table->header.num_gicr_rd == 0) {
-      val_print(ACS_PRINT_TEST, " GIC_INFO: Number of GICC RD          : %4d\n",
-                                                             g_gic_info_table->header.num_gicc_rd);
-  }
-  val_print(ACS_PRINT_TEST, " GIC_INFO: Number of ITS              : %4d\n",
-                                                             g_gic_info_table->header.num_its);
+  // val_print(ACS_PRINT_TEST, " GIC_INFO: Number of GICD             : %4d\n",
+  //                                                            g_gic_info_table->header.num_gicd);
+  // val_print(ACS_PRINT_TEST, " GIC_INFO: Number of GICR RD          : %4d\n",
+  //                                                            g_gic_info_table->header.num_gicr_rd);
+  // if (g_gic_info_table->header.num_gicr_rd == 0) {
+  //     val_print(ACS_PRINT_TEST, " GIC_INFO: Number of GICC RD          : %4d\n",
+  //                                                            g_gic_info_table->header.num_gicc_rd);
+  // }
+  // val_print(ACS_PRINT_TEST, " GIC_INFO: Number of ITS              : %4d\n",
+  //                                                            g_gic_info_table->header.num_its);
 
-  if (g_gic_info_table->header.num_gicd == 0) {
-      val_print(ACS_PRINT_ERR,"\n ** CRITICAL ERROR: GIC Distributor count is 0 **\n", 0);
-      return ACS_STATUS_ERR;
-  }
+  // if (g_gic_info_table->header.num_gicd == 0) {
+  //     val_print(ACS_PRINT_ERR,"\n ** CRITICAL ERROR: GIC Distributor count is 0 **\n", 0);
+  //     return ACS_STATUS_ERR;
+  // }
 
   if (pal_target_is_dt())
       val_bsa_gic_init();

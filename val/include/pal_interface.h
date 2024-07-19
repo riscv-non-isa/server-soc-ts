@@ -178,6 +178,7 @@ void pal_dump_dtb(void);
 **/
 #define CONDUIT_SMC       0
 #define CONDUIT_HVC       1
+#define CONDUIT_SBI       2   /* Use SBI for RISC-V */
 #define CONDUIT_UNKNOWN  -1
 #define CONDUIT_NONE     -2
 int32_t pal_psci_get_conduit(void);

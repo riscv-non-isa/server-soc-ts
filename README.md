@@ -4,7 +4,7 @@
 
 ## ARM Base System Architecture Compliance Suite (BSA-ACS)
 
-This suite was build on ARM BSA ACS (Architecture Compliance Suite), for more information about ARM BSA-ACS, please refer to [https://github.com/ARM-software/bsa-acs](https://github.com/ARM-software/bsa-acs). 
+This suite was build on ARM BSA ACS (Architecture Compliance Suite), for more information about ARM BSA-ACS, please refer to [https://github.com/ARM-software/bsa-acs](https://github.com/ARM-software/bsa-acs).
 
 
 ## RISC-V Server SoC Spec
@@ -14,15 +14,15 @@ The RISC-V server SoC specification defines a standardized set of capabilities t
 
 ## RISC-V Server SoC Test Spec
 
-Along with the Server SoC Spec, there is a test spec which defines a set of tests to verify if the requirements specified in RISC-V Server SoC specification are implemented. This test suite will be designed based on the test spec. For more information about the test spec, please also refer to [https://github.com/riscv-non-isa/server-soc](https://github.com/riscv-non-isa/server-soc). 
+Along with the Server SoC Spec, there is a test spec which defines a set of tests to verify if the requirements specified in RISC-V Server SoC specification are implemented. This test suite will be designed based on the test spec. For more information about the test spec, please also refer to [https://github.com/riscv-non-isa/server-soc](https://github.com/riscv-non-isa/server-soc).
 
 
 ## SoC Test Spec TODO List:
 
 - [X] Compile current ARM BSA with ARM toolchains.
 	* follow the ARM BSA compiling instructions (under Ubuntu 20.0)
-        * Using following commands to install the pre-prequest: 
-	```bash 
+        * Using following commands to install the pre-prequest:
+	```bash
  	sudo apt install git curl mtools gdisk gcc openssl automake autotools-dev libtool \
                        bison flex bc uuid-dev python3 libglib2.0-dev libssl-dev autopoint libslirp-dev \
                        make g++ gcc-riscv64-unknown-elf gettext
@@ -32,13 +32,16 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
       - PE
         - val_pe_create_info_table（）
           * pal_psci_get_conduit(void)  // Parse FADT table to check whether PSCI supported, return SMC or HVC.
-            - [ ] **should ported to return SBI**
+            - [X] **should ported to return SBI**
           * pal_pe_create_info_table()  // Check MADT table, count the GICC Entry as the PE count. Fill in MPIDR from GICC entry.
-            - [ ] **need to hack the MADT table so only 1 HARTs will be presented**
+            - [X] **should ported to parse MADT and count the RINTC entry**
+          * pal_pe_data_cache_ops_by_va() // Cache operations: clean and/or invalidate
+            - [ ] **should ported to RV cache ops**
           * PalAllocateSecondaryStack(gMpidrMax);
+            - [ ] **should be ported for multi-processor test**
       - GIC
         - pal_gic_create_info_table( ) // Parse MADT Table, check the APIC entry.
-        
+
       - Timer
         - pal_timer_create_info_table() // Parse the GTDT Table.
       - Watchdog
@@ -46,7 +49,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 
 
     * _BSA UEFI Apps_: Following tests reserved:
-      - val_pe_context_save () 
+      - val_pe_context_save ()  // save pe's stack pointer and elr register to global variables
         - [ ] **should be ported**
       - Timer
         * num_pe = val_pe_get_num() // Return number of PE (HARTs)
@@ -56,11 +59,11 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
               1. mpid = val_pe_reg_read(MPIDR_EL1) //Get the MPIDR register value.
               2. index = val_pe_get_index_mpid (mpid ) // Return the PE index, and clean all the data caches whose mpid < PE index.
               3. val_set_status() // Set up the status of the test (Skip,Pending, Fail etc).
-              4. val_pe_initialize_default_exception_handler( val_pe_default_esr )
-                1. val_pe_default_esr: 
+              4. val_pe_initialize_default_exception_handler( val_pe_default_esr )  // Set default exception handler, when occurs, dump error info and jump to previously saved address
+                1. val_pe_default_esr:
                   1. val_set_status( FAIL )
                   2. val_pe_update_elr()
-                2. pal_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, val_pe_default_esr) 
+                2. pal_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, val_pe_default_esr)
                   2. Cpu->RegisterInterruptHandler ()
             * val_run_test_payload()
               1. index = val_pe_get_index_mpid(val_pe_get_mpid())
@@ -80,9 +83,9 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
             * val_report_status()
       val_pe_context_restore()
         - [ ] **should be ported**
-      
+
     * _VAL_: Following modules reserved:
-      - PE 
+      - PE
       - GIC
       - Timer
       - Watchdog
@@ -147,7 +150,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 - git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
 - Install GCC-ARM 10.3 [toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads).
 - Install the build prerequisite packages to build EDK2.<br />
-	```bash 
+	```bash
  	sudo apt install git curl mtools gdisk gcc openssl automake autotools-dev libtool \
                        bison flex bc uuid-dev python3 libglib2.0-dev libssl-dev autopoint libslirp-dev \
                        make g++ gcc-riscv64-unknown-elf gettext
@@ -157,7 +160,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 1.  cd local\_edk2\_path
 2.  git submodule update --init --recursive
 3.  git clone git@github.com:riscv-non-isa/server-soc-ts.git ShellPkg/Application/server-soc-ts
-4.  git apply ShellPkg/Application/server-soc-ts/patches/edk2-stable202302-server-soc-ts-acpi.diff 
+4.  git apply ShellPkg/Application/server-soc-ts/patches/edk2-stable202302-server-soc-ts-acpi.diff
 
 ### 3. Build the TestSuite under UEFI
 1.  export GCC5\_RISCV64\_PREFIX= GCC10.3 toolchain path pointing to **/bin/riscv64-linux-gnu-** in case of x86 machine.
@@ -169,7 +172,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 The EFI executable file is generated at <edk2_path>/Build/Shell/DEBUG\_GCC5/RISCV64/Bsa.efi
 
 -------------------------
-Following are the original content of BSA ACS need to be updated. 
+Following are the original content of BSA ACS need to be updated.
 
 -------------------------
 
