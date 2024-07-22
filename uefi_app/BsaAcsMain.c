@@ -587,6 +587,9 @@ ShellAppMain (
   if (Status)
     return Status;
 
+  val_print(ACS_PRINT_TEST, "\n Allocate shared mem and flush image\n", 0);
+  val_allocate_shared_mem();
+
   val_print(ACS_PRINT_TEST, "\n Init exception vector\n", 0);
   /* Initialise exception vector, so any unexpected exception gets handled by default
      BSA exception handler */
@@ -601,8 +604,6 @@ ShellAppMain (
  // createPcieVirtInfoTable();
  // createPeripheralInfoTable();
 
-  val_print(ACS_PRINT_TEST, "\n Allocate shared mem and flush image\n", 0);
-  val_allocate_shared_mem();
 
   FlushImage();
 

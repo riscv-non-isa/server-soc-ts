@@ -287,8 +287,7 @@ val_execute_on_pe(uint32_t index, void (*payload)(void), uint64_t test_input)
 uint32_t
 val_pe_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *))
 {
-
-  if (exception_type > 3) {
+  if (exception_type > EXCEPT_RISCV_MAX_EXCEPTIONS) {
       val_print(ACS_PRINT_ERR, "Invalid Exception type %x\n", exception_type);
       return ACS_STATUS_ERR;
   }
@@ -342,7 +341,7 @@ val_pe_context_restore(uint64_t sp)
 void
 val_pe_initialize_default_exception_handler(void (*esr)(uint64_t, void *))
 {
-    val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
+    val_pe_install_esr(EXCEPT_RISCV_LOAD_ACCESS_PAGE_FAULT, esr);
 }
 
 /**
@@ -372,6 +371,7 @@ val_pe_default_esr(uint64_t interrupt_type, void *context)
 
     val_set_status(index, RESULT_FAIL(0, 1));
     val_pe_update_elr(context, g_exception_ret_addr);
+    val_print(ACS_PRINT_TEST, "\n  val_pe_default_esr return\n", 0);
 }
 
 /**

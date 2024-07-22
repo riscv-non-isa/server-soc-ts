@@ -305,7 +305,8 @@ pal_pe_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
 
   // Unregister the default exception handler.
   Status = Cpu->RegisterInterruptHandler (Cpu, ExceptionType, NULL);
-  if (EFI_ERROR (Status)) {
+  if (EFI_ERROR (Status) && Status != EFI_INVALID_PARAMETER) {
+    // return EFI_INVALID_PARAMETER means no previous handler exists.
     return Status;
   }
 
@@ -364,7 +365,8 @@ pal_pe_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
 VOID
 pal_pe_update_elr(VOID *context, UINT64 offset)
 {
-  ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->ELR = offset;
+  // update sepc for RISC-V
+  ((EFI_SYSTEM_CONTEXT_RISCV64*)context)->SEPC = offset;
 }
 
 /**

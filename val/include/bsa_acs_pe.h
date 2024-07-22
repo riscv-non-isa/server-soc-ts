@@ -28,6 +28,35 @@
 #define EXCEPT_AARCH64_FIQ                       2
 #define EXCEPT_AARCH64_SERROR                    3
 
+///
+/// RISC-V processor exception types.
+///
+#define EXCEPT_RISCV_INST_MISALIGNED               0
+#define EXCEPT_RISCV_INST_ACCESS_FAULT             1
+#define EXCEPT_RISCV_ILLEGAL_INST                  2
+#define EXCEPT_RISCV_BREAKPOINT                    3
+#define EXCEPT_RISCV_LOAD_ADDRESS_MISALIGNED       4
+#define EXCEPT_RISCV_LOAD_ACCESS_FAULT             5
+#define EXCEPT_RISCV_STORE_AMO_ADDRESS_MISALIGNED  6
+#define EXCEPT_RISCV_STORE_AMO_ACCESS_FAULT        7
+#define EXCEPT_RISCV_ENV_CALL_FROM_UMODE           8
+#define EXCEPT_RISCV_ENV_CALL_FROM_SMODE           9
+#define EXCEPT_RISCV_ENV_CALL_FROM_VS_MODE         10
+#define EXCEPT_RISCV_ENV_CALL_FROM_MMODE           11
+#define EXCEPT_RISCV_INST_ACCESS_PAGE_FAULT        12
+#define EXCEPT_RISCV_LOAD_ACCESS_PAGE_FAULT        13
+#define EXCEPT_RISCV_14                            14
+#define EXCEPT_RISCV_STORE_ACCESS_PAGE_FAULT       15
+#define EXCEPT_RISCV_16                            16
+#define EXCEPT_RISCV_17                            17
+#define EXCEPT_RISCV_18                            18
+#define EXCEPT_RISCV_19                            19
+#define EXCEPT_RISCV_INST_GUEST_PAGE_FAULT         20
+#define EXCEPT_RISCV_LOAD_GUEST_PAGE_FAULT         21
+#define EXCEPT_RISCV_VIRTUAL_INSTRUCTION           22
+#define EXCEPT_RISCV_STORE_GUEST_PAGE_FAULT        23
+#define EXCEPT_RISCV_MAX_EXCEPTIONS                (EXCEPT_RISCV_STORE_GUEST_PAGE_FAULT)
+
 // AArch64 Exception Level
 #define AARCH64_EL2  0x8
 #define AARCH64_EL1  0x4

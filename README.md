@@ -35,10 +35,8 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
             - [X] **should ported to return SBI**
           * pal_pe_create_info_table()  // Check MADT table, count the GICC Entry as the PE count. Fill in MPIDR from GICC entry.
             - [X] **should ported to parse MADT and count the RINTC entry**
-          * pal_pe_data_cache_ops_by_va() // Cache operations: clean and/or invalidate
-            - [ ] **should ported to RV cache ops**
-          * PalAllocateSecondaryStack(gMpidrMax);
-            - [ ] **should be ported for multi-processor test**
+            - PalAllocateSecondaryStack(gMpidrMax);
+              - [ ] **should be ported for multi-processor test**
       - GIC
         - pal_gic_create_info_table( ) // Parse MADT Table, check the APIC entry.
 
@@ -49,8 +47,16 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 
 
     * _BSA UEFI Apps_: Following tests reserved:
-      - val_pe_context_save ()  // save pe's stack pointer and elr register to global variables
-        - [ ] **should be ported**
+      - PE
+        * val_pe_context_save ()  // save pe's stack pointer and elr register to global variables
+          - [*] **should be ported**
+        * val_pe_initialize_default_exception_handler() // Set exception handler
+          - [*] **should be ported a RV64 default handler**
+          - [ ] **only page fault is support in poc, should updated to catch any possible exceptions during test suite execution.**
+        * val_pe_default_esr() // Default handler, when exception occurs, dump error info and update elr to previously saved address
+          - [*] **should be ported**
+        * val_pe_context_restore()
+          - [ ] **should be ported**
       - Timer
         * num_pe = val_pe_get_num() // Return number of PE (HARTs)
         * val_timer_execute_tests() // Will only execute *os\_t001\_entry*: "Check Counter Frequency".
@@ -59,7 +65,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
               1. mpid = val_pe_reg_read(MPIDR_EL1) //Get the MPIDR register value.
               2. index = val_pe_get_index_mpid (mpid ) // Return the PE index, and clean all the data caches whose mpid < PE index.
               3. val_set_status() // Set up the status of the test (Skip,Pending, Fail etc).
-              4. val_pe_initialize_default_exception_handler( val_pe_default_esr )  // Set default exception handler, when occurs, dump error info and jump to previously saved address
+              4. val_pe_initialize_default_exception_handler( val_pe_default_esr )
                 1. val_pe_default_esr:
                   1. val_set_status( FAIL )
                   2. val_pe_update_elr()
@@ -81,8 +87,6 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
               2. val_set_status ();
             * val_check_for_error( )
             * val_report_status()
-      val_pe_context_restore()
-        - [ ] **should be ported**
 
     * _VAL_: Following modules reserved:
       - PE
@@ -135,6 +139,9 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
               ret
           ```
       - src/AArch64/ModuleEntryPoint.S: This is the functions that a PE will execute when power on.
+      - src/pal_pe.c
+        * pal_pe_update_elr() // this is used in val_pe_default_esr() to change the exception return address
+        - [ ] **should be ported to update sepc in RV64**
 
 - [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
 	* Compiler Version: 9.3.0 (Ubuntu 20.04 apt-get install)
