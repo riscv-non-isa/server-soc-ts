@@ -187,6 +187,9 @@ typedef struct {
   UINT32 num_platform_timer;
   UINT32 num_watchdog;
   UINT32 sys_timer_status;
+
+  /* RV porting */
+  UINT64 time_base_frequency;
 }TIMER_INFO_HDR;
 
 #define TIMER_TYPE_SYS_TIMER 0x2001

@@ -590,7 +590,6 @@ ShellAppMain (
   val_print(ACS_PRINT_TEST, "\n Allocate shared mem and flush image\n", 0);
   val_allocate_shared_mem();
 
-  val_print(ACS_PRINT_TEST, "\n Init exception vector\n", 0);
   /* Initialise exception vector, so any unexpected exception gets handled by default
      BSA exception handler */
   branch_label = &&print_test_status;
@@ -599,8 +598,9 @@ ShellAppMain (
 
   val_print(ACS_PRINT_TEST, "\n Create Timer Info Table\n", 0);
   createTimerInfoTable();
-  val_print(ACS_PRINT_TEST, "\n Create WDT Info Table\n", 0);
-  createWatchdogInfoTable();
+
+  // val_print(ACS_PRINT_TEST, "\n Create WDT Info Table\n", 0);
+  // createWatchdogInfoTable();
  // createPcieVirtInfoTable();
  // createPeripheralInfoTable();
 
@@ -639,11 +639,11 @@ ShellAppMain (
   // Status |= val_exerciser_execute_tests(g_sw_view);
 
 print_test_status:
-  val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------\n", 0);
-  val_print(ACS_PRINT_TEST, "     Total Tests run  = %4d", g_bsa_tests_total);
-  val_print(ACS_PRINT_TEST, "  Tests Passed  = %4d", g_bsa_tests_pass);
-  val_print(ACS_PRINT_TEST, "  Tests Failed = %4d\n", g_bsa_tests_fail);
-  val_print(ACS_PRINT_TEST, "     -------------------------------------------------------\n", 0);
+  val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------", 0);
+  val_print(ACS_PRINT_TEST, "\n     Total Tests run  = %4d", g_bsa_tests_total);
+  val_print(ACS_PRINT_TEST, "\n     Tests Passed  = %4d", g_bsa_tests_pass);
+  val_print(ACS_PRINT_TEST, "\n     Tests Failed = %4d\n", g_bsa_tests_fail);
+  val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------", 0);
 
   freeBsaAcsMem();
 

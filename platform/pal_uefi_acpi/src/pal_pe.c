@@ -307,12 +307,14 @@ pal_pe_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
   Status = Cpu->RegisterInterruptHandler (Cpu, ExceptionType, NULL);
   if (EFI_ERROR (Status) && Status != EFI_INVALID_PARAMETER) {
     // return EFI_INVALID_PARAMETER means no previous handler exists.
+    bsa_print(ACS_PRINT_ERR, L"  fail to unregister esr: %r\n", Status);
     return Status;
   }
 
   // Register to receive interrupts
   Status = Cpu->RegisterInterruptHandler (Cpu, ExceptionType, (EFI_CPU_INTERRUPT_HANDLER)esr);
   if (EFI_ERROR (Status)) {
+    bsa_print(ACS_PRINT_ERR, L"  fail to register esr: %r\n", Status);
     return Status;
   }
 

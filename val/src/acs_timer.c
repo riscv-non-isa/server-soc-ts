@@ -90,7 +90,7 @@ val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance)
 
   switch (info_type) {
       case TIMER_INFO_CNTFREQ:
-          return ArmArchTimerReadReg(CntFrq);
+          return g_timer_info_table->header.time_base_frequency;
       case TIMER_INFO_PHY_EL1_INTID:
           return g_timer_info_table->header.ns_el1_timer_gsiv;
       case TIMER_INFO_VIR_EL1_INTID:

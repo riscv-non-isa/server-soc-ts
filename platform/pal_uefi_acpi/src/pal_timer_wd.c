@@ -27,36 +27,39 @@
 #include "../include/platform_override.h"
 
 static EFI_ACPI_6_1_GENERIC_TIMER_DESCRIPTION_TABLE *gGtdtHdr;
+static EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_STRUCTURE *gRhctHdr;
 
 UINT64
 pal_get_gtdt_ptr();
+UINT64
+pal_get_rhct_ptr();
 
-/**
-  @brief This API overrides the timer specified by TimerTable
-         Note: Information about only one timer can be mentioned as an Override
+// /**
+//   @brief This API overrides the timer specified by TimerTable
+//          Note: Information about only one timer can be mentioned as an Override
 
-  @param TimerTable Pointer to timer info table
+//   @param TimerTable Pointer to timer info table
 
-  @return None
-**/
-static
-VOID
-pal_timer_platform_override(TIMER_INFO_TABLE *TimerTable)
-{
-  if (PLATFORM_OVERRIDE_PLATFORM_TIMER) {
-      TimerTable->header.num_platform_timer = 1;
-      TimerTable->gt_info[0].block_cntl_base = PLATFORM_OVERRIDE_CNTCTL_BASE;
-      TimerTable->gt_info[0].timer_count = 1;
-      TimerTable->gt_info[0].GtCntBase[0]  = PLATFORM_OVERRIDE_CNTBASE_N;
-      TimerTable->gt_info[0].gsiv[0] = PLATFORM_OVERRIDE_PLATFORM_TIMER_GSIV;
-  }
+//   @return None
+// **/
+// static
+// VOID
+// pal_timer_platform_override(TIMER_INFO_TABLE *TimerTable)
+// {
+//   if (PLATFORM_OVERRIDE_PLATFORM_TIMER) {
+//       TimerTable->header.num_platform_timer = 1;
+//       TimerTable->gt_info[0].block_cntl_base = PLATFORM_OVERRIDE_CNTCTL_BASE;
+//       TimerTable->gt_info[0].timer_count = 1;
+//       TimerTable->gt_info[0].GtCntBase[0]  = PLATFORM_OVERRIDE_CNTBASE_N;
+//       TimerTable->gt_info[0].gsiv[0] = PLATFORM_OVERRIDE_PLATFORM_TIMER_GSIV;
+//   }
 
-  //GTDT does not have this information yet.
-  if (PLATFORM_OVERRIDE_EL2_VIR_TIMER_GSIV) {
-      TimerTable->header.el2_virt_timer_gsiv = PLATFORM_OVERRIDE_EL2_VIR_TIMER_GSIV;
-  }
+//   //GTDT does not have this information yet.
+//   if (PLATFORM_OVERRIDE_EL2_VIR_TIMER_GSIV) {
+//       TimerTable->header.el2_virt_timer_gsiv = PLATFORM_OVERRIDE_EL2_VIR_TIMER_GSIV;
+//   }
 
-}
+// }
 
 /**
   @brief  This API fills in the TIMER_INFO_TABLE with information about local and system
@@ -69,14 +72,14 @@ pal_timer_platform_override(TIMER_INFO_TABLE *TimerTable)
 VOID
 pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
 {
-  EFI_ACPI_6_1_GTDT_GT_BLOCK_STRUCTURE       *Entry = NULL;
-  EFI_ACPI_6_1_GTDT_GT_BLOCK_TIMER_STRUCTURE *GtBlockTimer = NULL;
+  // EFI_ACPI_6_1_GTDT_GT_BLOCK_STRUCTURE       *Entry = NULL;
+  // EFI_ACPI_6_1_GTDT_GT_BLOCK_TIMER_STRUCTURE *GtBlockTimer = NULL;
   TIMER_INFO_GTBLOCK         *GtEntry = NULL;
-  UINT32                      Offset= 0;
-  UINT32                      i;
-  UINT32                      num_of_entries;
+  // UINT32                      Offset= 0;
+  // UINT32                      i;
+  // UINT32                      num_of_entries;
   UINT32                      revision = 0;
-  UINT32                      *virtualpl2 = NULL;
+  // UINT32                      *virtualpl2 = NULL;
 
   if (TimerTable == NULL) {
     bsa_print(ACS_PRINT_ERR, L" Input Timer Table Pointer is NULL. Cannot create Timer INFO\n");
@@ -86,78 +89,92 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
   GtEntry = TimerTable->gt_info;
   TimerTable->header.num_platform_timer = 0;
 
-  gGtdtHdr = (EFI_ACPI_6_1_GENERIC_TIMER_DESCRIPTION_TABLE *) pal_get_gtdt_ptr();
-
-  if (gGtdtHdr == NULL) {
-    bsa_print(ACS_PRINT_ERR, L" GTDT not found\n");
+  gRhctHdr = (EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_STRUCTURE *) pal_get_rhct_ptr();
+  if (gRhctHdr == NULL) {
+    bsa_print(ACS_PRINT_ERR, L" RHCT not found\n");
     return;
   }
-  bsa_print(ACS_PRINT_INFO, L"  GTDT is at %x and length is %x\n", gGtdtHdr, gGtdtHdr->Header.Length);
+  bsa_print(ACS_PRINT_INFO, L"  RHCT is at %x and length is %x\n", gRhctHdr, gRhctHdr->Header.Length);
 
-  revision = gGtdtHdr->Header.Revision;
-  bsa_print(ACS_PRINT_INFO, L"  GTDT revision is at %d\n", revision);
+  revision = gRhctHdr->Header.Revision;
+  bsa_print(ACS_PRINT_INFO, L"  RHCT revision is at %d\n", revision);
 
   //Fill in our internal table
-  TimerTable->header.s_el1_timer_flag  = gGtdtHdr->SecurePL1TimerFlags;
-  TimerTable->header.ns_el1_timer_flag = gGtdtHdr->NonSecurePL1TimerFlags;
-  TimerTable->header.el2_timer_flag    = gGtdtHdr->NonSecurePL2TimerFlags;
-  TimerTable->header.s_el1_timer_gsiv  = gGtdtHdr->SecurePL1TimerGSIV;
-  TimerTable->header.ns_el1_timer_gsiv = gGtdtHdr->NonSecurePL1TimerGSIV;
-  TimerTable->header.el2_timer_gsiv    = gGtdtHdr->NonSecurePL2TimerGSIV;
-  TimerTable->header.virtual_timer_flag = gGtdtHdr->VirtualTimerFlags;
-  TimerTable->header.virtual_timer_gsiv = gGtdtHdr->VirtualTimerGSIV;
+  TimerTable->header.time_base_frequency  = gRhctHdr->TimeBaseFrequency;
 
-  /* If table Rev is  0x01 it will have above information only */
-  if (revision < 2)
-      return;
+  // /* ARM BSA */
+  // gGtdtHdr = (EFI_ACPI_6_1_GENERIC_TIMER_DESCRIPTION_TABLE *) pal_get_gtdt_ptr();
 
-  Offset         = gGtdtHdr->PlatformTimerOffset;
-  Entry          = (EFI_ACPI_6_1_GTDT_GT_BLOCK_STRUCTURE *) ((UINT8 *)gGtdtHdr + Offset);
-  num_of_entries = gGtdtHdr->PlatformTimerCount;
+  // if (gGtdtHdr == NULL) {
+  //   bsa_print(ACS_PRINT_ERR, L" GTDT not found\n");
+  //   return;
+  // }
+  // bsa_print(ACS_PRINT_INFO, L"  GTDT is at %x and length is %x\n", gGtdtHdr, gGtdtHdr->Header.Length);
 
-  while(num_of_entries) {
+  // revision = gGtdtHdr->Header.Revision;
+  // bsa_print(ACS_PRINT_INFO, L"  GTDT revision is at %d\n", revision);
 
-    if (Entry->Type == EFI_ACPI_6_1_GTDT_GT_BLOCK) {
-      bsa_print(ACS_PRINT_INFO, L"  Found block entry\n");
-      GtEntry->type = TIMER_TYPE_SYS_TIMER;
-      GtEntry->block_cntl_base = Entry->CntCtlBase;
-      GtEntry->timer_count     = Entry->GTBlockTimerCount;
-      bsa_print(ACS_PRINT_DEBUG, L"  CNTCTLBase = %llx\n", GtEntry->block_cntl_base);
-      GtBlockTimer = (EFI_ACPI_6_1_GTDT_GT_BLOCK_TIMER_STRUCTURE *)(((UINT8 *)Entry) + Entry->GTBlockTimerOffset);
-      for (i = 0; i < GtEntry->timer_count; i++) {
-        bsa_print(ACS_PRINT_INFO, L"  Found timer entry\n");
-        GtEntry->frame_num[i]    = GtBlockTimer->GTFrameNumber;
-        GtEntry->GtCntBase[i]    = GtBlockTimer->CntBaseX;
-        GtEntry->GtCntEl0Base[i] = GtBlockTimer->CntEL0BaseX;
-        GtEntry->gsiv[i]         = GtBlockTimer->GTxPhysicalTimerGSIV;
-        GtEntry->virt_gsiv[i]    = GtBlockTimer->GTxVirtualTimerGSIV;
-        GtEntry->flags[i]        = GtBlockTimer->GTxPhysicalTimerFlags | (GtBlockTimer->GTxVirtualTimerFlags << 8) | (GtBlockTimer->GTxCommonFlags << 16);
-        bsa_print(ACS_PRINT_DEBUG, L"  CNTBaseN = %llx for sys counter = %d\n",
-                                                     GtEntry->GtCntBase[i], i);
-        GtBlockTimer++;
-        TimerTable->header.num_platform_timer++;
-      }
-      GtEntry++;
-    }
+  // //Fill in our internal table
+  // TimerTable->header.s_el1_timer_flag  = gGtdtHdr->SecurePL1TimerFlags;
+  // TimerTable->header.ns_el1_timer_flag = gGtdtHdr->NonSecurePL1TimerFlags;
+  // TimerTable->header.el2_timer_flag    = gGtdtHdr->NonSecurePL2TimerFlags;
+  // TimerTable->header.s_el1_timer_gsiv  = gGtdtHdr->SecurePL1TimerGSIV;
+  // TimerTable->header.ns_el1_timer_gsiv = gGtdtHdr->NonSecurePL1TimerGSIV;
+  // TimerTable->header.el2_timer_gsiv    = gGtdtHdr->NonSecurePL2TimerGSIV;
+  // TimerTable->header.virtual_timer_flag = gGtdtHdr->VirtualTimerFlags;
+  // TimerTable->header.virtual_timer_gsiv = gGtdtHdr->VirtualTimerGSIV;
 
-    Entry = (EFI_ACPI_6_1_GTDT_GT_BLOCK_STRUCTURE *) ((UINT8 *)Entry + (Entry->Length));
-    num_of_entries--;
+  // /* If table Rev is  0x01 it will have above information only */
+  // if (revision < 2)
+  //     return;
 
-  };
+  // Offset         = gGtdtHdr->PlatformTimerOffset;
+  // Entry          = (EFI_ACPI_6_1_GTDT_GT_BLOCK_STRUCTURE *) ((UINT8 *)gGtdtHdr + Offset);
+  // num_of_entries = gGtdtHdr->PlatformTimerCount;
 
-  if (revision == 3) {
-      virtualpl2 = &(gGtdtHdr->PlatformTimerOffset);
-      TimerTable->header.el2_virt_timer_gsiv = *(++virtualpl2);
-      TimerTable->header.el2_virt_timer_flag = *(++virtualpl2);
-      if (TimerTable->header.el2_virt_timer_gsiv == 0) {
-         bsa_print(ACS_PRINT_DEBUG, L"  GTDT don't have el2 virt timer info\n");
-         bsa_print(ACS_PRINT_DEBUG, L"  using bsa recommended value 28\n");
-         TimerTable->header.el2_virt_timer_gsiv = PLATFORM_OVERRIDE_EL2_VIR_TIMER_GSIV;
-      }
+  // while(num_of_entries) {
 
-  }
-  else
-      pal_timer_platform_override(TimerTable);
+  //   if (Entry->Type == EFI_ACPI_6_1_GTDT_GT_BLOCK) {
+  //     bsa_print(ACS_PRINT_INFO, L"  Found block entry\n");
+  //     GtEntry->type = TIMER_TYPE_SYS_TIMER;
+  //     GtEntry->block_cntl_base = Entry->CntCtlBase;
+  //     GtEntry->timer_count     = Entry->GTBlockTimerCount;
+  //     bsa_print(ACS_PRINT_DEBUG, L"  CNTCTLBase = %llx\n", GtEntry->block_cntl_base);
+  //     GtBlockTimer = (EFI_ACPI_6_1_GTDT_GT_BLOCK_TIMER_STRUCTURE *)(((UINT8 *)Entry) + Entry->GTBlockTimerOffset);
+  //     for (i = 0; i < GtEntry->timer_count; i++) {
+  //       bsa_print(ACS_PRINT_INFO, L"  Found timer entry\n");
+  //       GtEntry->frame_num[i]    = GtBlockTimer->GTFrameNumber;
+  //       GtEntry->GtCntBase[i]    = GtBlockTimer->CntBaseX;
+  //       GtEntry->GtCntEl0Base[i] = GtBlockTimer->CntEL0BaseX;
+  //       GtEntry->gsiv[i]         = GtBlockTimer->GTxPhysicalTimerGSIV;
+  //       GtEntry->virt_gsiv[i]    = GtBlockTimer->GTxVirtualTimerGSIV;
+  //       GtEntry->flags[i]        = GtBlockTimer->GTxPhysicalTimerFlags | (GtBlockTimer->GTxVirtualTimerFlags << 8) | (GtBlockTimer->GTxCommonFlags << 16);
+  //       bsa_print(ACS_PRINT_DEBUG, L"  CNTBaseN = %llx for sys counter = %d\n",
+  //                                                    GtEntry->GtCntBase[i], i);
+  //       GtBlockTimer++;
+  //       TimerTable->header.num_platform_timer++;
+  //     }
+  //     GtEntry++;
+  //   }
+
+  //   Entry = (EFI_ACPI_6_1_GTDT_GT_BLOCK_STRUCTURE *) ((UINT8 *)Entry + (Entry->Length));
+  //   num_of_entries--;
+
+  // };
+
+  // if (revision == 3) {
+  //     virtualpl2 = &(gGtdtHdr->PlatformTimerOffset);
+  //     TimerTable->header.el2_virt_timer_gsiv = *(++virtualpl2);
+  //     TimerTable->header.el2_virt_timer_flag = *(++virtualpl2);
+  //     if (TimerTable->header.el2_virt_timer_gsiv == 0) {
+  //        bsa_print(ACS_PRINT_DEBUG, L"  GTDT don't have el2 virt timer info\n");
+  //        bsa_print(ACS_PRINT_DEBUG, L"  using bsa recommended value 28\n");
+  //        TimerTable->header.el2_virt_timer_gsiv = PLATFORM_OVERRIDE_EL2_VIR_TIMER_GSIV;
+  //     }
+
+  // }
+  // else
+  //     pal_timer_platform_override(TimerTable);
 }
 
 /**

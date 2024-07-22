@@ -169,6 +169,40 @@ pal_get_gtdt_ptr()
 }
 
 /**
+  @brief  Iterate through the tables pointed by XSDT and return RHCT address
+
+  @param  None
+
+  @return 64-bit GTDT address
+**/
+UINT64
+pal_get_rhct_ptr()
+{
+
+  EFI_ACPI_DESCRIPTION_HEADER   *Xsdt;
+  UINT64                        *Entry64;
+  UINT32                        Entry64Num;
+  UINT32                        Idx;
+
+  Xsdt = (EFI_ACPI_DESCRIPTION_HEADER *) pal_get_xsdt_ptr();
+  if (Xsdt == NULL) {
+      bsa_print(ACS_PRINT_ERR, L" XSDT not found\n");
+      return 0;
+  }
+
+  Entry64  = (UINT64 *)(Xsdt + 1);
+  Entry64Num = (Xsdt->Length - sizeof(EFI_ACPI_DESCRIPTION_HEADER)) >> 3;
+  for (Idx = 0; Idx < Entry64Num; Idx++) {
+    if (*(UINT32 *)(UINTN)(Entry64[Idx]) == EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_SIGNATURE) {
+        return(UINT64)(Entry64[Idx]);
+    }
+  }
+
+  return 0;
+
+}
+
+/**
   @brief  Iterate through the tables pointed by XSDT and return MCFG Table address
 
   @param  None
