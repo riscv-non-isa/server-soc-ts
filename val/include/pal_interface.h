@@ -199,6 +199,14 @@ typedef struct {
   uint64_t   mpidr;       ///< PE MPIDR
   uint32_t   pmu_gsiv;    ///< PMU Interrupt ID
   uint32_t   gmain_gsiv;  ///< GIC Maintenance Interrupt ID
+
+  /* RV porting */
+  uint64_t   hart_id;
+  uint32_t   acpi_processor_uid;
+  uint32_t   ext_intc_id;
+  uint64_t   imsic_base;
+  uint32_t   imsic_size;
+  char8_t    isa_string[512];
 }PE_INFO_ENTRY;
 
 typedef struct {
@@ -747,6 +755,7 @@ void     pal_print(char8_t *string, uint64_t data);
 void     pal_uart_print(int log, const char *fmt, ...);
 void     pal_print_raw(uint64_t addr, char8_t *string, uint64_t data);
 uint32_t pal_strncmp(char8_t *str1, char8_t *str2, uint32_t len);
+char8_t *pal_strstr (char8_t *str1, char8_t *str2);
 void     pal_mmu_add_mmap(void);
 void    *pal_mmu_get_mmap_list(void);
 uint32_t pal_mmu_get_mapping_count(void);

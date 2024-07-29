@@ -417,6 +417,28 @@ val_pe_get_gmain_gsiv(uint32_t index)
 }
 
 /**
+ * @brief This API returns the ISA string for a given PE index
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_create_peinfo_table
+ * @param index - the index of PE whose ISA string is to be returned.
+ * @return Pointer to the ISA string
+ */
+char8_t *
+val_pe_get_isa_string (uint32_t index)
+{
+  PE_INFO_ENTRY *entry;
+
+  if (index > g_pe_info_table->header.num_of_pe) {
+        val_report_status(index, RESULT_FAIL(0, 0xFF), NULL);
+        return NULL;
+  }
+
+  entry = g_pe_info_table->pe_info;
+
+  return entry[index].isa_string;
+}
+
+/**
   @brief   This API will call an assembly sequence with interval
            as argument over which an SPE event is exected to be generated.
            1. Caller       -  Test Suite

@@ -102,7 +102,7 @@ pal_timer_create_info_table(TIMER_INFO_TABLE *TimerTable)
   //Fill in our internal table
   TimerTable->header.time_base_frequency  = gRhctHdr->TimeBaseFrequency;
 
-  // /* ARM BSA */
+  // /* ARM BSA code */
   // gGtdtHdr = (EFI_ACPI_6_1_GENERIC_TIMER_DESCRIPTION_TABLE *) pal_get_gtdt_ptr();
 
   // if (gGtdtHdr == NULL) {

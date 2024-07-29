@@ -688,6 +688,21 @@ val_strncmp(char8_t *str1, char8_t *str2, uint32_t len)
 }
 
 /**
+  @brief  Match two strings
+
+  @param  str1   The pointer to a Null-terminated ASCII string.
+  @param  str2  The pointer to a Null-terminated ASCII string.
+
+  @return NULL If the str2 does not appear in str1, otherwise
+          return the first occurrence of str2.
+**/
+char8_t *
+val_strstr(char8_t *str1, char8_t *str2)
+{
+  return pal_strstr(str1, str2);
+}
+
+/**
   Copies a source buffer to a destination buffer, and returns the destination buffer.
 
   @param  DestinationBuffer   The pointer to the destination buffer of the memory copy.

@@ -107,6 +107,7 @@ typedef struct {
   UINT32   ext_intc_id;
   UINT64   imsic_base;
   UINT32   imsic_size;
+  UINT8    isa_string[512];
 }PE_INFO_ENTRY;
 
 typedef struct {

@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2016-2018,2021 Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,46 +18,56 @@
 #include "val/include/bsa_acs_val.h"
 #include "val/include/val_interface.h"
 
-#include "val/include/bsa_acs_timer.h"
+#include "val/include/bsa_acs_gic.h"
 
-#define TEST_NUM   (ACS_TIMER_TEST_NUM_BASE + 1)
-#define TEST_RULE  "ME_CTI_010_010"
-#define TEST_DESC  "Check Counter Frequency               "
+#define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 1)
+#define TEST_RULE  "ME_IIC_010_010"
+#define TEST_DESC  "Check GIC version                     "
 
 /**
- * @brief Parse ACPI RHCT table to determine the time base frequency and
- * verify it is equal to 1 GHz.
+ * @brief For each application processor hart:
+ *
+ * 1. Determine the ISA node in ACPI RHCT table for that hart.
+ * 2. Parse the ISA string in the ISA node and verify that Ssaia extension is
+ *    supported.
+ * 3. Parse the RINTC structure in ACPI MADT tables to verify that the
+ *    interrupt controller type for the hart is IMSIC.
  */
 static
 void
 payload()
 {
 
-  uint32_t counter_freq;
+  char8_t *isa_string;
+  char8_t *ptr;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
 
-  counter_freq = val_timer_get_info(TIMER_INFO_CNTFREQ, 0);
-  val_print(ACS_PRINT_DEBUG, "\n       Counter frequency is %d Hz     ", counter_freq);
+  isa_string = val_pe_get_isa_string(index);
+  val_print(ACS_PRINT_INFO, isa_string, 0);
 
-  if (counter_freq == 1000*1000*1000) {
-      val_set_status(index, RESULT_PASS(TEST_NUM, 1));
-      return;
+  ptr = val_strstr(isa_string, "ssaia");
+
+  if (ptr == NULL) {
+    val_print(ACS_PRINT_ERR, "\n       Ssaia not found", 0);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+    return;
   }
 
-  val_print(ACS_PRINT_ERR, "\n       Fail - Time base frequency must equal to 1 GHz.", 0);
-  val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+  val_set_status(index, RESULT_PASS(TEST_NUM, 1));
 
 }
 
 uint32_t
-os_t001_entry(uint32_t num_pe)
+os_i001_entry(uint32_t num_pe)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This Timer test is run on single processor
+  num_pe = 1;  //This IIC test is run on single processor
+  // TODO: test all processor
 
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_pe, payload, 0);
 

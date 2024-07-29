@@ -26,6 +26,8 @@
 #include "include/pal_uefi.h"
 
 static   EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *gMadtHdr;
+static EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_STRUCTURE *gRhctHdr;
+
 UINT8   *gSecondaryPeStack;
 UINT64  gMpidrMax;
 static UINT32 g_num_pe;
@@ -44,6 +46,9 @@ UINT64
 pal_get_fadt_ptr (
   VOID
   );
+
+UINT64
+pal_get_rhct_ptr();
 
 VOID
 ArmCallSmc (
@@ -180,12 +185,17 @@ PalAllocateSecondaryStack(UINT64 mpidr)
 VOID
 pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
 {
-  EFI_ACPI_6_5_RINTC_STRUCTURE  *Entry = NULL;
-  PE_INFO_ENTRY                 *Ptr = NULL;
-  UINT32                        TableLength = 0;
-  UINT32                        Length = 0;
-  // UINT64                        MpidrAff0Max = 0, MpidrAff1Max = 0, MpidrAff2Max = 0, MpidrAff3Max = 0;
-  UINT32                        Flags;
+  EFI_ACPI_6_5_RINTC_STRUCTURE                *Entry = NULL;
+  EFI_ACPI_6_5_RHCT_NODE_HEADER               *RhctNodeEntry = NULL;
+  EFI_ACPI_6_5_RHCT_HART_INFO_NODE_STRUCTURE  *HartInfoNode = NULL;
+  EFI_ACPI_6_5_RHCT_ISA_STRING_NODE_STRUCTURE *IsaStringNode = NULL;
+  PE_INFO_ENTRY                               *Ptr = NULL;
+  UINT32                                      MadtTableLength = 0;
+  UINT32                                      RhctTableLength = 0;
+  UINT32                                      Length = 0;
+  UINT32                                      Index = 0;
+  UINT32                                      Index2 = 0;
+  UINT32                                      Flags = 0;
 
   if (PeTable == NULL) {
     bsa_print(ACS_PRINT_ERR, L" Input PE Table Pointer is NULL. Cannot create PE INFO\n");
@@ -198,10 +208,19 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   gMadtHdr = (EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *) pal_get_madt_ptr();
 
   if (gMadtHdr != NULL) {
-    TableLength =  gMadtHdr->Header.Length;
-    bsa_print(ACS_PRINT_INFO, L"  MADT is at %x and length is %x\n", gMadtHdr, TableLength);
+    MadtTableLength =  gMadtHdr->Header.Length;
+    bsa_print(ACS_PRINT_INFO, L"  MADT is at %x and length is %x\n", gMadtHdr, MadtTableLength);
   } else {
     bsa_print(ACS_PRINT_ERR, L" MADT not found\n");
+    return;
+  }
+
+  gRhctHdr = (EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_STRUCTURE *) pal_get_rhct_ptr();
+  if (gRhctHdr != NULL) {
+    RhctTableLength =  gRhctHdr->Header.Length;
+    bsa_print(ACS_PRINT_INFO, L"  RHCT is at %x and length is %x\n", gRhctHdr, RhctTableLength);
+  } else {
+    bsa_print(ACS_PRINT_ERR, L" RHCT not found\n");
     return;
   }
 
@@ -210,40 +229,10 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   Ptr = PeTable->pe_info;
 
   do {
-
-    // if (Entry->Type == EFI_ACPI_6_1_GIC) {
-    //   //Fill in the cpu num and the mpidr in pe info table
-    //   Flags           = Entry->Flags;
-    //   bsa_print(ACS_PRINT_INFO, L"  Flags %x\n", Flags);
-    //   bsa_print(ACS_PRINT_DEBUG, L"  PE Enabled %d, Online Capable %d\n", ENABLED_BIT(Flags), ONLINE_CAP_BIT(Flags));
-
-    //   /* As per MADT (GICC CPU Interface Flags) Processor is usable when
-    //        Enabled bit is set
-    //        Enabled bit is clear and Online Capable bit is set
-    //        if both bits are clear, PE is not usable
-    //   */
-    //   if ((ENABLED_BIT(Flags) == 1) || (ONLINE_CAP_BIT(Flags) == 1))
-    //   {
-    //       Ptr->mpidr      = Entry->MPIDR;
-    //       Ptr->pe_num     = PeTable->header.num_of_pe;
-    //       Ptr->pmu_gsiv   = Entry->PerformanceInterruptGsiv;
-    //       Ptr->gmain_gsiv = Entry->VGICMaintenanceInterrupt;
-    //       bsa_print(ACS_PRINT_DEBUG, L"  MPIDR %llx PE num %x\n", Ptr->mpidr, Ptr->pe_num);
-    //       pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
-    //       Ptr++;
-    //       PeTable->header.num_of_pe++;
-
-    //       MpidrAff0Max = UPDATE_AFF_MAX(MpidrAff0Max, Entry->MPIDR, 0x000000ff);
-    //       MpidrAff1Max = UPDATE_AFF_MAX(MpidrAff1Max, Entry->MPIDR, 0x0000ff00);
-    //       MpidrAff2Max = UPDATE_AFF_MAX(MpidrAff2Max, Entry->MPIDR, 0x00ff0000);
-    //       MpidrAff3Max = UPDATE_AFF_MAX(MpidrAff3Max, Entry->MPIDR, 0xff00000000);
-    //   }
-    // }
-
     if ((Entry->Type == EFI_ACPI_6_5_RINTC)) {
       //Fill in the hart num and the id in pe info table
       Flags           = Entry->Flags;
-      bsa_print(ACS_PRINT_INFO, L"  Flags %x\n", Flags);
+      bsa_print(ACS_PRINT_INFO, L"  RINTC Flags %x\n", Flags);
       bsa_print(ACS_PRINT_DEBUG, L"  PE Enabled %d, Online Capable %d\n", ENABLED_BIT(Flags), ONLINE_CAP_BIT(Flags));
 
       /* As per MADT (RISC-V INTC Flags) a processor is usable when
@@ -254,12 +243,49 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
       if ((ENABLED_BIT(Flags) == 1) || (ONLINE_CAP_BIT(Flags) == 1)) {
         Ptr->hart_id = Entry->HartId;
         Ptr->pe_num     = PeTable->header.num_of_pe;
-        Ptr->acpi_processor_uid = Entry->ProcessorUid;
+        Ptr->acpi_processor_uid = Entry->AcpiProcessorUid;
         Ptr->ext_intc_id = Entry->ExternalINTCId;
         Ptr->imsic_base = Entry->IMSICBase;
         Ptr->imsic_size = Entry->IMSICSize;
-        bsa_print(ACS_PRINT_DEBUG, L"  HartID %lx PE num %x\n", Ptr->hart_id, Ptr->pe_num);
-        bsa_print(ACS_PRINT_DEBUG, L"    IMSIC Base %lx IMSIC Soze %x\n", Ptr->imsic_base, Ptr->imsic_size);
+        bsa_print(ACS_PRINT_DEBUG, L"  HartID 0x%lx PE num 0x%x\n", Ptr->hart_id, Ptr->pe_num);
+        bsa_print(ACS_PRINT_DEBUG, L"    Processor UID %d\n", Ptr->acpi_processor_uid);
+        bsa_print(ACS_PRINT_DEBUG, L"    IMSIC Base 0x%lx IMSIC Soze 0x%x\n", Ptr->imsic_base, Ptr->imsic_size);
+
+        // Find Hart Info node first.
+        HartInfoNode = (EFI_ACPI_6_5_RHCT_HART_INFO_NODE_STRUCTURE *)((UINTN)gRhctHdr + gRhctHdr->RHCTNodeOffset);
+        for (Index = 0; Index < gRhctHdr->RHCTNodeNumber; Index++) {
+          if (HartInfoNode->Header.Type == EFI_ACPI_6_5_RHCT_NODE_TYPE_HART_INFO_NODE &&
+              HartInfoNode->AcpiProcessorUid == Entry->AcpiProcessorUid) {
+            bsa_print(ACS_PRINT_INFO, L"      HART Info is found\n");
+
+            // Go through HartInfoNode.Offsets for other RHCT nodes of this hart
+            for (Index2 = 0; Index2 < HartInfoNode->OffsetNumber; Index2++) {
+              RhctNodeEntry = (EFI_ACPI_6_5_RHCT_NODE_HEADER *)((UINTN)gRhctHdr + HartInfoNode->Offsets[Index2]);
+              switch (RhctNodeEntry->Type) {
+                case EFI_ACPI_6_5_RHCT_NODE_TYPE_ISA_STRING_NODE:
+                  IsaStringNode = (EFI_ACPI_6_5_RHCT_ISA_STRING_NODE_STRUCTURE *) RhctNodeEntry;
+                  if (IsaStringNode->ISALength > sizeof(Ptr->isa_string)) {
+                    bsa_print(ACS_PRINT_ERR, L"      Error: ISA String size overflow %d\n", IsaStringNode->ISALength);
+                  }
+                  CopyMem(Ptr->isa_string, IsaStringNode->ISAString, IsaStringNode->ISALength);
+                  bsa_print(ACS_PRINT_INFO, L"      ISA string found: %a\n", Ptr->isa_string);
+                  break;
+
+                case EFI_ACPI_6_5_RHCT_NODE_TYPE_CMO_EXTENSION_NODE:
+                  bsa_print(ACS_PRINT_INFO, L"      CMO found\n");
+                  break;
+
+                case EFI_ACPI_6_5_RHCT_NODE_TYPE_MMU_NODE:
+                  bsa_print(ACS_PRINT_INFO, L"      MMU found\n");
+                  break;
+
+                default:
+                  bsa_print(ACS_PRINT_INFO, L"      Unknow type %d found\n", RhctNodeEntry->Type);
+              }
+            }
+          }
+          HartInfoNode = (EFI_ACPI_6_5_RHCT_HART_INFO_NODE_STRUCTURE *)((UINTN)HartInfoNode + HartInfoNode->Header.Length);
+        }
         pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
         Ptr++;
         PeTable->header.num_of_pe++;
@@ -268,8 +294,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
 
     Length += Entry->Length;
     Entry = (EFI_ACPI_6_5_RINTC_STRUCTURE *) ((UINT8 *)Entry + (Entry->Length));
-
-  }while(Length < TableLength);
+  }while(Length < MadtTableLength);
 
   // gMpidrMax = MpidrAff0Max | MpidrAff1Max | MpidrAff2Max | MpidrAff3Max;
   g_num_pe = PeTable->header.num_of_pe;
@@ -278,7 +303,6 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   // RV porting TODO: secondary stack allocationg should be ported for RV multi-processor tests
   // pal_pe_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
   // PalAllocateSecondaryStack(gMpidrMax);
-
 }
 
 /**

@@ -36,8 +36,8 @@ val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 {
 
   uint32_t status, i;
-  uint32_t gic_version, num_msi_frame;
 
+  val_print(ACS_PRINT_INFO, "\n       val_gic_execute_tests enter\n", 0);
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_GIC_TEST_NUM_BASE) {
           val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all GIC tests\n", 0);
@@ -57,75 +57,15 @@ val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   val_print_test_start("GIC");
   g_curr_module = 1 << GIC_MODULE;
 
-  gic_version = val_gic_get_info(GIC_INFO_VERSION);
-
+  val_print_test_start("GIC");
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-
-      /* B_GIC_01 and B_GIC_02 only for BSA */
-      if (!g_build_sbsa) {
-          status |= os_g001_entry(num_pe);
-          /* Run B_GIC_02 test only if system has GICv2 */
-          if (gic_version == 2)
-              status |= os_g002_entry(num_pe);
-      }
-      if (gic_version > 2) {
-          status |= os_g003_entry(num_pe);
-          status |= os_g004_entry(num_pe);
-      }
-
-      status |= os_g005_entry(num_pe);
-      if (!g_el1physkip)
-          status |= os_g006_entry(num_pe);
-
-      status |= os_g007_entry(num_pe);
+      status |= os_i001_entry(num_pe);
+      // status |= os_v2m001_entry(num_pe);
+      // status |= os_v2m002_entry(num_pe);
+      // status |= os_v2m003_entry(num_pe);
+      // status |= os_v2m004_entry(num_pe);
   }
-
-  if (g_sw_view[G_SW_HYP]) {
-      val_print(ACS_PRINT_ERR, "\nHypervisor View:\n", 0);
-      status |= hyp_g001_entry(num_pe);
-      status |= hyp_g002_entry(num_pe);
-      status |= hyp_g003_entry(num_pe);
-  }
-
-  /* Run GICv2m only if GIC Version is v2m. */
-  num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
-
-  if ((gic_version != 2) || (num_msi_frame == 0)) {
-      val_print(ACS_PRINT_INFO, "\n       No GICv2m, Skipping all GICv2m tests\n", 0);
-      goto its_test;
-  }
-
-  if (val_gic_v2m_parse_info()) {
-      val_print(ACS_PRINT_INFO, "\n       GICv2m info mismatch, Skipping all GICv2m tests\n", 0);
-      goto its_test;
-  }
-
-  val_print_test_start("GICv2m");
-  if (g_sw_view[G_SW_OS]) {
-      val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-      status |= os_v2m001_entry(num_pe);
-      status |= os_v2m002_entry(num_pe);
-      status |= os_v2m003_entry(num_pe);
-      status |= os_v2m004_entry(num_pe);
-  }
-
-its_test:
-  if ((val_gic_get_info(GIC_INFO_NUM_ITS) == 0) || (pal_target_is_dt())) {
-      val_print(ACS_PRINT_DEBUG, "\n       No ITS, Skipping all DeviceID & ITS tests\n", 0);
-      goto test_done;
-  }
-
-  val_print_test_start("DeviceID generation and ITS");
-  if (g_sw_view[G_SW_OS]) {
-      val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-      status |= os_its001_entry(num_pe);
-      status |= os_its002_entry(num_pe);
-      status |= os_its003_entry(num_pe);
-      status |= os_its004_entry(num_pe);
-  }
-
-test_done:
   val_print_test_end(status, "GIC");
 
   return status;

@@ -551,6 +551,24 @@ pal_strncmp (
 }
 
 /**
+  @brief  Match two strings
+
+  @param  FirstString   The pointer to a Null-terminated ASCII string.
+  @param  SecondString  The pointer to a Null-terminated ASCII string.
+
+  @return NULL If the SecondString does not appear in FirstString, otherwise
+          return the first occurrence of SecondString.
+**/
+CHAR8 *
+pal_strstr (
+  CHAR8 *FirstString,
+  CHAR8 *SecondString
+  )
+{
+  return AsciiStrStr(FirstString, SecondString);
+}
+
+/**
   Copies a source buffer to a destination buffer, and returns the destination buffer.
 
   @param  DestinationBuffer   The pointer to the destination buffer of the memory copy.

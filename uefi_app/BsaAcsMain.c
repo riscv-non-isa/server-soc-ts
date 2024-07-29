@@ -614,7 +614,8 @@ ShellAppMain (
   // Status |= val_memory_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting GIC tests            ***/
-  // Status |= val_gic_execute_tests(val_pe_get_num(), g_sw_view);
+  val_print(ACS_PRINT_TEST, "\n Starting GIC tests\n", 0);
+  Status |= val_gic_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting System MMU tests     ***/
   // Status |= val_smmu_execute_tests(val_pe_get_num(), g_sw_view);

@@ -68,6 +68,9 @@ typedef struct {
 } GICv2m_MSI_FRAME_INFO;
 
 uint32_t
+os_i001_entry(uint32_t num_pe);
+
+uint32_t
 os_g001_entry(uint32_t num_pe);
 uint32_t
 os_g002_entry(uint32_t num_pe);
