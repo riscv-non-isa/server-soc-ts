@@ -439,6 +439,30 @@ val_pe_get_isa_string (uint32_t index)
 }
 
 /**
+ * @brief  This API returns the Incoming MSI Controller (IMSIC) MMIO base address
+           for a given PE index
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_create_peinfo_table
+ *
+ * @param index
+ * @return Base address of IMSIC
+ */
+uint64_t
+val_pe_get_imsic_base (int32_t index)
+{
+  PE_INFO_ENTRY *entry;
+
+  if (index > g_pe_info_table->header.num_of_pe) {
+        val_report_status(index, RESULT_FAIL(0, 0xFF), NULL);
+        return 0;
+  }
+
+  entry = g_pe_info_table->pe_info;
+
+  return entry[index].imsic_base;
+}
+
+/**
   @brief   This API will call an assembly sequence with interval
            as argument over which an SPE event is exected to be generated.
            1. Caller       -  Test Suite
