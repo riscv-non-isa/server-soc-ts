@@ -21,37 +21,20 @@
 #include "val/include/bsa_acs_timer.h"
 
 #define TEST_NUM   (ACS_TIMER_TEST_NUM_BASE + 2)
-#define TEST_RULE  "B_TIME_06"
-#define TEST_DESC  "SYS Timer if PE Timer not ON          "
+#define TEST_RULE  "ME_CTI_020_010"
+#define TEST_DESC  "Arch Context Lost Flags          "
 
+/**
+ * @brief Locate the _LPI objects for each RISC-V application processor hart. If
+          present, verify that the Architectural Context Lost Flags have bit 0 set to 0,
+          indicating no loss of timer context for each supported low-power idle state.
+ */
 static
 void
 payload()
 {
-
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-
-  if (val_timer_get_info(TIMER_INFO_NUM_PLATFORM_TIMERS, 0) == 0) {
-      val_print(ACS_PRINT_INFO, "\n Physical EL1 timer flag = %x",
-                val_timer_get_info(TIMER_INFO_PHY_EL1_FLAGS, 0));
-      val_print(ACS_PRINT_INFO, "\n Physical EL2 timer flag = %x",
-                val_timer_get_info(TIMER_INFO_PHY_EL2_FLAGS, 0));
-      val_print(ACS_PRINT_INFO, "\n Virtual EL1 timer flag  = %x",
-                val_timer_get_info(TIMER_INFO_VIR_EL1_FLAGS, 0));
-
-      if ((val_timer_get_info(TIMER_INFO_PHY_EL1_FLAGS, 0) & BSA_TIMER_FLAG_ALWAYS_ON) &&
-        (val_timer_get_info(TIMER_INFO_PHY_EL2_FLAGS, 0) & BSA_TIMER_FLAG_ALWAYS_ON) &&
-        (val_timer_get_info(TIMER_INFO_VIR_EL1_FLAGS, 0) & BSA_TIMER_FLAG_ALWAYS_ON)) {
-          val_set_status(index, RESULT_PASS(TEST_NUM, 1));
-      } else {
-          val_print(ACS_PRINT_ERR, "\n       PE Timers are not always-on\n"
-                                   "       And no system wake up timer", 0);
-          val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
-      }
-  } else {
-      val_set_status(index, RESULT_PASS(TEST_NUM, 2));
-  }
-
+  val_print(ACS_PRINT_ERR, "\n       Skip - Need ACPI interpreter to invoke _LPI method", 0);
+  val_set_status(0, RESULT_SKIP(TEST_NUM, 1));
 }
 
 uint32_t

@@ -614,14 +614,12 @@ ShellAppMain (
   // Status |= val_memory_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting GIC tests            ***/
-  val_print(ACS_PRINT_TEST, "\n Starting GIC tests\n", 0);
   Status |= val_gic_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting System MMU tests     ***/
   // Status |= val_smmu_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Timer tests          ***/
-  val_print(ACS_PRINT_TEST, "\n Starting Timer tests\n", 0);
   Status |= val_timer_execute_tests(val_pe_get_num(), g_sw_view);
 
   /***  Starting Wakeup semantic tests ***/

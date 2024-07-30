@@ -42,30 +42,24 @@ payload()
   char8_t *ptr;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
   uint64_t imsic_base;
-  uint8_t  is_failed = 0;
 
   isa_string = val_pe_get_isa_string(index);
-  val_print(ACS_PRINT_INFO, isa_string, 0);
 
   ptr = val_strstr(isa_string, "ssaia");
   if (ptr == NULL) {
     val_print(ACS_PRINT_ERR, "\n       Ssaia not found", 0);
-    is_failed = 1;
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+    return;
   }
 
   imsic_base = val_pe_get_imsic_base(index);
   if (imsic_base == 0) {
     val_print(ACS_PRINT_ERR, "\n       IMSIC base not found", 0);
-    is_failed = 1;
-  }
-
-  if (is_failed) {
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
     return;
   }
 
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
-
 }
 
 uint32_t

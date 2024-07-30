@@ -179,7 +179,7 @@
   # ../test_pool/gic/hypervisor/test_hyp_g002.c
   # ../test_pool/gic/hypervisor/test_hyp_g003.c
   ../test_pool/timer/operating_system/test_os_t001.c
-  # ../test_pool/timer/operating_system/test_os_t002.c
+  ../test_pool/timer/operating_system/test_os_t002.c
   # ../test_pool/timer/operating_system/test_os_t003.c
   # ../test_pool/timer/operating_system/test_os_t004.c
   # ../test_pool/timer/operating_system/test_os_t005.c

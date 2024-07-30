@@ -37,7 +37,6 @@ val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 
   uint32_t status, i;
 
-  val_print(ACS_PRINT_INFO, "\n       val_gic_execute_tests enter\n", 0);
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_GIC_TEST_NUM_BASE) {
           val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all GIC tests\n", 0);
@@ -52,12 +51,10 @@ val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
       return ACS_STATUS_SKIP;
   }
 
-  status      = ACS_STATUS_PASS;
-
   val_print_test_start("GIC");
+  status      = ACS_STATUS_PASS;
   g_curr_module = 1 << GIC_MODULE;
 
-  val_print_test_start("GIC");
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
       status |= os_i001_entry(num_pe);
