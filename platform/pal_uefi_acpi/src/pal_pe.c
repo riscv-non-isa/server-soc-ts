@@ -232,6 +232,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   Ptr = PeTable->pe_info;
 
   do {
+    // The RINTC structures provide the per-processor interrupt information.
     if ((Entry->Type == EFI_ACPI_6_5_RINTC)) {
       //Fill in the hart num and the id in pe info table
       Flags           = Entry->Flags;

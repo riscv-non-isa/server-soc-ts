@@ -61,6 +61,8 @@ val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
       status |= os_i001_entry(num_pe);
       status |= os_i002_entry(num_pe);
       status |= os_i003_entry(num_pe);
+      status |= os_i004_entry(num_pe);
+      status |= os_i005_entry(num_pe);
       // status |= os_v2m001_entry(num_pe);
       // status |= os_v2m002_entry(num_pe);
       // status |= os_v2m003_entry(num_pe);
@@ -642,4 +644,17 @@ uint32_t
 val_gic_is_valid_eppi(uint32_t int_id)
 {
   return val_bsa_gic_check_eppi_interrupt(int_id);
+}
+
+
+uint32_t
+val_gic_max_supervisor_intr_num(void)
+{
+  return g_gic_info_table->header.supervisor_intr_num;
+}
+
+uint32_t
+val_gic_max_guest_intr_num(void)
+{
+  return g_gic_info_table->header.guest_intr_num;
 }

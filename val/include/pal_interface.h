@@ -265,6 +265,10 @@ typedef struct {
   uint32_t num_its;
   uint32_t num_msi_frame;
   uint32_t num_gich;
+
+  /* RV porting */
+  UINT16   supervisor_intr_num;
+  UINT16   guest_intr_num;
 }GIC_INFO_HDR;
 
 typedef enum {

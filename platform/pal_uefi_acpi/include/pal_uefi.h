@@ -102,12 +102,12 @@ typedef struct {
   UINT32   gmain_gsiv;  ///< GIC Maintenance Interrupt ID
 
   /* RV porting */
-  UINT64   hart_id;
+  UINT64   hart_id;     // Hart ID (mhartid) of the hart
   UINT32   acpi_processor_uid;
-  UINT32   ext_intc_id;
-  UINT64   imsic_base;
-  UINT32   imsic_size;
-  UINT8    isa_string[512];
+  UINT32   ext_intc_id; // The unique ID of the external interrupts connected to this hart.
+  UINT64   imsic_base;  // Physical base address of the Incoming MSI Controller (IMSIC) MMIO region of this hart.
+  UINT32   imsic_size;  // Size in bytes of the IMSIC MMIO region of this hart.
+  UINT8    isa_string[512]; // Null-terminated ASCII Instruction Set Architecture (ISA) string for this hart.
 }PE_INFO_ENTRY;
 
 typedef struct {
@@ -129,6 +129,10 @@ typedef struct {
   UINT32   num_its;
   UINT32   num_msi_frame;
   UINT32   num_gich;
+
+  /* RV porting */
+  UINT16   supervisor_intr_num;
+  UINT16   guest_intr_num;
 }GIC_INFO_HDR;
 
 typedef enum {

@@ -24,6 +24,10 @@ uint32_t
 os_i002_entry(uint32_t num_pe);
 uint32_t
 os_i003_entry(uint32_t num_pe);
+uint32_t
+os_i004_entry(uint32_t num_pe);
+uint32_t
+os_i005_entry(uint32_t num_pe);
 
 
 #endif
