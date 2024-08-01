@@ -795,6 +795,8 @@ void     pal_mmio_write64(uint64_t addr, uint64_t data);
 void     pal_pe_update_elr(void *context, uint64_t offset);
 uint64_t pal_pe_get_esr(void *context);
 uint64_t pal_pe_get_far(void *context);
+uint64_t pal_pe_get_hstatus (void);
+void     pal_pe_set_hstatus (uint64_t val);
 void     pal_pe_data_cache_ops_by_va(uint64_t addr, uint32_t type);
 
 #define CLEAN_AND_INVALIDATE  0x1

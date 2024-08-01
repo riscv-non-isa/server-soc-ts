@@ -17,6 +17,7 @@
 
 #include "include/bsa_acs_val.h"
 #include "include/bsa_acs_gic.h"
+#include "include/bsa_acs_iic.h"
 #include "include/bsa_acs_gic_support.h"
 #include "include/bsa_acs_common.h"
 #include "sys_arch_src/gic/gic.h"
@@ -58,6 +59,8 @@ val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
       status |= os_i001_entry(num_pe);
+      status |= os_i002_entry(num_pe);
+      status |= os_i003_entry(num_pe);
       // status |= os_v2m001_entry(num_pe);
       // status |= os_v2m002_entry(num_pe);
       // status |= os_v2m003_entry(num_pe);

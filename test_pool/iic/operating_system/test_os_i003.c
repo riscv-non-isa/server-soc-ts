@@ -20,43 +20,44 @@
 
 #include "val/include/bsa_acs_gic.h"
 #include "val/include/bsa_acs_iic.h"
+#include "val/include/bsa_acs_pe.h"
 
-#define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 1)
-#define TEST_RULE  "ME_IIC_010_010, ME_IIC_020_010"
-#define TEST_DESC  "Check Ssaia extension and IMSIC controller               "
+#define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 3)
+#define TEST_RULE  "ME_IIC_040_010"
+#define TEST_DESC  "Check maximum hstatus.VGEIN                     "
+
+#define HSTATUS_VGEIN_SHIFT		12
+#define HSTATUS_VGEIN			0x0003f000UL
 
 /**
- * @brief For each application processor hart:
- *
- * 1. Determine the ISA node in ACPI RHCT table for that hart.
- * 2. Parse the ISA string in the ISA node and verify that Ssaia extension is
- *    supported.
- * 3. Parse the RINTC structure in ACPI MADT tables to verify that the
- *    interrupt controller type for the hart is IMSIC.
+ * @brief Use WARL discovery method on hstatus.VGEIN CSR field to determine the
+          GEILEN and verify that at least 5 guest interrupt files are supported
  */
 static
 void
 payload()
 {
-
-  char8_t *isa_string;
-  char8_t *ptr;
   uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-  uint64_t imsic_base;
+  uint32_t vgein;
+  uint64_t val_w;
+  uint64_t val_r;
 
-  isa_string = val_pe_get_isa_string(index);
-
-  ptr = val_strstr(isa_string, "ssaia");
-  if (ptr == NULL) {
-    val_print(ACS_PRINT_ERR, "\n       Ssaia not found", 0);
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
-    return;
+  for (vgein = 1; vgein <= 0x3F; vgein++) {
+    val_w = (val_pe_get_hstatus() & (~HSTATUS_VGEIN)) | (vgein << HSTATUS_VGEIN_SHIFT);
+    val_pe_set_hstatus(val_w);
+    val_r = val_pe_get_hstatus();
+    // val_print(ACS_PRINT_INFO, "\n       val_w=0x%lx", val_w);
+    // val_print(ACS_PRINT_INFO, "\n       val_r=0x%lx", val_r);
+    if ((val_w & HSTATUS_VGEIN) != (val_r & HSTATUS_VGEIN)) {
+      break;
+    }
   }
 
-  imsic_base = val_pe_get_imsic_base(index);
-  if (imsic_base == 0) {
-    val_print(ACS_PRINT_ERR, "\n       IMSIC base not found", 0);
-    val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
+  val_print(ACS_PRINT_INFO, "\n       Valid VGEIN range is [0, 0x%x)", vgein);
+
+  if (vgein < 5) {
+    val_print(ACS_PRINT_ERR, "\n       GEILEN must be at least 5", 0);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
     return;
   }
 
@@ -64,13 +65,12 @@ payload()
 }
 
 uint32_t
-os_i001_entry(uint32_t num_pe)
+os_i003_entry(uint32_t num_pe)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
   num_pe = 1;  //This IIC test is run on single processor
-  // TODO: test all processor
 
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
 

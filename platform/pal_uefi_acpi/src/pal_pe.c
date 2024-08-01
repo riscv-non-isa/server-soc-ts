@@ -23,6 +23,9 @@
 #include <Protocol/AcpiTable.h>
 #include <Protocol/Cpu.h>
 
+#include <sbi/riscv_asm.h>
+#include <sbi/riscv_encoding.h>
+
 #include "include/pal_uefi.h"
 
 static   EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *gMadtHdr;
@@ -454,5 +457,19 @@ pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type)
       default:
           DataCacheCleanInvalidateVA(addr);
   }
+}
 
+
+#define CSR_HSTATUS			0x600
+
+UINT64
+pal_pe_get_hstatus (void)
+{
+  return csr_read(CSR_HSTATUS);
+}
+
+VOID
+pal_pe_set_hstatus (UINT64 val)
+{
+  csr_write(CSR_HSTATUS, val);
 }

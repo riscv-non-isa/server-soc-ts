@@ -399,6 +399,9 @@ uint64_t val_pe_get_esr(void *context);
 
 uint64_t val_pe_get_far(void *context);
 
+uint64_t val_pe_get_hstatus(void);
+void     val_pe_set_hstatus(uint64_t val);
+
 void val_pe_spe_program_under_profiling(uint64_t interval, addr_t address);
 
 void val_pe_spe_disable(void);

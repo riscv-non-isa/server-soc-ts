@@ -745,3 +745,15 @@ val_dump_dtb(void)
 {
   pal_dump_dtb();
 }
+
+uint64_t
+val_pe_get_hstatus(void)
+{
+  return pal_pe_get_hstatus();
+}
+
+void
+val_pe_set_hstatus(uint64_t val)
+{
+  pal_pe_set_hstatus(val);
+}
