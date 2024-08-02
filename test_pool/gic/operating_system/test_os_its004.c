@@ -28,7 +28,7 @@ payload()
 {
   uint32_t bdf;
   uint32_t status;
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t tbl_index;
   uint32_t device_id, req_id;
   uint32_t stream_id, its_id;
@@ -44,7 +44,7 @@ payload()
   uint32_t curr_seg_num = -1;
   pcie_device_bdf_table *bdf_tbl_ptr;
 
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
 
   /* Check for all the function present in bdf table */
@@ -66,7 +66,7 @@ payload()
                                         &stream_id, &its_id);
     if (status) {
         val_print(ACS_PRINT_DEBUG, "\n       Could not get device info for BDF : 0x%x", bdf);
-        val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 1));
+        val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 1));
         return;
     }
 
@@ -131,25 +131,25 @@ payload()
   }
 
   if (test_skip == 1)
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
   else if (test_fail)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 2));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
 }
 
 uint32_t
-os_its004_entry(uint32_t num_pe)
+os_its004_entry(uint32_t num_hart)
 {
   uint32_t status = ACS_STATUS_FAIL;
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
   return status;

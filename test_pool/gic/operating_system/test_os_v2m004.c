@@ -30,7 +30,7 @@ static
 void
 isr()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   val_print(ACS_PRINT_INFO, "\n Received SPI ", 0);
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
@@ -49,7 +49,7 @@ payload()
   uint32_t timeout = TIMEOUT_MEDIUM;
   uint32_t msi_frame, min_spi_id;
   uint64_t frame_base;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t reg_offset;
   uint32_t reg_shift;
 
@@ -113,20 +113,20 @@ payload()
 }
 
 uint32_t
-os_v2m004_entry(uint32_t num_pe)
+os_v2m004_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This GIC test is run on single processor
+  num_hart = 1;  //This GIC test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

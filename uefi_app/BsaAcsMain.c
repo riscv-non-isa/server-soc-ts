@@ -24,7 +24,7 @@
 #include  <Protocol/LoadedImage.h>
 
 #include "val/include/val_interface.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_val.h"
 
 #include "BsaAcs.h"
@@ -69,7 +69,7 @@ STATIC VOID FlushImage (VOID)
     return;
   }
 
-  val_pe_cache_clean_range((UINT64)ImageInfo->ImageBase, (UINT64)ImageInfo->ImageSize);
+  val_hart_cache_clean_range((UINT64)ImageInfo->ImageBase, (UINT64)ImageInfo->ImageSize);
 
 }
 
@@ -93,7 +93,7 @@ createPeInfoTable (
     return Status;
   }
 
-  Status = val_pe_create_info_table(PeInfoTable);
+  Status = val_hart_create_info_table(PeInfoTable);
 
   return Status;
 
@@ -245,7 +245,7 @@ VOID
 freeBsaAcsMem()
 {
 
-  val_pe_free_info_table();
+  val_hart_free_info_table();
   val_gic_free_info_table();
   val_timer_free_info_table();
   val_wd_free_info_table();
@@ -266,9 +266,9 @@ HelpMsg (
          "        1 prints all, 5 prints only the errors\n"
          "        Note: pal_mmio prints can be enabled for specific modules by passing\n"
          "              module numbers along with global verbosity level 1\n"
-         "              Module numbers are PE 0, MEM 1, GIC 2, SMMU 3, TIMER 4, WAKEUP 5   ...\n"
+         "              Module numbers are HART 0, MEM 1, GIC 2, SMMU 3, TIMER 4, WAKEUP 5   ...\n"
          "              PERIPHERAL 6, Watchdog 7, PCIe 8, Exerciser 9   ...\n"
-         "              E.g., To enable mmio prints for PE and TIMER pass -v 104\n"
+         "              E.g., To enable mmio prints for HART and TIMER pass -v 104\n"
          "-mmio   Pass this flag to enable pal_mmio_read/write prints, use with -v 1\n"
          "-f      Name of the log file to record the test results in\n"
          "-skip   Test(s) to be skipped\n"
@@ -593,8 +593,8 @@ ShellAppMain (
   /* Initialise exception vector, so any unexpected exception gets handled by default
      BSA exception handler */
   branch_label = &&print_test_status;
-  val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
-  val_pe_initialize_default_exception_handler(val_pe_default_esr);
+  val_hart_context_save(AA64ReadSp(), (uint64_t)branch_label);
+  val_hart_initialize_default_exception_handler(val_hart_default_esr);
 
   val_print(ACS_PRINT_TEST, "\n Create Timer Info Table\n", 0);
   createTimerInfoTable();
@@ -607,32 +607,32 @@ ShellAppMain (
 
   FlushImage();
 
-  /***  Starting PE tests             ***/
-  // Status = val_pe_execute_tests(val_pe_get_num(), g_sw_view);
+  /***  Starting HART tests             ***/
+  // Status = val_hart_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Memory Map tests     ***/
-  // Status |= val_memory_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_memory_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting GIC tests            ***/
-  Status |= val_gic_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_gic_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting System MMU tests     ***/
-  // Status |= val_smmu_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_smmu_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Timer tests          ***/
-  Status |= val_timer_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_timer_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Wakeup semantic tests ***/
-  // Status |= val_wakeup_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_wakeup_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Peripheral tests     ***/
-  // Status |= val_peripheral_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_peripheral_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Watchdog tests       ***/
-  // Status |= val_wd_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_wd_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting PCIe tests           ***/
-  // Status |= val_pcie_execute_tests(val_pe_get_num(), g_sw_view);
+  // Status |= val_pcie_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting PCIe Exerciser tests ***/
   // Status |= val_exerciser_execute_tests(g_sw_view);
@@ -656,7 +656,7 @@ print_test_status:
     ShellCloseFile(&g_bsa_log_file_handle);
   }
 
-  val_pe_context_restore(AA64WriteSp(g_stack_pointer));
+  val_hart_context_restore(AA64WriteSp(g_stack_pointer));
 
   return(0);
 }

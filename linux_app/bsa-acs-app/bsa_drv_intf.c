@@ -26,7 +26,7 @@ typedef
 struct __BSA_DRV_PARMS__
 {
     unsigned int    api_num;
-    unsigned int    num_pe;
+    unsigned int    num_hart;
     unsigned int    level;
     unsigned long   arg0;
     unsigned long   arg1;
@@ -132,7 +132,7 @@ call_drv_clean_test_env()
 }
 
 int
-call_drv_execute_test(unsigned int api_num, unsigned int num_pe,
+call_drv_execute_test(unsigned int api_num, unsigned int num_hart,
   unsigned int print_level, unsigned long int test_input)
 {
     FILE             *fd = NULL;
@@ -146,7 +146,7 @@ call_drv_execute_test(unsigned int api_num, unsigned int num_pe,
     }
 
     test_params.api_num  = api_num;
-    test_params.num_pe   = num_pe;
+    test_params.num_hart   = num_hart;
     test_params.level    = 0;
     test_params.arg0     = test_input;
     test_params.arg1     = print_level;
@@ -173,7 +173,7 @@ call_update_skip_list(unsigned int api_num, int *p_skip_test_num)
     }
 
     test_params.api_num  = api_num;
-    test_params.num_pe   = 0;
+    test_params.num_hart   = 0;
     test_params.level    = 0;
     test_params.arg0     = p_skip_test_num[0];
     test_params.arg1     = p_skip_test_num[1];
@@ -201,7 +201,7 @@ call_update_sw_view(unsigned int api_num, int *p_sw_view)
     }
 
     test_params.api_num  = api_num;
-    test_params.num_pe   = 0;
+    test_params.num_hart   = 0;
     test_params.level    = 0;
     test_params.arg0     = p_sw_view[0];
     test_params.arg1     = p_sw_view[1];

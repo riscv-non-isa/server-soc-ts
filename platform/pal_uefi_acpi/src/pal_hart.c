@@ -33,7 +33,7 @@ static EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_STRUCTURE *gRhctHdr;
 
 UINT8   *gSecondaryPeStack;
 UINT64  gMpidrMax;
-static UINT32 g_num_pe;
+static UINT32 g_num_hart;
 extern INT32 gPsciConduit;
 
 #define SIZE_STACK_SECONDARY_PE  0x100		//256 bytes per core
@@ -105,13 +105,13 @@ PalGetSecondaryStackBase()
 /**
   @brief   Return the number of PEs in the System.
   @param   None
-  @return  num_of_pe
+  @return  num_of_hart
 **/
 UINT32
-pal_pe_get_num()
+pal_hart_get_num()
 {
 
-  return (UINT32)g_num_pe;
+  return (UINT32)g_num_hart;
 }
 
 /**
@@ -127,7 +127,7 @@ PalGetMaxMpidr()
 }
 
 /**
-  @brief  Allocate memory region for secondary PE stack use. SIZE of stack for each PE
+  @brief  Allocate memory region for secondary HART stack use. SIZE of stack for each HART
           is a #define
 
   @param  mpidr Pass MIPDR register content
@@ -161,7 +161,7 @@ PalAllocateSecondaryStack(UINT64 mpidr)
       if (EFI_ERROR(Status)) {
           bsa_print(ACS_PRINT_ERR, L"\n FATAL - Allocation for Seconday stack failed %x\n", Status);
       }
-      pal_pe_data_cache_ops_by_va((UINT64)&Buffer, CLEAN_AND_INVALIDATE);
+      pal_hart_data_cache_ops_by_va((UINT64)&Buffer, CLEAN_AND_INVALIDATE);
 
       // Check if we need alignment
       if ((UINT8*)(((UINTN) Buffer) & (0xFll))) {
@@ -178,21 +178,21 @@ PalAllocateSecondaryStack(UINT64 mpidr)
 }
 
 /**
-  @brief  This API fills in the PE_INFO Table with information about the PEs in the
+  @brief  This API fills in the HART_INFO Table with information about the PEs in the
           system. This is achieved by parsing the ACPI - MADT table.
 
-  @param  PeTable  - Address where the PE information needs to be filled.
+  @param  PeTable  - Address where the HART information needs to be filled.
 
   @return  None
 **/
 VOID
-pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
+pal_hart_create_info_table(HART_INFO_TABLE *PeTable)
 {
   EFI_ACPI_6_5_RINTC_STRUCTURE                *Entry = NULL;
   EFI_ACPI_6_5_RHCT_NODE_HEADER               *RhctNodeEntry = NULL;
   EFI_ACPI_6_5_RHCT_HART_INFO_NODE_STRUCTURE  *HartInfoNode = NULL;
   EFI_ACPI_6_5_RHCT_ISA_STRING_NODE_STRUCTURE *IsaStringNode = NULL;
-  PE_INFO_ENTRY                               *Ptr = NULL;
+  HART_INFO_ENTRY                               *Ptr = NULL;
   UINT32                                      MadtTableLength = 0;
   UINT32                                      RhctTableLength = 0;
   UINT32                                      Length = 0;
@@ -201,12 +201,12 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   UINT32                                      Flags = 0;
 
   if (PeTable == NULL) {
-    bsa_print(ACS_PRINT_ERR, L" Input PE Table Pointer is NULL. Cannot create PE INFO\n");
+    bsa_print(ACS_PRINT_ERR, L" Input HART Table Pointer is NULL. Cannot create HART INFO\n");
     return;
   }
 
   /* initialise number of PEs to zero */
-  PeTable->header.num_of_pe = 0;
+  PeTable->header.num_of_hart = 0;
 
   gMadtHdr = (EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *) pal_get_madt_ptr();
 
@@ -229,15 +229,15 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
 
   Entry = (EFI_ACPI_6_5_RINTC_STRUCTURE *) (gMadtHdr + 1);
   Length = sizeof (EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER);
-  Ptr = PeTable->pe_info;
+  Ptr = PeTable->hart_info;
 
   do {
     // The RINTC structures provide the per-processor interrupt information.
     if ((Entry->Type == EFI_ACPI_6_5_RINTC)) {
-      //Fill in the hart num and the id in pe info table
+      //Fill in the hart num and the id in hart info table
       Flags           = Entry->Flags;
       bsa_print(ACS_PRINT_INFO, L"  RINTC Flags %x\n", Flags);
-      bsa_print(ACS_PRINT_DEBUG, L"  PE Enabled %d, Online Capable %d\n", ENABLED_BIT(Flags), ONLINE_CAP_BIT(Flags));
+      bsa_print(ACS_PRINT_DEBUG, L"  HART Enabled %d, Online Capable %d\n", ENABLED_BIT(Flags), ONLINE_CAP_BIT(Flags));
 
       /* As per MADT (RISC-V INTC Flags) a processor is usable when
            Enabled bit is set
@@ -246,12 +246,12 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
       */
       if ((ENABLED_BIT(Flags) == 1) || (ONLINE_CAP_BIT(Flags) == 1)) {
         Ptr->hart_id = Entry->HartId;
-        Ptr->pe_num     = PeTable->header.num_of_pe;
+        Ptr->hart_num     = PeTable->header.num_of_hart;
         Ptr->acpi_processor_uid = Entry->AcpiProcessorUid;
         Ptr->ext_intc_id = Entry->ExternalINTCId;
         Ptr->imsic_base = Entry->IMSICBase;
         Ptr->imsic_size = Entry->IMSICSize;
-        bsa_print(ACS_PRINT_DEBUG, L"  HartID 0x%lx PE num 0x%x\n", Ptr->hart_id, Ptr->pe_num);
+        bsa_print(ACS_PRINT_DEBUG, L"  HartID 0x%lx HART num 0x%x\n", Ptr->hart_id, Ptr->hart_num);
         bsa_print(ACS_PRINT_DEBUG, L"    Processor UID %d\n", Ptr->acpi_processor_uid);
         bsa_print(ACS_PRINT_DEBUG, L"    IMSIC Base 0x%lx IMSIC Soze 0x%x\n", Ptr->imsic_base, Ptr->imsic_size);
 
@@ -290,9 +290,9 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
           }
           HartInfoNode = (EFI_ACPI_6_5_RHCT_HART_INFO_NODE_STRUCTURE *)((UINTN)HartInfoNode + HartInfoNode->Header.Length);
         }
-        pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
+        pal_hart_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
         Ptr++;
-        PeTable->header.num_of_pe++;
+        PeTable->header.num_of_hart++;
       }
     }
 
@@ -301,11 +301,11 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   }while(Length < MadtTableLength);
 
   // gMpidrMax = MpidrAff0Max | MpidrAff1Max | MpidrAff2Max | MpidrAff3Max;
-  g_num_pe = PeTable->header.num_of_pe;
+  g_num_hart = PeTable->header.num_of_hart;
 
-  pal_pe_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
+  pal_hart_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
   // RV porting TODO: secondary stack allocationg should be ported for RV multi-processor tests
-  // pal_pe_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
+  // pal_hart_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
   // PalAllocateSecondaryStack(gMpidrMax);
 }
 
@@ -319,7 +319,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   @return status of the API
 **/
 UINT32
-pal_pe_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
+pal_hart_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
 {
 
   EFI_STATUS  Status;
@@ -361,7 +361,7 @@ pal_pe_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
   @return  None
 **/
 VOID
-pal_pe_call_smc(ARM_SMC_ARGS *ArmSmcArgs, INT32 Conduit)
+pal_hart_call_smc(ARM_SMC_ARGS *ArmSmcArgs, INT32 Conduit)
 {
   ArmCallSmc (ArmSmcArgs, Conduit);
 }
@@ -378,10 +378,10 @@ ModuleEntryPoint();
   @return  None
 **/
 VOID
-pal_pe_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
+pal_hart_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
 {
   ArmSmcArgs->Arg2 = (UINT64)ModuleEntryPoint;
-  pal_pe_call_smc(ArmSmcArgs, gPsciConduit);
+  pal_hart_call_smc(ArmSmcArgs, gPsciConduit);
 }
 
 /**
@@ -393,7 +393,7 @@ pal_pe_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
   @return  None
 **/
 VOID
-pal_pe_update_elr(VOID *context, UINT64 offset)
+pal_hart_update_elr(VOID *context, UINT64 offset)
 {
   // update sepc for RISC-V
   ((EFI_SYSTEM_CONTEXT_RISCV64*)context)->SEPC = offset;
@@ -407,7 +407,7 @@ pal_pe_update_elr(VOID *context, UINT64 offset)
   @return  ESR
 **/
 UINT64
-pal_pe_get_esr(VOID *context)
+pal_hart_get_esr(VOID *context)
 {
   return ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->ESR;
 }
@@ -420,7 +420,7 @@ pal_pe_get_esr(VOID *context)
   @return  FAR
 **/
 UINT64
-pal_pe_get_far(VOID *context)
+pal_hart_get_far(VOID *context)
 {
   return ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->FAR;
 }
@@ -443,7 +443,7 @@ DataCacheInvalidateVA(UINT64 addr);
   @return  None
 **/
 VOID
-pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type)
+pal_hart_data_cache_ops_by_va(UINT64 addr, UINT32 type)
 {
   switch(type){
       case CLEAN_AND_INVALIDATE:
@@ -464,13 +464,13 @@ pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type)
 #define CSR_HSTATUS			0x600
 
 UINT64
-pal_pe_get_hstatus (void)
+pal_hart_get_hstatus (void)
 {
   return csr_read(CSR_HSTATUS);
 }
 
 VOID
-pal_pe_set_hstatus (UINT64 val)
+pal_hart_set_hstatus (UINT64 val)
 {
   csr_write(CSR_HSTATUS, val);
 }

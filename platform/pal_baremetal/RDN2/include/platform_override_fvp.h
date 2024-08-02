@@ -33,7 +33,7 @@
 #define PLATFORM_OVERRIDE_PCIE_BAR32P_VAL  0x60600000
 #define PLATOFRM_OVERRIDE_RP_BAR32_VAL     0x60850000
 
-/* PE platform config paramaters */
+/* HART platform config paramaters */
 #define PLATFORM_OVERRIDE_PE_CNT           16
 #define PLATFORM_OVERRIDE_PE0_INDEX        0x0
 #define PLATFORM_OVERRIDE_PE0_MPIDR        0x0

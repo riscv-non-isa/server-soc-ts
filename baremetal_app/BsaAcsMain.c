@@ -16,7 +16,7 @@
 **/
 
 #include "val/include/val_interface.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_val.h"
 
 #include "val/include/bsa_acs_memory.h"
@@ -56,10 +56,10 @@ createPeInfoTable(
   uint32_t Status;
   uint64_t *PeInfoTable;
 
-  PeInfoTable = val_aligned_alloc(SIZE_4K, sizeof(PE_INFO_TABLE) +
-                                (PLATFORM_OVERRIDE_PE_CNT * sizeof(PE_INFO_ENTRY)));
+  PeInfoTable = val_aligned_alloc(SIZE_4K, sizeof(HART_INFO_TABLE) +
+                                (PLATFORM_OVERRIDE_PE_CNT * sizeof(HART_INFO_ENTRY)));
 
-  Status = val_pe_create_info_table(PeInfoTable);
+  Status = val_hart_create_info_table(PeInfoTable);
 
   return Status;
 
@@ -148,7 +148,7 @@ void
 freeBsaAcsMem()
 {
 
-  val_pe_free_info_table();
+  val_hart_free_info_table();
   val_gic_free_info_table();
   val_timer_free_info_table();
   val_wd_free_info_table();
@@ -246,35 +246,35 @@ ShellAppMainbsa(
    *  by default BSA exception handler.
    */
   branch_label = &&print_test_status;
-  val_pe_context_save(AA64ReadSp(), (uint64_t)branch_label);
-  val_pe_initialize_default_exception_handler(val_pe_default_esr);
+  val_hart_context_save(AA64ReadSp(), (uint64_t)branch_label);
+  val_hart_initialize_default_exception_handler(val_hart_default_esr);
 
-  /***  Starting PE tests             ***/
-  Status = val_pe_execute_tests(val_pe_get_num(), g_sw_view);
+  /***  Starting HART tests             ***/
+  Status = val_hart_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Memory Map tests     ***/
-  Status |= val_memory_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_memory_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting GIC tests            ***/
-  Status |= val_gic_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_gic_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting System MMU tests     ***/
-  Status |= val_smmu_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_smmu_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Timer tests          ***/
-  Status |= val_timer_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_timer_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Wakeup semantic tests ***/
-  Status |= val_wakeup_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_wakeup_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Peripheral tests     ***/
-  Status |= val_peripheral_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_peripheral_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting Watchdog tests       ***/
-  Status |= val_wd_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_wd_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting PCIe tests           ***/
-  Status |= val_pcie_execute_tests(val_pe_get_num(), g_sw_view);
+  Status |= val_pcie_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting PCIe Exerciser tests ***/
   Status |= val_exerciser_execute_tests(g_sw_view);
@@ -290,7 +290,7 @@ print_test_status:
 
   val_print(ACS_PRINT_TEST, "\n      *** BSA tests complete. Reset the system. ***\n\n", 0);
 
-  val_pe_context_restore(AA64WriteSp(g_stack_pointer));
+  val_hart_context_restore(AA64WriteSp(g_stack_pointer));
   while (1);
   return 0;
 }

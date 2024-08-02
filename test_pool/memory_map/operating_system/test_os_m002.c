@@ -20,7 +20,7 @@
 
 #include "val/include/bsa_acs_peripherals.h"
 #include "val/include/bsa_acs_memory.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_MEMORY_MAP_TEST_BASE + 2)
 #define TEST_RULE  "B_MEM_01"
@@ -42,7 +42,7 @@ void
 esr(uint64_t interrupt_type, void *context)
 {
   /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, branch_to_test);
+  val_hart_update_elr(context, branch_to_test);
 
   val_print(ACS_PRINT_DEBUG, "\n       Received Exception of type %d", interrupt_type);
 }
@@ -53,11 +53,11 @@ payload()
 {
   addr_t   addr;
   uint64_t attr;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t original_value;
 
-  val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
-  val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
+  val_hart_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
+  val_hart_install_esr(EXCEPT_AARCH64_SERROR, esr);
   val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
 
   branch_to_test = (uint64_t)&&exception_taken_d;
@@ -111,20 +111,20 @@ exception_taken_n:
 }
 
 uint32_t
-os_m002_entry(uint32_t num_pe)
+os_m002_entry(uint32_t num_hart)
 {
 
   uint32_t error_flag = 0;
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, val_pe_get_num());
+  status = val_initialize_test(TEST_NUM, TEST_DESC, val_hart_get_num());
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from the PE and check for failure */
-  error_flag = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from the HART and check for failure */
+  error_flag = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   if (!error_flag)
       status = ACS_STATUS_PASS;

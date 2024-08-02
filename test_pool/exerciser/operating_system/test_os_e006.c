@@ -69,7 +69,7 @@ static
 void
 payload (void)
 {
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t ret_val;
   uint32_t timeout;
   uint32_t e_intr_pin;
@@ -78,13 +78,13 @@ payload (void)
   uint32_t test_skip = 1;
   PERIPHERAL_IRQ_MAP *e_intr_map;
 
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   /* Allocate memory for interrupt mappings */
   e_intr_map = val_aligned_alloc(MEM_ALIGN_4K, sizeof(PERIPHERAL_IRQ_MAP));
   if (!e_intr_map) {
     val_print(ACS_PRINT_ERR, "\n       Memory allocation error", 00);
-    val_set_status(pe_index, RESULT_FAIL (TEST_NUM, 2));
+    val_set_status(hart_index, RESULT_FAIL (TEST_NUM, 2));
     return;
   }
 
@@ -130,7 +130,7 @@ payload (void)
             if (ret_val)
             {
                 val_print (ACS_PRINT_ERR, "\n      Installing ISR failed for IRQ: %x", e_intr_line);
-                val_set_status(pe_index, RESULT_FAIL (TEST_NUM, 02));
+                val_set_status(hart_index, RESULT_FAIL (TEST_NUM, 02));
                 return;
             }
 
@@ -139,7 +139,7 @@ payload (void)
             /* Trigger the legacy interrupt */
             val_exerciser_ops(GENERATE_L_INTR, e_intr_line, instance);
 
-            /* PE busy polls to check the completion of interrupt service routine */
+            /* HART busy polls to check the completion of interrupt service routine */
             timeout = TIMEOUT_LARGE;
             while ((--timeout > 0) && e_intr_pending);
 
@@ -176,11 +176,11 @@ payload (void)
  }
 
   if (test_fail)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 03));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 03));
   else if (test_skip)
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 01));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 01));
 
 
   val_memory_free_aligned(e_intr_map);
@@ -191,16 +191,16 @@ payload (void)
 uint32_t
 os_e006_entry (void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test (TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test (TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP) {
-      val_run_test_payload (TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload (TEST_NUM, num_hart, payload, 0);
   }
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

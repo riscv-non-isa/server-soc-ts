@@ -16,7 +16,7 @@
  **/
 
 #include "val/include/bsa_acs_val.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_PE_HYP_TEST_NUM_BASE  +  3)
 #define TEST_RULE  "B_PE_20"
@@ -27,12 +27,12 @@ void
 payload()
 {
   uint64_t data = 0;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint8_t Gran4_2, Gran4;
   uint8_t Gran16_2, Gran16;
   uint8_t Gran64_2, Gran64;
 
-  data = val_pe_reg_read(ID_AA64MMFR0_EL1);
+  data = val_hart_reg_read(ID_AA64MMFR0_EL1);
 
   /* TGran4_2: Stage 2 4KB Granularity support, bits [43:40] */
   Gran4_2 = VAL_EXTRACT_BITS(data, 40, 43);
@@ -101,17 +101,17 @@ payload()
 }
 
 uint32_t
-hyp_c003_entry(uint32_t num_pe)
+hyp_c003_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

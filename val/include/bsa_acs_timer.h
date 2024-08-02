@@ -53,9 +53,9 @@
 #define COUNTER_ID       0xFD0
 
 
-uint32_t os_t001_entry(uint32_t num_pe);
-uint32_t os_t002_entry(uint32_t num_pe);
-uint32_t os_t003_entry(uint32_t num_pe);
-uint32_t os_t004_entry(uint32_t num_pe);
-uint32_t os_t005_entry(uint32_t num_pe);
+uint32_t os_t001_entry(uint32_t num_hart);
+uint32_t os_t002_entry(uint32_t num_hart);
+uint32_t os_t003_entry(uint32_t num_hart);
+uint32_t os_t004_entry(uint32_t num_hart);
+uint32_t os_t005_entry(uint32_t num_hart);
 #endif // __BSA_ACS_TIMER_H__

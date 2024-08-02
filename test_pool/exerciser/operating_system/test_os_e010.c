@@ -34,7 +34,7 @@ void
 payload(void)
 {
 
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t e_bdf;
   uint32_t erp_bdf;
   uint32_t reg_value;
@@ -44,7 +44,7 @@ payload(void)
   uint64_t header_type;
 
   fail_cnt = 0;
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
 
   while (instance-- != 0)
@@ -65,7 +65,7 @@ payload(void)
       }
 
       /*
-       * Generate a config request from PE to the Secondary bus
+       * Generate a config request from HART to the Secondary bus
        * of the exerciser's root port. Exerciser must see this
        * request as a Type 0 Request.
        */
@@ -73,7 +73,7 @@ payload(void)
       if (status == PCIE_CAP_NOT_FOUND)
       {
           val_print(ACS_PRINT_DEBUG, "\n       Unable to start transaction monitoring", 0);
-          val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
+          val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 01));
           return;
       }
 
@@ -82,7 +82,7 @@ payload(void)
       if (status == PCIE_CAP_NOT_FOUND)
       {
           val_print(ACS_PRINT_DEBUG, "\n       Unable to stop transaction monitoring", 0);
-          val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 02));
+          val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 02));
           return;
       }
 
@@ -95,9 +95,9 @@ payload(void)
   }
 
   if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
 
   return;
 
@@ -106,15 +106,15 @@ payload(void)
 uint32_t
 os_e010_entry(void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test (TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test (TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload (TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload (TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

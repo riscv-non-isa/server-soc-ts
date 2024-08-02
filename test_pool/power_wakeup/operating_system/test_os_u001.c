@@ -16,7 +16,7 @@
  **/
 
 #include "val/include/bsa_acs_val.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/val_interface.h"
 
 #include "val/include/bsa_acs_wakeup.h"
@@ -53,7 +53,7 @@ static
 void
 isr_failsafe()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   val_timer_set_phy_el1(0);
   val_print(ACS_PRINT_ERR, "       Received Failsafe interrupt\n", 0);
   g_failsafe_int_received = 1;
@@ -66,7 +66,7 @@ static
 void
 isr1()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   val_timer_set_phy_el1(0);
   val_print(ACS_PRINT_INFO, "       Received EL1 PHY interrupt\n", 0);
   val_set_status(index, RESULT_PASS(TEST_NUM1, 1));
@@ -78,7 +78,7 @@ static
 void
 isr2()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   /* We received our interrupt, so disable timer from generating further interrupts */
   val_timer_set_vir_el1(0);
   val_print(ACS_PRINT_INFO, "       Received EL1 VIRT interrupt\n", 0);
@@ -91,7 +91,7 @@ static
 void
 isr3()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   /* We received our interrupt, so disable timer from generating further interrupts */
   val_timer_set_phy_el2(0);
   val_print(ACS_PRINT_INFO, "       Received EL2 Physical interrupt\n", 0);
@@ -104,7 +104,7 @@ static
 void
 isr4()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   val_wd_set_ws0(timer_num, 0);
   val_print(ACS_PRINT_INFO, "       Received WS0 interrupt\n", 0);
   g_wd_int_received = 1;
@@ -117,7 +117,7 @@ static
 void
 isr5()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint64_t cnt_base_n = val_timer_get_info(TIMER_INFO_SYS_CNT_BASE_N, timer_num);
   val_timer_disable_system_timer((addr_t)cnt_base_n);
   val_print(ACS_PRINT_INFO, "       Received Sys timer interrupt\n", 0);
@@ -148,7 +148,7 @@ void
 payload1()
 {
   uint64_t timer_expire_val = val_get_counter_frequency() * g_wakeup_timeout;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   val_set_status(index, RESULT_FAIL(TEST_NUM1, 1));
 
@@ -168,7 +168,7 @@ void
 payload2()
 {
   uint64_t timer_expire_val = val_get_counter_frequency() * g_wakeup_timeout;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   val_set_status(index, RESULT_FAIL(TEST_NUM2, 1));
   intid = val_timer_get_info(TIMER_INFO_VIR_EL1_INTID, 0);
@@ -191,7 +191,7 @@ void
 payload3()
 {
   uint64_t timer_expire_val = val_get_counter_frequency() * g_wakeup_timeout;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   val_set_status(index, RESULT_FAIL(TEST_NUM3, 1));
   intid = val_timer_get_info(TIMER_INFO_PHY_EL2_INTID, 0);
@@ -215,7 +215,7 @@ payload4()
 {
   uint32_t status, ns_wdg = 0;
   uint64_t timer_expire_val = 1 * g_wakeup_timeout;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   timer_num = val_wd_get_info(0, WD_INFO_COUNT);
   if(!timer_num){
@@ -252,7 +252,7 @@ payload4()
 
           val_power_enter_semantic(BSA_POWER_SEM_B);
           wakeup_clear_failsafe();
-          /* If PE wakeup is due to some interrupt other than WD
+          /* If HART wakeup is due to some interrupt other than WD
              or failsafe, test will be consider as PASS(as BSA WAK_10 rule
              Semantic B is satisfied)
              Test will be consider as failure in case WD interrupt
@@ -283,7 +283,7 @@ payload5()
   uint64_t cnt_base_n;
   uint64_t timer_expire_val = val_get_counter_frequency() * g_wakeup_timeout;
   uint32_t status, ns_timer = 0;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   timer_num = val_timer_get_info(TIMER_INFO_NUM_PLATFORM_TIMERS, 0);
   if(!timer_num){
@@ -339,51 +339,51 @@ payload5()
 }
 
 uint32_t
-os_u001_entry(uint32_t num_pe)
+os_u001_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL, status_test = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This Timer test is run on single processor
+  num_hart = 1;  //This Timer test is run on single processor
 
   if (!g_el1physkip) {
       /* EL1 PHY */
-      status_test = val_initialize_test(TEST_NUM1, TEST_DESC1, num_pe);
+      status_test = val_initialize_test(TEST_NUM1, TEST_DESC1, num_hart);
       if (status_test != ACS_STATUS_SKIP)
-          val_run_test_payload(TEST_NUM1, num_pe, payload1, 0);
-      status |= val_check_for_error(TEST_NUM1, num_pe, TEST_RULE1);
+          val_run_test_payload(TEST_NUM1, num_hart, payload1, 0);
+      status |= val_check_for_error(TEST_NUM1, num_hart, TEST_RULE1);
       val_report_status(0, BSA_ACS_END(TEST_NUM1), NULL);
 
       /* EL1 VIR */
-      status_test = val_initialize_test(TEST_NUM2, TEST_DESC2, num_pe);
+      status_test = val_initialize_test(TEST_NUM2, TEST_DESC2, num_hart);
       if (status_test != ACS_STATUS_SKIP)
-          val_run_test_payload(TEST_NUM2, num_pe, payload2, 0);
-      status |= val_check_for_error(TEST_NUM2, num_pe, TEST_RULE2);
+          val_run_test_payload(TEST_NUM2, num_hart, payload2, 0);
+      status |= val_check_for_error(TEST_NUM2, num_hart, TEST_RULE2);
       val_report_status(0, BSA_ACS_END(TEST_NUM2), NULL);
   }
 
   /* EL2 PHY */
   /* Run this test if current exception level is EL2 */
-  if (val_pe_reg_read(CurrentEL) == AARCH64_EL2) {
-      status_test = val_initialize_test(TEST_NUM3, TEST_DESC3, num_pe);
+  if (val_hart_reg_read(CurrentEL) == AARCH64_EL2) {
+      status_test = val_initialize_test(TEST_NUM3, TEST_DESC3, num_hart);
       if (status_test != ACS_STATUS_SKIP)
-          val_run_test_payload(TEST_NUM3, num_pe, payload3, 0);
-      status |= val_check_for_error(TEST_NUM3, num_pe, TEST_RULE3);
+          val_run_test_payload(TEST_NUM3, num_hart, payload3, 0);
+      status |= val_check_for_error(TEST_NUM3, num_hart, TEST_RULE3);
       val_report_status(0, BSA_ACS_END(TEST_NUM3), NULL);
   }
 
   /* Watchdog */
-  status_test = val_initialize_test(TEST_NUM4, TEST_DESC4, num_pe);
+  status_test = val_initialize_test(TEST_NUM4, TEST_DESC4, num_hart);
   if (status_test != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM4, num_pe, payload4, 0);
-  status = val_check_for_error(TEST_NUM4, num_pe, TEST_RULE4);
+      val_run_test_payload(TEST_NUM4, num_hart, payload4, 0);
+  status = val_check_for_error(TEST_NUM4, num_hart, TEST_RULE4);
   val_report_status(0, BSA_ACS_END(TEST_NUM4), NULL);
 
   /* System Timer */
-  status_test = val_initialize_test(TEST_NUM5, TEST_DESC5, num_pe);
+  status_test = val_initialize_test(TEST_NUM5, TEST_DESC5, num_hart);
   if (status_test != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM5, num_pe, payload5, 0);
-  status |= val_check_for_error(TEST_NUM5, num_pe, TEST_RULE5);
+      val_run_test_payload(TEST_NUM5, num_hart, payload5, 0);
+  status |= val_check_for_error(TEST_NUM5, num_hart, TEST_RULE5);
   val_report_status(0, BSA_ACS_END(TEST_NUM5), NULL);
 
   return status;

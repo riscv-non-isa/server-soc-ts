@@ -16,7 +16,7 @@
  **/
 
 #ifndef TARGET_EMULATION
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "sys_arch_src/gic/bsa_exception.h"
 #else
 #define EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS    0
@@ -101,7 +101,7 @@ GCC_ASM_EXPORT(bsa_gic_get_elr)
 #     stp x16, x17, [sp, #8 * 16]
 #     str x18, [sp, #8 * 18]
 #     stp x29, x30, [sp, #8 * 20]
-# 
+#
 #     /*
 #      * Save elr_elx & spsr_elx. This such that we can take nested exception
 #      * and still be able to unwind.

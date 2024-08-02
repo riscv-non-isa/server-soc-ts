@@ -22,7 +22,7 @@
 #include "val/include/bsa_acs_iic.h"
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 2)
-#define TEST_RULE  "MF_IIC_030_010"
+#define TEST_RULE  "MF_IIC_030_010, ME_IIC_070_010, ME_IIC_080_010"
 #define TEST_DESC  "External interrupt functionality                     "
 
 /**
@@ -57,21 +57,21 @@ payload()
 }
 
 uint32_t
-os_i002_entry(uint32_t num_pe)
+os_i002_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This IIC test is run on single processor
+  num_hart = 1;  //This IIC test is run on single processor
   // TODO: test all processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

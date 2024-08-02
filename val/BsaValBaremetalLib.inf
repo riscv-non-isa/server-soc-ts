@@ -29,8 +29,8 @@
   src/RISCV64/ArchTimerSupport.S
   src/RISCV64/GicSupport.S
   src/acs_status.c
-  src/acs_pe.c
-  src/acs_pe_infra.c
+  src/acs_hart.c
+  src/acs_hart_infra.c
   src/acs_gic.c
   src/acs_gic_v2m.c
   src/acs_gic_support.c

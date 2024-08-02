@@ -27,7 +27,7 @@
 #define INTERRUPT_TYPE_SPI  0
 #define INTERRUPT_TYPE_PPI  1
 
-/*  PE related */
+/*  HART related */
 #define PROPERTY_MASK_PE_AFF3  0xFF  /* Affinity bits 3 mask MPIDR_EL1[39:32] */
 #define PROPERTY_MASK_PE_AFF0_AFF2  0xFFFFFF  /* Affinity bits 0, 1, 2 mask MPIDR_EL1[23:0] */
 #define PMU_COMPATIBLE_STR_LEN      24

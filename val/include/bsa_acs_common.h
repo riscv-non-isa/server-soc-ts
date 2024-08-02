@@ -120,13 +120,13 @@ uint32_t
 val_check_skip_module(uint32_t module_base);
 
 uint32_t
-val_initialize_test(uint32_t test_num, char8_t * desc, uint32_t num_pe);
+val_initialize_test(uint32_t test_num, char8_t * desc, uint32_t num_hart);
 
 uint32_t
-val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid);
+val_check_for_error(uint32_t test_num, uint32_t num_hart, char8_t *ruleid);
 
 void
-val_run_test_payload(uint32_t test_num, uint32_t num_pe, void (*payload)(void), uint64_t test_input);
+val_run_test_payload(uint32_t test_num, uint32_t num_hart, void (*payload)(void), uint64_t test_input);
 
 void
 val_data_cache_ops_by_va(addr_t addr, uint32_t type);

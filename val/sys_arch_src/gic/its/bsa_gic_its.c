@@ -338,7 +338,7 @@ static void PollTillCommandQueueDone(uint32_t its_index)
 static uint64_t GetRDBaseFormat(uint32_t its_index)
 {
   uint32_t    value;
-  uint64_t    pe_num;
+  uint64_t    hart_num;
   uint64_t    ItsBase;
 
   ItsBase = g_gic_its_info->GicIts[its_index].Base;
@@ -352,10 +352,10 @@ static uint64_t GetRDBaseFormat(uint32_t its_index)
     return g_gic_its_info->GicRdBase;
   } else {
     value = val_mmio_read64(g_gic_its_info->GicRdBase + ARM_GICR_TYPER);
-    pe_num = (value & ARM_GICR_TYPER_PN_MASK) >> ARM_GICR_TYPER_PN_SHIFT;
+    hart_num = (value & ARM_GICR_TYPER_PN_MASK) >> ARM_GICR_TYPER_PN_SHIFT;
 
     /* RDBase is made 64KB aligned */
-    return (pe_num << RD_BASE_SHIFT);
+    return (hart_num << RD_BASE_SHIFT);
   }
 }
 

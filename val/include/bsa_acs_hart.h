@@ -393,52 +393,52 @@ void SpeProgramUnderProfiling(uint64_t interval, uint64_t address);
 
 void DisableSpe(void);
 
-void val_pe_update_elr(void *context, uint64_t offset);
+void val_hart_update_elr(void *context, uint64_t offset);
 
-uint64_t val_pe_get_esr(void *context);
+uint64_t val_hart_get_esr(void *context);
 
-uint64_t val_pe_get_far(void *context);
+uint64_t val_hart_get_far(void *context);
 
-uint64_t val_pe_get_hstatus(void);
-void     val_pe_set_hstatus(uint64_t val);
+uint64_t val_hart_get_hstatus(void);
+void     val_hart_set_hstatus(uint64_t val);
 
-void val_pe_spe_program_under_profiling(uint64_t interval, addr_t address);
+void val_hart_spe_program_under_profiling(uint64_t interval, addr_t address);
 
-void val_pe_spe_disable(void);
+void val_hart_spe_disable(void);
 
-void val_pe_context_save(uint64_t sp, uint64_t elr);
-void val_pe_initialize_default_exception_handler(void (*esr)(uint64_t, void *));
-void val_pe_context_restore(uint64_t sp);
-void val_pe_default_esr(uint64_t interrupt_type, void *context);
-void val_pe_cache_clean_range(uint64_t start_addr, uint64_t length);
+void val_hart_context_save(uint64_t sp, uint64_t elr);
+void val_hart_initialize_default_exception_handler(void (*esr)(uint64_t, void *));
+void val_hart_context_restore(uint64_t sp);
+void val_hart_default_esr(uint64_t interrupt_type, void *context);
+void val_hart_cache_clean_range(uint64_t start_addr, uint64_t length);
 
-uint32_t os_c001_entry(uint32_t num_pe);
-uint32_t os_c002_entry(uint32_t num_pe);
-uint32_t os_c003_entry(uint32_t num_pe);
-uint32_t os_c004_entry(uint32_t num_pe);
-uint32_t os_c006_entry(uint32_t num_pe);
-uint32_t os_c007_entry(uint32_t num_pe);
-uint32_t os_c008_entry(uint32_t num_pe);
-uint32_t os_c009_entry(uint32_t num_pe);
-uint32_t os_c010_entry(uint32_t num_pe);
-uint32_t os_c011_entry(uint32_t num_pe);
-uint32_t os_c012_entry(uint32_t num_pe);
-uint32_t os_c013_entry(uint32_t num_pe);
-uint32_t os_c014_entry(uint32_t num_pe);
-uint32_t os_c015_entry(uint32_t num_pe);
-uint32_t os_c016_entry(uint32_t num_pe);
-uint32_t os_c017_entry(uint32_t num_pe);
-uint32_t os_c018_entry(uint32_t num_pe);
-uint32_t os_c019_entry(uint32_t num_pe);
-uint32_t os_c020_entry(uint32_t num_pe);
+uint32_t os_c001_entry(uint32_t num_hart);
+uint32_t os_c002_entry(uint32_t num_hart);
+uint32_t os_c003_entry(uint32_t num_hart);
+uint32_t os_c004_entry(uint32_t num_hart);
+uint32_t os_c006_entry(uint32_t num_hart);
+uint32_t os_c007_entry(uint32_t num_hart);
+uint32_t os_c008_entry(uint32_t num_hart);
+uint32_t os_c009_entry(uint32_t num_hart);
+uint32_t os_c010_entry(uint32_t num_hart);
+uint32_t os_c011_entry(uint32_t num_hart);
+uint32_t os_c012_entry(uint32_t num_hart);
+uint32_t os_c013_entry(uint32_t num_hart);
+uint32_t os_c014_entry(uint32_t num_hart);
+uint32_t os_c015_entry(uint32_t num_hart);
+uint32_t os_c016_entry(uint32_t num_hart);
+uint32_t os_c017_entry(uint32_t num_hart);
+uint32_t os_c018_entry(uint32_t num_hart);
+uint32_t os_c019_entry(uint32_t num_hart);
+uint32_t os_c020_entry(uint32_t num_hart);
 
-uint32_t hyp_c001_entry(uint32_t num_pe);
-uint32_t hyp_c002_entry(uint32_t num_pe);
-uint32_t hyp_c003_entry(uint32_t num_pe);
-uint32_t hyp_c004_entry(uint32_t num_pe);
-uint32_t hyp_c005_entry(uint32_t num_pe);
+uint32_t hyp_c001_entry(uint32_t num_hart);
+uint32_t hyp_c002_entry(uint32_t num_hart);
+uint32_t hyp_c003_entry(uint32_t num_hart);
+uint32_t hyp_c004_entry(uint32_t num_hart);
+uint32_t hyp_c005_entry(uint32_t num_hart);
 
-uint32_t ps_c001_entry(uint32_t num_pe);
+uint32_t ps_c001_entry(uint32_t num_hart);
 
 #endif
 

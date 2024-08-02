@@ -37,7 +37,7 @@ void v3_DisableInterruptSource(uint32_t);
 uint32_t v3_AcknowledgeInterrupt(void);
 void v3_EndofInterrupt(uint32_t int_id);
 uint32_t v3_read_gicdTyper(void);
-uint64_t v3_get_pe_gicr_base(void);
+uint64_t v3_get_hart_gicr_base(void);
 uint64_t v3_read_gicr_typer(void);
 
 uint32_t v3_is_extended_spi(uint32_t int_id);

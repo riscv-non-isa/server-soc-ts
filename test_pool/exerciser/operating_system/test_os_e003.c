@@ -20,7 +20,7 @@
 
 #include "val/include/bsa_acs_pcie_enumeration.h"
 #include "val/include/bsa_acs_pcie.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_smmu.h"
 #include "val/include/bsa_acs_memory.h"
 #include "val/include/bsa_acs_exerciser.h"
@@ -335,36 +335,36 @@ static
 void
 payload(void)
 {
-  uint32_t pe_index;
+  uint32_t hart_index;
 
-  pe_index = val_pe_get_index_mpid (val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid (val_hart_get_mpid());
 
   cfgspace_transactions_order_check();
   barspace_transactions_order_check();
 
   if (!run_flag) {
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
       return;
   }
 
   if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
 }
 
 uint32_t
 os_e003_entry(void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

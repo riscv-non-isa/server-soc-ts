@@ -171,7 +171,7 @@
 
 void pal_dump_dtb(void);
 
-/**  PE Test related Definitions **/
+/**  HART Test related Definitions **/
 
 /**
   @brief Conduits for service calls (SMC vs HVC).
@@ -187,32 +187,26 @@ int32_t pal_psci_get_conduit(void);
   @brief  number of PEs discovered
 **/
 typedef struct {
-  uint32_t num_of_pe;
-}PE_INFO_HDR;
+  uint32_t num_of_hart;
+}HART_INFO_HDR;
 
 /**
-  @brief  structure instance for PE entry
+  @brief  structure instance for HART entry
 **/
 typedef struct {
-  uint32_t   pe_num;      ///< PE Index
-  uint32_t   attr;        ///< PE attributes
-  uint64_t   mpidr;       ///< PE MPIDR
-  uint32_t   pmu_gsiv;    ///< PMU Interrupt ID
-  uint32_t   gmain_gsiv;  ///< GIC Maintenance Interrupt ID
-
-  /* RV porting */
-  uint64_t   hart_id;
+  uint32_t   hart_num;        ///< HART Index
+  uint64_t   hart_id;         ///< Hart ID (mhartid) of the hart
   uint32_t   acpi_processor_uid;
-  uint32_t   ext_intc_id;
-  uint64_t   imsic_base;
-  uint32_t   imsic_size;
-  char8_t    isa_string[512];
-}PE_INFO_ENTRY;
+  uint32_t   ext_intc_id;     ///< The unique ID of the external interrupts connected to this hart.
+  uint64_t   imsic_base;      ///< Physical base address of the Incoming MSI Controller (IMSIC) MMIO region of this hart.
+  uint32_t   imsic_size;      ///< Size in bytes of the IMSIC MMIO region of this hart.
+  char8_t    isa_string[512]; ///< Null-terminated ASCII Instruction Set Architecture (ISA) string for this hart.
+}HART_INFO_ENTRY;
 
 typedef struct {
-  PE_INFO_HDR    header;
-  PE_INFO_ENTRY  pe_info[];
-}PE_INFO_TABLE;
+  HART_INFO_HDR    header;
+  HART_INFO_ENTRY  hart_info[];
+}HART_INFO_TABLE;
 
 typedef struct {
   uint32_t ps:3;
@@ -225,7 +219,7 @@ typedef struct {
   uint32_t tg_size_log2:5;
 }PE_TCR_BF;
 
-void pal_pe_create_info_table(PE_INFO_TABLE *pe_info_table);
+void pal_hart_create_info_table(HART_INFO_TABLE *hart_info_table);
 
 /**
   @brief  Structure to Pass SMC arguments. Return data is also filled into
@@ -242,14 +236,14 @@ typedef struct {
   uint64_t  Arg7;
 } ARM_SMC_ARGS;
 
-void pal_pe_call_smc(ARM_SMC_ARGS *args, int32_t conduit);
-void pal_pe_execute_payload(ARM_SMC_ARGS *args);
-uint32_t pal_pe_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *));
+void pal_hart_call_smc(ARM_SMC_ARGS *args, int32_t conduit);
+void pal_hart_execute_payload(ARM_SMC_ARGS *args);
+uint32_t pal_hart_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *));
 #ifdef TARGET_BM_BOOT
-uint32_t pal_get_pe_count(void);
+uint32_t pal_get_hart_count(void);
 uint64_t *pal_get_phy_mpidr_list_base(void);
 #endif
-/* ********** PE INFO END **********/
+/* ********** HART INFO END **********/
 
 
 /** GIC Tests Related definitions **/
@@ -775,7 +769,7 @@ void    *pal_mem_virt_to_phys(void *va);
 void    *pal_mem_phys_to_virt(uint64_t pa);
 
 uint64_t pal_time_delay_ms(uint64_t time_ms);
-void     pal_mem_allocate_shared(uint32_t num_pe, uint32_t sizeofentry);
+void     pal_mem_allocate_shared(uint32_t num_hart, uint32_t sizeofentry);
 void     pal_mem_free_shared(void);
 uint64_t pal_mem_get_shared_addr(void);
 
@@ -796,12 +790,12 @@ void     pal_mmio_write16(uint64_t addr, uint16_t data);
 void     pal_mmio_write(uint64_t addr, uint32_t data);
 void     pal_mmio_write64(uint64_t addr, uint64_t data);
 
-void     pal_pe_update_elr(void *context, uint64_t offset);
-uint64_t pal_pe_get_esr(void *context);
-uint64_t pal_pe_get_far(void *context);
-uint64_t pal_pe_get_hstatus (void);
-void     pal_pe_set_hstatus (uint64_t val);
-void     pal_pe_data_cache_ops_by_va(uint64_t addr, uint32_t type);
+void     pal_hart_update_elr(void *context, uint64_t offset);
+uint64_t pal_hart_get_esr(void *context);
+uint64_t pal_hart_get_far(void *context);
+uint64_t pal_hart_get_hstatus (void);
+void     pal_hart_set_hstatus (uint64_t val);
+void     pal_hart_data_cache_ops_by_va(uint64_t addr, uint32_t type);
 
 #define CLEAN_AND_INVALIDATE  0x1
 #define CLEAN                 0x2

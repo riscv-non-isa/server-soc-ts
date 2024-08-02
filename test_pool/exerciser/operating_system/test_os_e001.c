@@ -20,7 +20,7 @@
 
 #include "val/include/bsa_acs_pcie_enumeration.h"
 #include "val/include/bsa_acs_pcie.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_smmu.h"
 #include "val/include/bsa_acs_memory.h"
 #include "val/include/bsa_acs_exerciser.h"
@@ -206,7 +206,7 @@ payload(void)
 {
 
   uint32_t status;
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t req_e_bdf;
   uint32_t req_rp_bdf;
   uint32_t tgt_e_bdf;
@@ -221,7 +221,7 @@ payload(void)
 
   fail_cnt = 0;
   test_skip = 1;
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
 
   /* Check If PCIe Hierarchy supports P2P. */
@@ -229,14 +229,14 @@ payload(void)
     val_print(ACS_PRINT_DEBUG, "\n       The test is applicable only if the system supports", 0);
     val_print(ACS_PRINT_DEBUG, "\n       P2P traffic. If the system supports P2P, pass the", 0);
     val_print(ACS_PRINT_DEBUG, "\n       command line option '-p2p' while running the binary", 0);
-    val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+    val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
     return;
   }
 
   if (val_pcie_p2p_support())
   {
     val_print(ACS_PRINT_DEBUG, "\n       PCIe hierarchy does not support P2P ", 0);
-    val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 2));
+    val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 2));
     return;
   }
 
@@ -308,11 +308,11 @@ payload(void)
   }
 
   if (test_skip == 1)
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 3));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 3));
   else if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
 
   return;
 
@@ -321,15 +321,15 @@ payload(void)
 uint32_t
 os_e001_entry(void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

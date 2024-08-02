@@ -24,7 +24,7 @@ extern uint32_t g_override_skip;
   @brief  Parse the input status and print the appropriate information to console
           1. Caller       - Application layer
           2. Prerequisite - None
-  @param  index   - index of the PE who is reporting this status.
+  @param  index   - index of the HART who is reporting this status.
   @param  status  - 32-bit value concatenated from state, level, error value
   @param  *ruleid - Rule ID in the test to print
 
@@ -39,7 +39,7 @@ val_report_status(uint32_t index, uint32_t status, char8_t *ruleid)
     return;
 
   if (IS_TEST_FAIL(status)) {
-      val_print(ACS_PRINT_ERR, "\n       Failed on PE - %4d", index);
+      val_print(ACS_PRINT_ERR, "\n       Failed on HART - %4d", index);
   }
 
   if (IS_TEST_PASS(status)) {
@@ -83,7 +83,7 @@ val_report_status(uint32_t index, uint32_t status, char8_t *ruleid)
   @brief  Record the state and status of the test execution
           1. Caller       - Test Suite
           2. Prerequisite - val_allocate_shared_mem
-  @param  index  - index of the PE who is reporting this status.
+  @param  index  - index of the HART who is reporting this status.
   @param  status - 32-bit value concatenated from state, level, error value
 
   @return  none
@@ -101,10 +101,10 @@ val_set_status(uint32_t index, uint32_t status)
 }
 
 /**
-  @brief  Return the state and status for the  input PE index
+  @brief  Return the state and status for the  input HART index
           1. Caller       - Test Suite
           2. Prerequisite - val_allocate_shared_mem
-  @param  index  - index of the PE who is reporting this status.
+  @param  index  - index of the HART who is reporting this status.
   @return 32-bit value concatenated from state, level, error value
 **/
 uint32_t

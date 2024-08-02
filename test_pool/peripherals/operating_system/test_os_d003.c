@@ -18,7 +18,7 @@
 
 #include "val/include/bsa_acs_val.h"
 #include "val/include/val_interface.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #include "val/include/bsa_acs_peripherals.h"
 #include "val/include/bsa_acs_gic.h"
@@ -39,10 +39,10 @@ static
 void
 esr(uint64_t interrupt_type, void *context)
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  val_hart_update_elr(context, (uint64_t)branch_to_test);
 
   val_print(ACS_PRINT_ERR, "\n       Error : Received Exception of type %d", interrupt_type);
   val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
@@ -105,7 +105,7 @@ static
 void
 isr()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   uart_disable_txintr();
   val_print(ACS_PRINT_DEBUG, "\n       Received interrupt on %d     ", int_id);
@@ -135,11 +135,11 @@ payload()
 {
 
   uint32_t count = val_peripheral_get_info(NUM_UART, 0);
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t interface_type;
 
-  val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
-  val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
+  val_hart_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
+  val_hart_install_esr(EXCEPT_AARCH64_SERROR, esr);
 
   branch_to_test = &&exception_taken;
   if (count == 0) {
@@ -182,7 +182,7 @@ void
 payload1()
 {
   uint32_t count = val_peripheral_get_info(NUM_UART, 0);
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t timeout = TIMEOUT_LARGE;
   uint32_t interface_type;
 
@@ -247,29 +247,29 @@ payload1()
              enable interrupt generation
 **/
 uint32_t
-os_d003_entry(uint32_t num_pe)
+os_d003_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 
   if (!status) {
-      status = val_initialize_test(TEST_NUM1, TEST_DESC1, val_pe_get_num());
+      status = val_initialize_test(TEST_NUM1, TEST_DESC1, val_hart_get_num());
       if (status != ACS_STATUS_SKIP)
-          val_run_test_payload(TEST_NUM1, num_pe, payload1, 0);
+          val_run_test_payload(TEST_NUM1, num_hart, payload1, 0);
 
-      /* get the result from all PE and check for failure */
-      status = val_check_for_error(TEST_NUM1, num_pe, TEST_RULE1);
+      /* get the result from all HART and check for failure */
+      status = val_check_for_error(TEST_NUM1, num_hart, TEST_RULE1);
       val_report_status(0, BSA_ACS_END(TEST_NUM1), NULL);
   }
 

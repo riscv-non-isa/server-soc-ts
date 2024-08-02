@@ -22,7 +22,7 @@
     To run a specific modules:
       - Give the module base numbers in the g_module_array.
       - All module base numbers can be found in val/include/bsa_acs_common.h
-      - Example - if g_module_array = {0}, only PE tests will be run while skipping other modules
+      - Example - if g_module_array = {0}, only HART tests will be run while skipping other modules
 
     To run a specific tests:
       - Give the test numbers in the g_test_array.
@@ -50,89 +50,89 @@ uint32_t  g_num_modules      = sizeof(g_module_array)/sizeof(g_module_array[0]);
    purpose to complete BSA run on these systems */
 uint32_t  g_el1physkip       = FALSE;
 
-PE_INFO_TABLE platform_pe_cfg = {
+HART_INFO_TABLE platform_hart_cfg = {
 
-    .header.num_of_pe = PLATFORM_OVERRIDE_PE_CNT,
+    .header.num_of_hart = PLATFORM_OVERRIDE_PE_CNT,
 
-    .pe_info[0].pe_num      = PLATFORM_OVERRIDE_PE0_INDEX,
-    .pe_info[0].mpidr       = PLATFORM_OVERRIDE_PE0_MPIDR,
-    .pe_info[0].pmu_gsiv    = PLATFORM_OVERRIDE_PE0_PMU_GSIV,
-    .pe_info[0].gmain_gsiv  = PLATFORM_OVERRIDE_PE0_GMAIN_GSIV,
+    .hart_info[0].hart_num      = PLATFORM_OVERRIDE_PE0_INDEX,
+    .hart_info[0].mpidr       = PLATFORM_OVERRIDE_PE0_MPIDR,
+    .hart_info[0].pmu_gsiv    = PLATFORM_OVERRIDE_PE0_PMU_GSIV,
+    .hart_info[0].gmain_gsiv  = PLATFORM_OVERRIDE_PE0_GMAIN_GSIV,
 
-    .pe_info[1].pe_num      = PLATFORM_OVERRIDE_PE1_INDEX,
-    .pe_info[1].mpidr       = PLATFORM_OVERRIDE_PE1_MPIDR,
-    .pe_info[1].pmu_gsiv    = PLATFORM_OVERRIDE_PE1_PMU_GSIV,
-    .pe_info[1].gmain_gsiv  = PLATFORM_OVERRIDE_PE1_GMAIN_GSIV,
+    .hart_info[1].hart_num      = PLATFORM_OVERRIDE_PE1_INDEX,
+    .hart_info[1].mpidr       = PLATFORM_OVERRIDE_PE1_MPIDR,
+    .hart_info[1].pmu_gsiv    = PLATFORM_OVERRIDE_PE1_PMU_GSIV,
+    .hart_info[1].gmain_gsiv  = PLATFORM_OVERRIDE_PE1_GMAIN_GSIV,
 
-    .pe_info[2].pe_num      = PLATFORM_OVERRIDE_PE2_INDEX,
-    .pe_info[2].mpidr       = PLATFORM_OVERRIDE_PE2_MPIDR,
-    .pe_info[2].pmu_gsiv    = PLATFORM_OVERRIDE_PE2_PMU_GSIV,
-    .pe_info[2].gmain_gsiv  = PLATFORM_OVERRIDE_PE2_GMAIN_GSIV,
+    .hart_info[2].hart_num      = PLATFORM_OVERRIDE_PE2_INDEX,
+    .hart_info[2].mpidr       = PLATFORM_OVERRIDE_PE2_MPIDR,
+    .hart_info[2].pmu_gsiv    = PLATFORM_OVERRIDE_PE2_PMU_GSIV,
+    .hart_info[2].gmain_gsiv  = PLATFORM_OVERRIDE_PE2_GMAIN_GSIV,
 
-    .pe_info[3].pe_num      = PLATFORM_OVERRIDE_PE3_INDEX,
-    .pe_info[3].mpidr       = PLATFORM_OVERRIDE_PE3_MPIDR,
-    .pe_info[3].pmu_gsiv    = PLATFORM_OVERRIDE_PE3_PMU_GSIV,
-    .pe_info[3].gmain_gsiv  = PLATFORM_OVERRIDE_PE3_GMAIN_GSIV,
+    .hart_info[3].hart_num      = PLATFORM_OVERRIDE_PE3_INDEX,
+    .hart_info[3].mpidr       = PLATFORM_OVERRIDE_PE3_MPIDR,
+    .hart_info[3].pmu_gsiv    = PLATFORM_OVERRIDE_PE3_PMU_GSIV,
+    .hart_info[3].gmain_gsiv  = PLATFORM_OVERRIDE_PE3_GMAIN_GSIV,
 
-    .pe_info[4].pe_num      = PLATFORM_OVERRIDE_PE4_INDEX,
-    .pe_info[4].mpidr       = PLATFORM_OVERRIDE_PE4_MPIDR,
-    .pe_info[4].pmu_gsiv    = PLATFORM_OVERRIDE_PE4_PMU_GSIV,
-    .pe_info[4].gmain_gsiv  = PLATFORM_OVERRIDE_PE4_GMAIN_GSIV,
+    .hart_info[4].hart_num      = PLATFORM_OVERRIDE_PE4_INDEX,
+    .hart_info[4].mpidr       = PLATFORM_OVERRIDE_PE4_MPIDR,
+    .hart_info[4].pmu_gsiv    = PLATFORM_OVERRIDE_PE4_PMU_GSIV,
+    .hart_info[4].gmain_gsiv  = PLATFORM_OVERRIDE_PE4_GMAIN_GSIV,
 
-    .pe_info[5].pe_num      = PLATFORM_OVERRIDE_PE5_INDEX,
-    .pe_info[5].mpidr       = PLATFORM_OVERRIDE_PE5_MPIDR,
-    .pe_info[5].pmu_gsiv    = PLATFORM_OVERRIDE_PE5_PMU_GSIV,
-    .pe_info[5].gmain_gsiv  = PLATFORM_OVERRIDE_PE5_GMAIN_GSIV,
+    .hart_info[5].hart_num      = PLATFORM_OVERRIDE_PE5_INDEX,
+    .hart_info[5].mpidr       = PLATFORM_OVERRIDE_PE5_MPIDR,
+    .hart_info[5].pmu_gsiv    = PLATFORM_OVERRIDE_PE5_PMU_GSIV,
+    .hart_info[5].gmain_gsiv  = PLATFORM_OVERRIDE_PE5_GMAIN_GSIV,
 
-    .pe_info[6].pe_num      = PLATFORM_OVERRIDE_PE6_INDEX,
-    .pe_info[6].mpidr       = PLATFORM_OVERRIDE_PE6_MPIDR,
-    .pe_info[6].pmu_gsiv    = PLATFORM_OVERRIDE_PE6_PMU_GSIV,
-    .pe_info[6].gmain_gsiv  = PLATFORM_OVERRIDE_PE6_GMAIN_GSIV,
+    .hart_info[6].hart_num      = PLATFORM_OVERRIDE_PE6_INDEX,
+    .hart_info[6].mpidr       = PLATFORM_OVERRIDE_PE6_MPIDR,
+    .hart_info[6].pmu_gsiv    = PLATFORM_OVERRIDE_PE6_PMU_GSIV,
+    .hart_info[6].gmain_gsiv  = PLATFORM_OVERRIDE_PE6_GMAIN_GSIV,
 
-    .pe_info[7].pe_num      = PLATFORM_OVERRIDE_PE7_INDEX,
-    .pe_info[7].mpidr       = PLATFORM_OVERRIDE_PE7_MPIDR,
-    .pe_info[7].pmu_gsiv    = PLATFORM_OVERRIDE_PE7_PMU_GSIV,
-    .pe_info[7].gmain_gsiv  = PLATFORM_OVERRIDE_PE7_GMAIN_GSIV,
+    .hart_info[7].hart_num      = PLATFORM_OVERRIDE_PE7_INDEX,
+    .hart_info[7].mpidr       = PLATFORM_OVERRIDE_PE7_MPIDR,
+    .hart_info[7].pmu_gsiv    = PLATFORM_OVERRIDE_PE7_PMU_GSIV,
+    .hart_info[7].gmain_gsiv  = PLATFORM_OVERRIDE_PE7_GMAIN_GSIV,
 
-    .pe_info[8].pe_num      = PLATFORM_OVERRIDE_PE8_INDEX,
-    .pe_info[8].mpidr       = PLATFORM_OVERRIDE_PE8_MPIDR,
-    .pe_info[8].pmu_gsiv    = PLATFORM_OVERRIDE_PE8_PMU_GSIV,
-    .pe_info[8].gmain_gsiv  = PLATFORM_OVERRIDE_PE8_GMAIN_GSIV,
+    .hart_info[8].hart_num      = PLATFORM_OVERRIDE_PE8_INDEX,
+    .hart_info[8].mpidr       = PLATFORM_OVERRIDE_PE8_MPIDR,
+    .hart_info[8].pmu_gsiv    = PLATFORM_OVERRIDE_PE8_PMU_GSIV,
+    .hart_info[8].gmain_gsiv  = PLATFORM_OVERRIDE_PE8_GMAIN_GSIV,
 
-    .pe_info[9].pe_num      = PLATFORM_OVERRIDE_PE9_INDEX,
-    .pe_info[9].mpidr       = PLATFORM_OVERRIDE_PE9_MPIDR,
-    .pe_info[9].pmu_gsiv    = PLATFORM_OVERRIDE_PE9_PMU_GSIV,
-    .pe_info[9].gmain_gsiv  = PLATFORM_OVERRIDE_PE9_GMAIN_GSIV,
+    .hart_info[9].hart_num      = PLATFORM_OVERRIDE_PE9_INDEX,
+    .hart_info[9].mpidr       = PLATFORM_OVERRIDE_PE9_MPIDR,
+    .hart_info[9].pmu_gsiv    = PLATFORM_OVERRIDE_PE9_PMU_GSIV,
+    .hart_info[9].gmain_gsiv  = PLATFORM_OVERRIDE_PE9_GMAIN_GSIV,
 
-    .pe_info[10].pe_num     = PLATFORM_OVERRIDE_PE10_INDEX,
-    .pe_info[10].mpidr      = PLATFORM_OVERRIDE_PE10_MPIDR,
-    .pe_info[10].pmu_gsiv   = PLATFORM_OVERRIDE_PE10_PMU_GSIV,
-    .pe_info[10].gmain_gsiv = PLATFORM_OVERRIDE_PE10_GMAIN_GSIV,
+    .hart_info[10].hart_num     = PLATFORM_OVERRIDE_PE10_INDEX,
+    .hart_info[10].mpidr      = PLATFORM_OVERRIDE_PE10_MPIDR,
+    .hart_info[10].pmu_gsiv   = PLATFORM_OVERRIDE_PE10_PMU_GSIV,
+    .hart_info[10].gmain_gsiv = PLATFORM_OVERRIDE_PE10_GMAIN_GSIV,
 
-    .pe_info[11].pe_num     = PLATFORM_OVERRIDE_PE11_INDEX,
-    .pe_info[11].mpidr      = PLATFORM_OVERRIDE_PE11_MPIDR,
-    .pe_info[11].pmu_gsiv   = PLATFORM_OVERRIDE_PE11_PMU_GSIV,
-    .pe_info[11].gmain_gsiv = PLATFORM_OVERRIDE_PE11_GMAIN_GSIV,
+    .hart_info[11].hart_num     = PLATFORM_OVERRIDE_PE11_INDEX,
+    .hart_info[11].mpidr      = PLATFORM_OVERRIDE_PE11_MPIDR,
+    .hart_info[11].pmu_gsiv   = PLATFORM_OVERRIDE_PE11_PMU_GSIV,
+    .hart_info[11].gmain_gsiv = PLATFORM_OVERRIDE_PE11_GMAIN_GSIV,
 
-    .pe_info[12].pe_num     = PLATFORM_OVERRIDE_PE12_INDEX,
-    .pe_info[12].mpidr      = PLATFORM_OVERRIDE_PE12_MPIDR,
-    .pe_info[12].pmu_gsiv   = PLATFORM_OVERRIDE_PE12_PMU_GSIV,
-    .pe_info[12].gmain_gsiv = PLATFORM_OVERRIDE_PE12_GMAIN_GSIV,
+    .hart_info[12].hart_num     = PLATFORM_OVERRIDE_PE12_INDEX,
+    .hart_info[12].mpidr      = PLATFORM_OVERRIDE_PE12_MPIDR,
+    .hart_info[12].pmu_gsiv   = PLATFORM_OVERRIDE_PE12_PMU_GSIV,
+    .hart_info[12].gmain_gsiv = PLATFORM_OVERRIDE_PE12_GMAIN_GSIV,
 
-    .pe_info[13].pe_num     = PLATFORM_OVERRIDE_PE13_INDEX,
-    .pe_info[13].mpidr      = PLATFORM_OVERRIDE_PE13_MPIDR,
-    .pe_info[13].pmu_gsiv   = PLATFORM_OVERRIDE_PE13_PMU_GSIV,
-    .pe_info[13].gmain_gsiv = PLATFORM_OVERRIDE_PE13_GMAIN_GSIV,
+    .hart_info[13].hart_num     = PLATFORM_OVERRIDE_PE13_INDEX,
+    .hart_info[13].mpidr      = PLATFORM_OVERRIDE_PE13_MPIDR,
+    .hart_info[13].pmu_gsiv   = PLATFORM_OVERRIDE_PE13_PMU_GSIV,
+    .hart_info[13].gmain_gsiv = PLATFORM_OVERRIDE_PE13_GMAIN_GSIV,
 
-    .pe_info[14].pe_num     = PLATFORM_OVERRIDE_PE14_INDEX,
-    .pe_info[14].mpidr      = PLATFORM_OVERRIDE_PE14_MPIDR,
-    .pe_info[14].pmu_gsiv   = PLATFORM_OVERRIDE_PE14_PMU_GSIV,
-    .pe_info[14].gmain_gsiv = PLATFORM_OVERRIDE_PE14_GMAIN_GSIV,
+    .hart_info[14].hart_num     = PLATFORM_OVERRIDE_PE14_INDEX,
+    .hart_info[14].mpidr      = PLATFORM_OVERRIDE_PE14_MPIDR,
+    .hart_info[14].pmu_gsiv   = PLATFORM_OVERRIDE_PE14_PMU_GSIV,
+    .hart_info[14].gmain_gsiv = PLATFORM_OVERRIDE_PE14_GMAIN_GSIV,
 
-    .pe_info[15].pe_num     = PLATFORM_OVERRIDE_PE15_INDEX,
-    .pe_info[15].mpidr      = PLATFORM_OVERRIDE_PE15_MPIDR,
-    .pe_info[15].pmu_gsiv   = PLATFORM_OVERRIDE_PE15_PMU_GSIV,
-    .pe_info[15].gmain_gsiv = PLATFORM_OVERRIDE_PE15_GMAIN_GSIV
+    .hart_info[15].hart_num     = PLATFORM_OVERRIDE_PE15_INDEX,
+    .hart_info[15].mpidr      = PLATFORM_OVERRIDE_PE15_MPIDR,
+    .hart_info[15].pmu_gsiv   = PLATFORM_OVERRIDE_PE15_PMU_GSIV,
+    .hart_info[15].gmain_gsiv = PLATFORM_OVERRIDE_PE15_GMAIN_GSIV
 
 };
 

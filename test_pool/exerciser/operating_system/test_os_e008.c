@@ -16,11 +16,11 @@
 
 
 /* Test sequence - Initialize a main memory region marked as WB,
- * outer shareable by the PE page tables. CPU Write to this region with
+ * outer shareable by the HART page tables. CPU Write to this region with
  * new data. Perform actions to maintain  software coherency.
  * Read the same data locations from the Exerciser with NS=1. The
  * exerciser must get the latest data. The exerciser updates the
- * location with newest data. PE reads the location and must get NEWEST VAL.
+ * location with newest data. HART reads the location and must get NEWEST VAL.
  */
 
 #include "val/include/bsa_acs_val.h"
@@ -154,7 +154,7 @@ void
 payload (void)
 {
 
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t instance;
   uint32_t e_bdf;
   uint32_t smmu_index;
@@ -164,7 +164,7 @@ payload (void)
   dram_buf1_virt = NULL;
   dram_buf1_phys = NULL;
 
-  pe_index = val_pe_get_index_mpid (val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid (val_hart_get_mpid());
 
   /* Read the number of excerciser cards */
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
@@ -193,7 +193,7 @@ payload (void)
     if (smmu_index != ACS_INVALID_INDEX) {
         if (val_smmu_disable(smmu_index)) {
             val_print(ACS_PRINT_ERR, "\n       Exerciser %x smmu disable error", instance);
-            val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
+            val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 2));
             return;
         }
     }
@@ -204,7 +204,7 @@ payload (void)
     if (!dram_buf1_virt) {
 
       val_print(ACS_PRINT_ERR, "\n       WB and OSH mem alloc failure %x", 2);
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 2));
       return;
     }
 
@@ -226,11 +226,11 @@ payload (void)
 
   }
 
-  val_set_status(pe_index, RESULT_PASS(TEST_NUM, 0));
+  val_set_status(hart_index, RESULT_PASS(TEST_NUM, 0));
   return;
 
 test_fail:
-  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
+  val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 2));
   val_memory_free_cacheable(e_bdf, TEST_DATA_BLK_SIZE, dram_buf1_virt, dram_buf1_phys);
   return;
 }
@@ -238,17 +238,17 @@ test_fail:
 uint32_t
 os_e008_entry (void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test (TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test (TEST_NUM, TEST_DESC, num_hart);
 
   if (status != ACS_STATUS_SKIP) {
-      val_run_test_payload (TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload (TEST_NUM, num_hart, payload, 0);
   }
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

@@ -330,17 +330,17 @@ pal_mem_calloc(uint32_t num, uint32_t Size)
 /**
   @brief  Allocate memory which is to be used to share data across PEs
 
-  @param  num_pe      - Number of PEs in the system
-  @param  sizeofentry - Size of memory region allocated to each PE
+  @param  num_hart      - Number of PEs in the system
+  @param  sizeofentry - Size of memory region allocated to each HART
 
   @return None
 **/
 void
-pal_mem_allocate_shared(uint32_t num_pe, uint32_t sizeofentry)
+pal_mem_allocate_shared(uint32_t num_hart, uint32_t sizeofentry)
 {
    gSharedMemory = 0;
-   gSharedMemory = pal_mem_alloc(num_pe * sizeofentry);
-   pal_pe_data_cache_ops_by_va((uint64_t)&gSharedMemory, CLEAN_AND_INVALIDATE);
+   gSharedMemory = pal_mem_alloc(num_hart * sizeofentry);
+   pal_hart_data_cache_ops_by_va((uint64_t)&gSharedMemory, CLEAN_AND_INVALIDATE);
 }
 
 /**

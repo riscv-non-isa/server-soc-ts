@@ -65,7 +65,7 @@ payload (void)
   uint32_t its_id = 0;
   uint64_t its_base = 0;
 
-  index = val_pe_get_index_mpid (val_pe_get_mpid());
+  index = val_hart_get_index_mpid (val_hart_get_mpid());
 
   if (val_gic_get_info(GIC_INFO_NUM_ITS) == 0) {
       val_print(ACS_PRINT_DEBUG, "\n       No ITS, Skipping Test.\n", 0);
@@ -140,10 +140,10 @@ payload (void)
     }
 
     /* Part 1 : ITS_DEV_6 */
-    /* Trigger the interrupt by writing to GITS_TRANSLATER from PE */
+    /* Trigger the interrupt by writing to GITS_TRANSLATER from HART */
     val_mmio_write(its_base + GITS_TRANSLATER, lpi_int_id + instance);
 
-    /* PE busy polls to check the completion of interrupt service routine */
+    /* HART busy polls to check the completion of interrupt service routine */
     timeout = TIMEOUT_MEDIUM;
     while ((--timeout > 0) && irq_pending)
         {};
@@ -151,7 +151,7 @@ payload (void)
     /* Interrupt must not be generated */
     if (irq_pending == 0) {
         val_print(ACS_PRINT_ERR,
-            "\n       Interrupt triggered from PE for bdf : 0x%x, ", e_bdf);
+            "\n       Interrupt triggered from HART for bdf : 0x%x, ", e_bdf);
         val_set_status(index, RESULT_FAIL(TEST_NUM, 5));
         val_gic_free_msi(e_bdf, device_id, its_id, lpi_int_id + instance, msi_index);
         return;
@@ -161,7 +161,7 @@ payload (void)
     /* Trigger the interrupt for this Exerciser instance */
     val_exerciser_ops(GENERATE_MSI, msi_index, instance);
 
-    /* PE busy polls to check the completion of interrupt service routine */
+    /* HART busy polls to check the completion of interrupt service routine */
     timeout = TIMEOUT_LARGE;
     while ((--timeout > 0) && irq_pending)
         {};
@@ -197,14 +197,14 @@ os_e004_entry(void)
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  uint32_t num_pe = 1;  //This test is run on single processor
+  uint32_t num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

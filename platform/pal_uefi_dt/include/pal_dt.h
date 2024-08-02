@@ -24,7 +24,7 @@ UINT64
 pal_get_dt_ptr();
 
 VOID
-pal_pe_create_info_table_dt(PE_INFO_TABLE *PeTable);
+pal_hart_create_info_table_dt(HART_INFO_TABLE *PeTable);
 
 VOID
 pal_wd_create_info_table_dt(WD_INFO_TABLE *WdTable);
@@ -64,7 +64,7 @@ fdt_interrupt_cells(const void *fdt, int nodeoffset);
 /*-----------------DEBUG FUNCTION----------------*/
 
 VOID
-dt_dump_pe_table(PE_INFO_TABLE *PeTable);
+dt_dump_hart_table(HART_INFO_TABLE *PeTable);
 
 VOID
 dt_dump_gic_table(GIC_INFO_TABLE *GicTable);
@@ -91,5 +91,5 @@ VOID
 dt_dump_peripheral_table(PERIPHERAL_INFO_TABLE *peripheralInfoTable);
 
 VOID
-pal_pe_info_table_gmaint_gsiv_dt(PE_INFO_TABLE *PeTable);
+pal_hart_info_table_gmaint_gsiv_dt(HART_INFO_TABLE *PeTable);
 #endif

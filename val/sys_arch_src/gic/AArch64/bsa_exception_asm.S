@@ -16,7 +16,7 @@
  **/
 
 #ifndef TARGET_EMULATION
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "sys_arch_src/gic/bsa_exception.h"
 #else
 #define EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS    0

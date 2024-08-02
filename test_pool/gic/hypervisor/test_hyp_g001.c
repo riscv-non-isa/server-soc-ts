@@ -19,7 +19,7 @@
 #include "val/include/bsa_acs_common.h"
 #include "val/include/val_interface.h"
 
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_gic.h"
 #include "val/include/bsa_acs_gic_support.h"
 
@@ -34,7 +34,7 @@ static
 void
 isr_vir()
 {
-    uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
     /* We received our interrupt, so disable timer from generating further interrupts */
     val_timer_set_vir_el2(0);
     val_print(ACS_PRINT_INFO, "\n       Received vir el2 interrupt    ", 0);
@@ -51,9 +51,9 @@ payload()
     uint32_t data;
     uint32_t timeout = TIMEOUT_LARGE;
     uint64_t timer_expire_val = 100;
-    uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
-    if (val_pe_reg_read(CurrentEL) == AARCH64_EL1) {
+    if (val_hart_reg_read(CurrentEL) == AARCH64_EL1) {
         val_print(ACS_PRINT_DEBUG, "\n       Skipping. Test accesses EL2"
                                     " Registers       ", 0);
         val_set_status(index, RESULT_SKIP(TEST_NUM, 1));
@@ -64,12 +64,12 @@ payload()
     val_set_status(index, RESULT_PENDING(TEST_NUM));
 
     /* This test is run only when ARM v8.1 Virtualized Host Extensions are supported */
-    data = val_pe_reg_read(ID_AA64MMFR1_EL1);
+    data = val_hart_reg_read(ID_AA64MMFR1_EL1);
 
-    /* Check for EL2 virtual timer interrupt, if PE supports 8.1 or greater.
+    /* Check for EL2 virtual timer interrupt, if HART supports 8.1 or greater.
      * ID_AA64MMFR1_EL1 VH, bits [11:8] must be 0x1 */
     if (!((data >> 8) & 0xF)) {
-        val_print(ACS_PRINT_DEBUG, "\n       v8.1 VHE not supported on this PE ", 0);
+        val_print(ACS_PRINT_DEBUG, "\n       v8.1 VHE not supported on this HART ", 0);
         val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
         return;
     }
@@ -114,19 +114,19 @@ payload()
 }
 
 uint32_t
-hyp_g001_entry(uint32_t num_pe)
+hyp_g001_entry(uint32_t num_hart)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
     /*This GIC test is run on single processor*/
-    num_pe = 1;
+    num_hart = 1;
 
-    status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+    status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
     if (status != ACS_STATUS_SKIP)
-        val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+        val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-    /* get the result from all PE and check for failure */
-    status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+    /* get the result from all HART and check for failure */
+    status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
     val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

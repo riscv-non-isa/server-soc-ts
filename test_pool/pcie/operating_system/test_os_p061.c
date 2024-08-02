@@ -17,7 +17,7 @@
 #include "val/include/bsa_acs_val.h"
 #include "val/include/val_interface.h"
 
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_pcie.h"
 #include "val/include/bsa_acs_memory.h"
 
@@ -33,10 +33,10 @@ static
 void
 esr(uint64_t interrupt_type, void *context)
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   /* Update the ELR to point to next instrcution */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  val_hart_update_elr(context, (uint64_t)branch_to_test);
 
   val_print(ACS_PRINT_ERR, "\n       Received Exception of type %d", interrupt_type);
   val_set_status(index, RESULT_FAIL(TEST_NUM, 02));
@@ -56,7 +56,7 @@ payload(void)
   uint32_t bar_value_1;
   uint64_t bar_size;
   char    *baseptr;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t test_skip = 1;
   uint32_t test_fail = 0;
   uint64_t offset;
@@ -71,8 +71,8 @@ payload(void)
   val_set_status(index, RESULT_SKIP(TEST_NUM, 0));
 
   /* Install exception handlers */
-  status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
-  status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
+  status = val_hart_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
+  status |= val_hart_install_esr(EXCEPT_AARCH64_SERROR, esr);
   if (status)
   {
       val_print(ACS_PRINT_ERR, "\n       Failed in installing the exception handler", 0);
@@ -251,19 +251,19 @@ next_bar:
 }
 
 uint32_t
-os_p061_entry(uint32_t num_pe)
+os_p061_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

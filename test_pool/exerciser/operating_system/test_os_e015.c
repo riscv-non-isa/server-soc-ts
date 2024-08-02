@@ -20,7 +20,7 @@
 
 #include "val/include/bsa_acs_pcie_enumeration.h"
 #include "val/include/bsa_acs_pcie.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_smmu.h"
 #include "val/include/bsa_acs_memory.h"
 #include "val/include/bsa_acs_exerciser.h"
@@ -34,7 +34,7 @@ static
 void
 payload(void)
 {
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t e_bdf;
   uint32_t erp_bdf;
   uint32_t reg_value;
@@ -54,7 +54,7 @@ payload(void)
   uint32_t status;
 
   fail_cnt = 0;
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
 
   while (instance-- != 0)
@@ -105,7 +105,7 @@ payload(void)
       seg_num = PCIE_EXTRACT_BDF_SEG(erp_bdf);
 
       /*
-       * Generate a config request from PE to the Secondary bus
+       * Generate a config request from HART to the Secondary bus
        * of the exerciser's root port. Exerciser must see this
        * request as a Type 0 Request.
        */
@@ -144,7 +144,7 @@ payload(void)
       val_pcie_write_cfg(erp_bdf, TYPE1_PBN, bus_value);
 
       /*
-       * Generate a config request from PE to the Secondary bus
+       * Generate a config request from HART to the Secondary bus
        * of the exerciser's root port. Exerciser must see this
        * request as a Type 1 Request.
        */
@@ -178,11 +178,11 @@ payload(void)
 
 test_result:
   if (test_skip)
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 01));
   else if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
 
   return;
 
@@ -191,15 +191,15 @@ test_result:
 uint32_t
 os_e015_entry(void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

@@ -16,15 +16,15 @@
  **/
 
 #include "include/bsa_acs_val.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "include/bsa_acs_common.h"
 #include "include/bsa_std_smc.h"
 
 
 /**
-  @brief   Pointer to the memory location of the PE Information table
+  @brief   Pointer to the memory location of the HART Information table
 **/
-extern PE_INFO_TABLE *g_pe_info_table;
+extern HART_INFO_TABLE *g_hart_info_table;
 /**
   @brief   global structure to pass and retrieve arguments for the SMC call
 **/
@@ -32,21 +32,21 @@ extern ARM_SMC_ARGS g_smc_args;
 
 
 /**
-  @brief   This API will execute all PE tests designated for a given compliance level
+  @brief   This API will execute all HART tests designated for a given compliance level
            1. Caller       -  Application layer.
-           2. Prerequisite -  val_pe_create_info_table, val_allocate_shared_mem
-  @param   num_pe - the number of PE to run these tests on.
+           2. Prerequisite -  val_hart_create_info_table, val_allocate_shared_mem
+  @param   num_hart - the number of HART to run these tests on.
   @param   g_sw_view - Keeps the information about which view tests to be run
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_pe_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_hart_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
   uint32_t status, i;
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_PE_TEST_NUM_BASE) {
-        val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all PE tests\n", 0);
+        val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all HART tests\n", 0);
         return ACS_STATUS_SKIP;
       }
   }
@@ -54,49 +54,49 @@ val_pe_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   /* Check if there are any tests to be executed in current module with user override options*/
   status = val_check_skip_module(ACS_PE_TEST_NUM_BASE);
   if (status) {
-      val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all PE tests\n", 0);
+      val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all HART tests\n", 0);
       return ACS_STATUS_SKIP;
   }
 
   status = ACS_STATUS_PASS;
 
-  val_print_test_start("PE");
+  val_print_test_start("HART");
   g_curr_module = 1 << PE_MODULE;
 
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-      status |= os_c001_entry(num_pe);
-      // status |= os_c002_entry(num_pe);
-      // status |= os_c003_entry(num_pe);
-      // status |= os_c004_entry(num_pe);
-      // status |= os_c006_entry(num_pe);
-      // status |= os_c007_entry(num_pe);
-      // status |= os_c008_entry(num_pe);
-      // status |= os_c009_entry(num_pe);
-      // status |= os_c010_entry(num_pe);
-      // status |= os_c011_entry(num_pe);
-      // status |= os_c012_entry(num_pe);
-      // status |= os_c013_entry(num_pe);
+      status |= os_c001_entry(num_hart);
+      // status |= os_c002_entry(num_hart);
+      // status |= os_c003_entry(num_hart);
+      // status |= os_c004_entry(num_hart);
+      // status |= os_c006_entry(num_hart);
+      // status |= os_c007_entry(num_hart);
+      // status |= os_c008_entry(num_hart);
+      // status |= os_c009_entry(num_hart);
+      // status |= os_c010_entry(num_hart);
+      // status |= os_c011_entry(num_hart);
+      // status |= os_c012_entry(num_hart);
+      // status |= os_c013_entry(num_hart);
 if (!g_build_sbsa) { /* B_PE_15 is only in BSA checklist */
-      // status |= os_c014_entry(num_pe);
+      // status |= os_c014_entry(num_hart);
 }
   }
 
   if (g_sw_view[G_SW_HYP]) {
       val_print(ACS_PRINT_ERR, "\nHypervisor View:\n", 0);
-      // status |= hyp_c001_entry(num_pe);
-      // status |= hyp_c002_entry(num_pe);
-      // status |= hyp_c003_entry(num_pe);
-      // status |= hyp_c004_entry(num_pe);
-      // status |= hyp_c005_entry(num_pe);
+      // status |= hyp_c001_entry(num_hart);
+      // status |= hyp_c002_entry(num_hart);
+      // status |= hyp_c003_entry(num_hart);
+      // status |= hyp_c004_entry(num_hart);
+      // status |= hyp_c005_entry(num_hart);
   }
 
   if (g_sw_view[G_SW_PS]) {
       val_print(ACS_PRINT_ERR, "\nPlatform Security View:\n", 0);
-      // status |= ps_c001_entry(num_pe);
+      // status |= ps_c001_entry(num_hart);
   }
 
-  val_print_test_end(status, "PE");
+  val_print_test_end(status, "HART");
 
   return status;
 
@@ -110,7 +110,7 @@ if (!g_build_sbsa) { /* B_PE_15 is only in BSA checklist */
   @return  the value read from the system register.
 **/
 uint64_t
-val_pe_reg_read(uint32_t reg_id)
+val_hart_reg_read(uint32_t reg_id)
 {
 
   switch(reg_id) {
@@ -267,7 +267,7 @@ val_pe_reg_read(uint32_t reg_id)
       case DBGBCR15_EL1:
           return AA64ReadDbgbcr15El1();
       default:
-           val_report_status(val_pe_get_index_mpid(val_pe_get_mpid()),
+           val_report_status(val_hart_get_index_mpid(val_hart_get_mpid()),
                                                  RESULT_FAIL(0, 0xFF), NULL);
            break;
   }
@@ -284,7 +284,7 @@ val_pe_reg_read(uint32_t reg_id)
   @return  None
 **/
 void
-val_pe_reg_write(uint32_t reg_id, uint64_t write_data)
+val_hart_reg_write(uint32_t reg_id, uint64_t write_data)
 {
 
   switch(reg_id) {
@@ -328,7 +328,7 @@ val_pe_reg_write(uint32_t reg_id, uint64_t write_data)
           AA64WritePmblimitr(write_data);
           break;
       default:
-           val_report_status(val_pe_get_index_mpid(val_pe_get_mpid()),
+           val_report_status(val_hart_get_index_mpid(val_hart_get_mpid()),
                                                   RESULT_FAIL(0, 0xFF), NULL);
   }
 
@@ -345,7 +345,7 @@ uint8_t
 val_is_el3_enabled()
 {
   uint64_t data;
-  data = val_pe_reg_read(ID_AA64PFR0_EL1);
+  data = val_hart_reg_read(ID_AA64PFR0_EL1);
   return ((data >> 12) & 0xF);
 
 }
@@ -362,85 +362,36 @@ val_is_el2_enabled()
 {
 
   uint64_t data;
-  data = val_pe_reg_read(ID_AA64PFR0_EL1);
+  data = val_hart_reg_read(ID_AA64PFR0_EL1);
   return ((data >> 8) & 0xF);
 
 }
 
-
 /**
-  @brief   This API returns the PMU Overflow Signal Interrupt ID for a given PE index
-           1. Caller       -  Test Suite, VAL
-           2. Prerequisite -  val_create_peinfo_table
-  @param   index - the index of PE whose PMU interrupt ID is returned.
-  @return  PMU interrupt id
-**/
-uint32_t
-val_pe_get_pmu_gsiv(uint32_t index)
-{
-
-  PE_INFO_ENTRY *entry;
-
-  if (index > g_pe_info_table->header.num_of_pe) {
-        val_report_status(index, RESULT_FAIL(0, 0xFF), NULL);
-        return 0xFFFFFF;
-  }
-
-  entry = g_pe_info_table->pe_info;
-
-  return entry[index].pmu_gsiv;
-
-}
-
-/**
-  @brief   This API returns the GIC Maintenance Interrupt ID for a given PE index
+ * @brief This API returns the ISA string for a given HART index
            1. Caller       -  Test Suite
            2. Prerequisite -  val_create_peinfo_table
-  @param   index - the index of PE whose GIC Maintenance interrupt ID is to be returned.
-  @return  GIC Maintenance interrupt id
-**/
-uint32_t
-val_pe_get_gmain_gsiv(uint32_t index)
-{
-
-  PE_INFO_ENTRY *entry;
-
-  if (index > g_pe_info_table->header.num_of_pe) {
-        val_report_status(index, RESULT_FAIL(0, 0xFF), NULL);
-        return 0xFFFFFF;
-  }
-
-  entry = g_pe_info_table->pe_info;
-
-  return entry[index].gmain_gsiv;
-
-}
-
-/**
- * @brief This API returns the ISA string for a given PE index
-           1. Caller       -  Test Suite
-           2. Prerequisite -  val_create_peinfo_table
- * @param index - the index of PE whose ISA string is to be returned.
+ * @param index - the index of HART whose ISA string is to be returned.
  * @return Pointer to the ISA string
  */
 char8_t *
-val_pe_get_isa_string (uint32_t index)
+val_hart_get_isa_string (uint32_t index)
 {
-  PE_INFO_ENTRY *entry;
+  HART_INFO_ENTRY *entry;
 
-  if (index > g_pe_info_table->header.num_of_pe) {
+  if (index > g_hart_info_table->header.num_of_hart) {
         val_report_status(index, RESULT_FAIL(0, 0xFF), NULL);
         return NULL;
   }
 
-  entry = g_pe_info_table->pe_info;
+  entry = g_hart_info_table->hart_info;
 
   return entry[index].isa_string;
 }
 
 /**
  * @brief  This API returns the Incoming MSI Controller (IMSIC) MMIO base address
-           for a given PE index
+           for a given HART index
            1. Caller       -  Test Suite
            2. Prerequisite -  val_create_peinfo_table
  *
@@ -448,16 +399,16 @@ val_pe_get_isa_string (uint32_t index)
  * @return Base address of IMSIC
  */
 uint64_t
-val_pe_get_imsic_base (int32_t index)
+val_hart_get_imsic_base (int32_t index)
 {
-  PE_INFO_ENTRY *entry;
+  HART_INFO_ENTRY *entry;
 
-  if (index > g_pe_info_table->header.num_of_pe) {
+  if (index > g_hart_info_table->header.num_of_hart) {
         val_report_status(index, RESULT_FAIL(0, 0xFF), NULL);
         return 0;
   }
 
-  entry = g_pe_info_table->pe_info;
+  entry = g_hart_info_table->hart_info;
 
   return entry[index].imsic_base;
 }
@@ -473,7 +424,7 @@ val_pe_get_imsic_base (int32_t index)
   @return  None.
 **/
 void
-val_pe_spe_program_under_profiling(uint64_t interval, addr_t address)
+val_hart_spe_program_under_profiling(uint64_t interval, addr_t address)
 {
   SpeProgramUnderProfiling(interval, address);
 }
@@ -486,7 +437,7 @@ val_pe_spe_program_under_profiling(uint64_t interval, addr_t address)
   @return  None
 **/
 void
-val_pe_spe_disable(void)
+val_hart_spe_disable(void)
 {
   DisableSpe();
 }
@@ -499,9 +450,9 @@ val_pe_spe_disable(void)
 
   @return  Status 0 if Success
 **/
-uint32_t val_pe_reg_read_tcr(uint32_t ttbr1, PE_TCR_BF *tcr)
+uint32_t val_hart_reg_read_tcr(uint32_t ttbr1, PE_TCR_BF *tcr)
 {
-    uint64_t val = val_pe_reg_read(TCR_ELx);
+    uint64_t val = val_hart_reg_read(TCR_ELx);
     uint32_t el = AA64ReadCurrentEL() & AARCH64_EL_MASK;
     uint8_t tg_ttbr0[3] = {12 /*4KB*/, 16 /*64KB*/, 14 /*16KB*/};
     uint8_t tg_ttbr1[4] = {0 /* N/A */, 14 /*16KB*/, 12 /*4KB*/, 16 /* 64KB*/};
@@ -553,7 +504,7 @@ uint32_t val_pe_reg_read_tcr(uint32_t ttbr1, PE_TCR_BF *tcr)
 
   @return  Status 0 if Success
 **/
-uint32_t val_pe_reg_read_ttbr(uint32_t ttbr1, uint64_t *ttbr_ptr)
+uint32_t val_hart_reg_read_ttbr(uint32_t ttbr1, uint64_t *ttbr_ptr)
 {
     uint32_t el = AA64ReadCurrentEL() & AARCH64_EL_MASK;
     typedef uint64_t (*ReadTtbr_t)(void);

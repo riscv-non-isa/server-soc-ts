@@ -32,7 +32,7 @@ static
 void
 isr()
 {
-    uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
     val_wd_set_ws0(wd_num, 0);
     val_print(ACS_PRINT_DEBUG, "\n       Received WS0 interrupt                ", 0);
     val_set_status(index, RESULT_PASS(TEST_NUM, 1));
@@ -47,7 +47,7 @@ payload()
 
     uint32_t status, timeout, ns_wdg = 0;
     uint64_t timer_expire_ticks = 1;
-    uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+    uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
     wd_num = val_wd_get_info(0, WD_INFO_COUNT);
 
     if (wd_num == 0) {
@@ -115,20 +115,20 @@ payload()
 }
 
 uint32_t
-os_w002_entry(uint32_t num_pe)
+os_w002_entry(uint32_t num_hart)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
 
-    num_pe = 1;  /*This Timer test is run on single processor*/
+    num_hart = 1;  /*This Timer test is run on single processor*/
 
-    status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+    status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 
     if (status != ACS_STATUS_SKIP)
-        val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+        val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-    /* get the result from all PE and check for failure */
-    status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+    /* get the result from all HART and check for failure */
+    status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
     val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
     return status;

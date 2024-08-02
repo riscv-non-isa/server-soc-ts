@@ -162,16 +162,16 @@ secondary_cpu_entry:
     isb
 
 0:
-   /* Setup the dummy stack to call val_get_pe_id C fn */
+   /* Setup the dummy stack to call val_get_hart_id C fn */
     adrp  x1, dummy_stack_end
     add x1,x1,#:lo12:dummy_stack_end
     mov  sp, x1
 
     mrs  x0, mpidr_el1
-    bl   val_get_pe_id
+    bl   val_get_hart_id
 
     /* Now setup the stack pointer with actual stack addr
-     * for the logic cpuid return by val_get_pe_id
+     * for the logic cpuid return by val_get_hart_id
      */
     adrp  x1, stacks_end
     add x1,x1,#:lo12:stacks_end

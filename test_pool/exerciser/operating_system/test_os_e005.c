@@ -17,7 +17,7 @@
 #include "val/include/bsa_acs_val.h"
 #include "val/include/val_interface.h"
 
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_smmu.h"
 #include "val/include/bsa_acs_pgt.h"
 #include "val/include/bsa_acs_iovirt.h"
@@ -77,7 +77,7 @@ clear_dram_buf(void *buf, uint32_t size)
 static void
 payload(void)
 {
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t instance;
   uint64_t e_bdf;
   uint32_t e_valid_cnt;
@@ -112,13 +112,13 @@ payload(void)
   val_memory_set(mem_desc_array, sizeof(mem_desc_array), 0);
   mem_desc = &mem_desc_array[0];
   e_valid_cnt = 0;
-  pe_index = val_pe_get_index_mpid (val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid (val_hart_get_mpid());
 
   /* Allocate 2 test buffers, one for each pasid */
   dram_buf_base_virt = val_memory_alloc_pages(TEST_DATA_NUM_PAGES * 2);
   if (!dram_buf_base_virt) {
       val_print(ACS_PRINT_ERR, "\n       Cacheable mem alloc failure %x", 2);
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 2));
       return;
   }
 
@@ -134,20 +134,20 @@ payload(void)
   dma_len = test_data_blk_size/2;
 
   /* Get translation attributes via TCR and translation table base via TTBR */
-  if (val_pe_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc.tcr))
+  if (val_hart_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc.tcr))
   {
     val_print(ACS_PRINT_ERR, "\n       TCR read failure %x", 3);
-    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 3));
+    val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 3));
     return;
   }
-  if (val_pe_reg_read_ttbr(0 /*TTBR0*/, &ttbr))
+  if (val_hart_reg_read_ttbr(0 /*TTBR0*/, &ttbr))
   {
     val_print(ACS_PRINT_ERR, "\n       TTBR0 read failure %x", 4);
-    val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 4));
+    val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 4));
     return;
   }
   pgt_desc.pgt_base = (ttbr & AARCH64_TTBR_ADDR_MASK);
-  pgt_desc.mair = val_pe_reg_read(MAIR_ELx);
+  pgt_desc.mair = val_hart_reg_read(MAIR_ELx);
   pgt_desc.stage = PGT_STAGE1;
 
   /* Get memory attributes of the test buffer, we'll use the same attibutes to create
@@ -400,14 +400,14 @@ payload(void)
     val_smmu_disable(master.smmu_index);
   }
   if (e_valid_cnt) {
-    val_set_status(pe_index, RESULT_PASS (TEST_NUM, 1));
+    val_set_status(hart_index, RESULT_PASS (TEST_NUM, 1));
   } else {
-    val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 00));
+    val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 00));
   }
   goto test_clean;
 
 test_fail:
-  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
+  val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 2));
 
 test_clean:
   val_memory_free_pages(dram_buf_base_virt, TEST_DATA_NUM_PAGES * 2);
@@ -420,15 +420,15 @@ test_clean:
 uint32_t
 os_e005_entry(void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

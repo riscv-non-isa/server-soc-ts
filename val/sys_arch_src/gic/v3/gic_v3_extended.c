@@ -18,7 +18,7 @@
 #include "include/bsa_acs_val.h"
 #include "include/bsa_acs_gic.h"
 #include "include/bsa_acs_gic_support.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "gic_v3.h"
 #include "gic.h"
 #include "bsa_exception.h"
@@ -86,7 +86,7 @@ v3_disable_extended_interrupt_source(uint32_t int_id)
       /* Calculate register offset and bit position */
       regOffset = (int_id - EXTENDED_PPI_REG_OFFSET) / 32;
       regShift = (int_id - EXTENDED_PPI_REG_OFFSET) % 32;
-      cpuRd_base = v3_get_pe_gicr_base();
+      cpuRd_base = v3_get_hart_gicr_base();
       if (cpuRd_base == 0) {
         return;
       }
@@ -116,7 +116,7 @@ v3_enable_extended_interrupt_source(uint32_t int_id)
       /* Calculate register offset and bit position */
       regOffset = (int_id - EXTENDED_PPI_REG_OFFSET) / 32;
       regShift = (int_id - EXTENDED_PPI_REG_OFFSET) % 32;
-      cpuRd_base = v3_get_pe_gicr_base();
+      cpuRd_base = v3_get_hart_gicr_base();
       if (cpuRd_base == 0) {
         return;
       }
@@ -151,7 +151,7 @@ v3_set_extended_interrupt_priority(uint32_t int_id, uint32_t priority)
     regOffset = (int_id - EXTENDED_PPI_REG_OFFSET) / 4;
     regShift = ((int_id - EXTENDED_PPI_REG_OFFSET) % 4) * 8;
 
-    cpuRd_base = v3_get_pe_gicr_base();
+    cpuRd_base = v3_get_hart_gicr_base();
     if (cpuRd_base == 0) {
       return;
     }
@@ -162,7 +162,7 @@ v3_set_extended_interrupt_priority(uint32_t int_id, uint32_t priority)
 }
 
 /**
-  @brief  Route interrupt to primary PE
+  @brief  Route interrupt to primary HART
   @param  interrupt id
   @return none
 **/
@@ -221,7 +221,7 @@ v3_extended_init(void)
       v3_set_extended_interrupt_priority(index, GIC_DEFAULT_PRIORITY);
   }
 
-  /* Route ESPI to primary PE */
+  /* Route ESPI to primary HART */
   for (index = EXTENDED_SPI_START_INTID; index <= (max_num_espi_interrupts); index++) {
       v3_route_extended_interrupt(index);
   }

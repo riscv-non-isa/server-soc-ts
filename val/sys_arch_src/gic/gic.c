@@ -16,7 +16,7 @@
  **/
 
 #include "include/bsa_acs_val.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "gic_v3.h"
 #include "gic_v2.h"
 #include "../gic.h"

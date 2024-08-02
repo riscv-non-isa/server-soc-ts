@@ -26,7 +26,7 @@ VAL_SRC = $(ACS_DIR)/src
 obj-m += bsa_acs_val.o
 bsa_acs_val-objs += $(VAL_SRC)/acs_status.o      $(VAL_SRC)/acs_memory.o \
     $(VAL_SRC)/acs_peripherals.o $(VAL_SRC)/acs_dma.o  $(VAL_SRC)/acs_smmu.o \
-    $(VAL_SRC)/acs_test_infra.o  $(VAL_SRC)/acs_pcie.o  $(VAL_SRC)/acs_pe_infra.o \
+    $(VAL_SRC)/acs_test_infra.o  $(VAL_SRC)/acs_pcie.o  $(VAL_SRC)/acs_hart_infra.o \
     $(VAL_SRC)/acs_iovirt.o \
     $(ACS_DIR)/sys_arch_src/smmu_v3/smmu_v3.o \
     $(ACS_DIR)/sys_arch_src/pcie/pcie.o

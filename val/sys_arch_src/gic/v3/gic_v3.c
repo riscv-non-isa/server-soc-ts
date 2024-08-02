@@ -18,7 +18,7 @@
 #include "include/bsa_acs_val.h"
 #include "include/bsa_acs_gic.h"
 #include "include/bsa_acs_gic_support.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "gic_v3.h"
 #include "gic.h"
 #include "bsa_exception.h"
@@ -56,15 +56,15 @@ v3_read_gicdTyper(void)
 uint64_t
 v3_read_gicr_typer(void)
 {
-  return val_mmio_read64(v3_get_pe_gicr_base() + GICR_TYPER);
+  return val_mmio_read64(v3_get_hart_gicr_base() + GICR_TYPER);
 }
 
 
 /**
-  @brief  derives current pe rd base
+  @brief  derives current hart rd base
   @param  rd base
   @param  rd base length
-  @return pe rd base
+  @return hart rd base
 **/
 static uint64_t
 CurrentCpuRDBase(uint64_t mGicRedistributorBase, uint32_t length)
@@ -108,7 +108,7 @@ CurrentCpuRDBase(uint64_t mGicRedistributorBase, uint32_t length)
 }
 
 /**
-  @brief  Marks primary PE as online
+  @brief  Marks primary HART as online
   @param  none
   @return none
 **/
@@ -136,11 +136,11 @@ WakeUpRD(void)
 }
 
 /**
-  @brief  derives current pe rd base
+  @brief  derives current hart rd base
   @param  none
-  @return pe rd base
+  @return hart rd base
 **/
-uint64_t v3_get_pe_gicr_base(void)
+uint64_t v3_get_hart_gicr_base(void)
 {
   uint32_t                rdbase_len;
   uint64_t                rd_base;
@@ -318,7 +318,7 @@ v3_Init(void)
   /* Set vector table */
   bsa_gic_vector_table_init();
 
-  if (val_pe_reg_read(CurrentEL) == AARCH64_EL2) {
+  if (val_hart_reg_read(CurrentEL) == AARCH64_EL2) {
     /* Route exception to EL2 */
     GicWriteHcr(1 << 27);
   }
@@ -346,7 +346,7 @@ v3_Init(void)
   Mpidr = ArmReadMpidr();
   cpuTarget = Mpidr & (PE_AFF0 | PE_AFF1 | PE_AFF2 | PE_AFF3);
 
-  /* Route SPI to primary PE */
+  /* Route SPI to primary HART */
   for (index = 0; index < (max_num_interrupts - 32); index++) {
       val_mmio_write64(gicd_base + GICD_IROUTERn + (index * 8), cpuTarget);
   }

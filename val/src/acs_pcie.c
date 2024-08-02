@@ -285,13 +285,13 @@ void val_pcie_enumerate(void)
   @brief   This API executes all the PCIe tests sequentially
            1. Caller       -  Application layer.
            2. Prerequisite -  val_pcie_create_info_table()
-  @param   num_pe      - the number of PE to run these tests on.
+  @param   num_hart      - the number of HART to run these tests on.
   @param   g_sw_view - Keeps the information about which view tests to be run
 
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
   uint32_t status, i;
   uint32_t num_ecam = 0;
@@ -330,7 +330,7 @@ val_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
 
-      status |= os_p001_entry(num_pe);
+      status |= os_p001_entry(num_hart);
       if (status == ACS_STATUS_FAIL) {
         val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
         return status;
@@ -346,43 +346,43 @@ val_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 
   if (g_sw_view[G_SW_OS]) {
 #if defined(TARGET_LINUX) || defined(ENABLE_OOB) || defined(TARGET_EMULATION)
-      status |= os_p061_entry(num_pe);
-      status |= os_p062_entry(num_pe);
-      status |= os_p063_entry(num_pe);
-      status |= os_p064_entry(num_pe);
+      status |= os_p061_entry(num_hart);
+      status |= os_p062_entry(num_hart);
+      status |= os_p063_entry(num_hart);
+      status |= os_p064_entry(num_hart);
 #endif
 #ifndef TARGET_LINUX
-      status |= os_p002_entry(num_pe);
-      status |= os_p003_entry(num_pe);
+      status |= os_p002_entry(num_hart);
+      status |= os_p003_entry(num_hart);
 #if defined(ENABLE_OOB) || defined(TARGET_EMULATION)
-      status |= os_p004_entry(num_pe);
-      status |= os_p005_entry(num_pe);
+      status |= os_p004_entry(num_hart);
+      status |= os_p005_entry(num_hart);
 #endif
-      status |= os_p006_entry(num_pe);
-      status |= os_p008_entry(num_pe);
-      status |= os_p009_entry(num_pe);
-      status |= os_p011_entry(num_pe);
+      status |= os_p006_entry(num_hart);
+      status |= os_p008_entry(num_hart);
+      status |= os_p009_entry(num_hart);
+      status |= os_p011_entry(num_hart);
 
-      status |= os_p017_entry(num_pe);
-      status |= os_p018_entry(num_pe);
-      status |= os_p019_entry(num_pe);
-      status |= os_p020_entry(num_pe);
-      status |= os_p021_entry(num_pe);
-      status |= os_p022_entry(num_pe);
-      status |= os_p024_entry(num_pe);
-      status |= os_p025_entry(num_pe);
-      status |= os_p026_entry(num_pe);
-      status |= os_p030_entry(num_pe);
-      status |= os_p031_entry(num_pe);
-      status |= os_p032_entry(num_pe);
-      status |= os_p033_entry(num_pe);
-      status |= os_p035_entry(num_pe);
-      status |= os_p036_entry(num_pe);
-      status |= os_p037_entry(num_pe);
-      status |= os_p038_entry(num_pe);
-      status |= os_p039_entry(num_pe);
-      status |= os_p040_entry(num_pe);
-      status |= os_p042_entry(num_pe);
+      status |= os_p017_entry(num_hart);
+      status |= os_p018_entry(num_hart);
+      status |= os_p019_entry(num_hart);
+      status |= os_p020_entry(num_hart);
+      status |= os_p021_entry(num_hart);
+      status |= os_p022_entry(num_hart);
+      status |= os_p024_entry(num_hart);
+      status |= os_p025_entry(num_hart);
+      status |= os_p026_entry(num_hart);
+      status |= os_p030_entry(num_hart);
+      status |= os_p031_entry(num_hart);
+      status |= os_p032_entry(num_hart);
+      status |= os_p033_entry(num_hart);
+      status |= os_p035_entry(num_hart);
+      status |= os_p036_entry(num_hart);
+      status |= os_p037_entry(num_hart);
+      status |= os_p038_entry(num_hart);
+      status |= os_p039_entry(num_hart);
+      status |= os_p040_entry(num_hart);
+      status |= os_p042_entry(num_hart);
 
 #endif
 

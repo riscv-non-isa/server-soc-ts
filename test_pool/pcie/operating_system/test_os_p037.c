@@ -19,7 +19,7 @@
 #include "val/include/val_interface.h"
 
 #include "val/include/bsa_acs_pcie.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 37)
 #define TEST_DESC  "Check Config Txn for RP in HB         "
@@ -33,7 +33,7 @@ payload(void)
   uint32_t bdf;
   uint32_t Status;
   uint32_t dp_type;
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t tbl_index;
   uint32_t fail_cnt;
   uint32_t test_skip = 1;
@@ -45,7 +45,7 @@ payload(void)
   fail_cnt = 0;
   tbl_index = 0;
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   while (tbl_index < bdf_tbl_ptr->num_entries)
   {
@@ -89,28 +89,28 @@ payload(void)
 
   if (test_skip == 1) {
       val_print(ACS_PRINT_DEBUG, "\n       No RP type device found. Skipping test", 0);
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 01));
   }
   else if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 01));
 }
 
 uint32_t
-os_p037_entry(uint32_t num_pe)
+os_p037_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

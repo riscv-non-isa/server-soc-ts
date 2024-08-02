@@ -27,12 +27,12 @@ WD_INFO_TABLE  *g_wd_info_table;
   @brief   This API executes all the Watchdog tests sequentially
            1. Caller       -  Application layer.
            2. Prerequisite -  val_wd_create_info_table
-  @param   num_pe - the number of PE to run these tests on.
+  @param   num_hart - the number of HART to run these tests on.
   @param   g_sw_view - Keeps the information about which view tests to be run
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_wd_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_wd_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
   uint32_t status, i;
 
@@ -65,8 +65,8 @@ if (!g_build_sbsa) { /* For SBSA compliance WD is mandatory */
 
   if (g_sw_view[G_SW_OS]) {
     val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-    status |= os_w001_entry(num_pe);
-    status |= os_w002_entry(num_pe);
+    status |= os_w001_entry(num_hart);
+    status |= os_w002_entry(num_hart);
   }
 
   val_print_test_end(status, "Watchdog");

@@ -20,7 +20,7 @@
 
 #include "val/include/bsa_acs_pcie_enumeration.h"
 #include "val/include/bsa_acs_pcie.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_smmu.h"
 #include "val/include/bsa_acs_memory.h"
 #include "val/include/bsa_acs_exerciser.h"
@@ -43,7 +43,7 @@ esr(uint64_t interrupt_type, void *context)
 {
 
   /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  val_hart_update_elr(context, (uint64_t)branch_to_test);
 
   val_print(ACS_PRINT_INFO, "\n       Received exception of type: %d", interrupt_type);
 }
@@ -55,7 +55,7 @@ void
 payload(void)
 {
 
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t e_bdf;
   uint32_t erp_bdf;
   uint32_t instance;
@@ -71,16 +71,16 @@ payload(void)
   uint32_t page_size = val_memory_page_size();
 
   fail_cnt = 0;
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
 
   /* Install sync and async handlers to handle exceptions.*/
-  status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
-  status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
+  status = val_hart_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
+  status |= val_hart_install_esr(EXCEPT_AARCH64_SERROR, esr);
   if (status)
   {
       val_print(ACS_PRINT_ERR, "\n       Failed in installing the exception handler", 0);
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 01));
       return;
   }
 
@@ -93,7 +93,7 @@ payload(void)
   {
       val_print(ACS_PRINT_ERR,
             "\n       Unable to allocate memory for buffer of %x pages", TEST_DATA_NUM_PAGES);
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 02));
       return;
   }
 
@@ -190,9 +190,9 @@ exception_return:
   val_memory_free_pages(dram_buf_virt, TEST_DATA_NUM_PAGES);
 
   if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 01));
 
   return;
 
@@ -201,15 +201,15 @@ exception_return:
 uint32_t
 os_e017_entry(void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

@@ -16,7 +16,7 @@
  **/
 
 #include "val/include/bsa_acs_val.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_PE_HYP_TEST_NUM_BASE  +  5)
 #define TEST_RULE  "B_PE_22"
@@ -28,16 +28,16 @@ payload()
 {
   uint64_t data = 0;
   uint32_t context_aware_breakpoints = 0;
-  uint32_t pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
 
-  data = val_pe_reg_read(ID_AA64DFR0_EL1);
+  data = val_hart_reg_read(ID_AA64DFR0_EL1);
 
   /*bits [31:28] Number of breakpoints that are context-aware, minus 1*/
   context_aware_breakpoints = VAL_EXTRACT_BITS(data, 28, 31) + 1;
   if (context_aware_breakpoints > 1)
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
   else
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 1));
 
   return;
 }
@@ -46,17 +46,17 @@ payload()
   @brief   Check for the number of breakpoints available
 **/
 uint32_t
-hyp_c005_entry(uint32_t num_pe)
+hyp_c005_entry(uint32_t num_hart)
 {
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      /* execute payload on present PE and then execute on other PE */
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      /* execute payload on present HART and then execute on other HART */
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

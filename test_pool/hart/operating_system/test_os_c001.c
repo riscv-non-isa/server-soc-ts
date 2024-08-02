@@ -16,11 +16,11 @@
  **/
 
 #include "val/include/bsa_acs_val.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  1)
 #define TEST_RULE  "B_PE_01"
-#define TEST_DESC  "Check Arch symmetry across PE         "
+#define TEST_DESC  "Check Arch symmetry across HART         "
 
 #define NUM_OF_REGISTERS  32
 
@@ -98,42 +98,42 @@ return_reg_value(uint32_t reg, uint8_t dependency)
   uint64_t temp=0;
 
   if(dependency == 0)
-      return val_pe_reg_read(reg);
+      return val_hart_reg_read(reg);
 
   switch(dependency)
   {
     case RAS: // If RAS is not supported, then skip register check
-        temp = val_pe_reg_read(ID_AA64PFR0_EL1);
+        temp = val_hart_reg_read(ID_AA64PFR0_EL1);
         temp = (temp >> 28) & 0xf;
         if(temp == 1)
-            return val_pe_reg_read(reg);
+            return val_hart_reg_read(reg);
         else
             return 0;
         break;
 
     case SPE: // If Statistical Profiling Extension is not supported, then skip register check
-        temp = val_pe_reg_read(ID_AA64DFR0_EL1);
+        temp = val_hart_reg_read(ID_AA64DFR0_EL1);
         temp = (temp >> 32) & 0xf;
         if(temp == 1)
-            return val_pe_reg_read(reg);
+            return val_hart_reg_read(reg);
         else
             return 0;
         break;
 
     case LOR: // If Limited Ordering Region is not supported, then skip register check
-        temp = val_pe_reg_read(ID_AA64MMFR1_EL1);
+        temp = val_hart_reg_read(ID_AA64MMFR1_EL1);
         temp = (temp >> 16) & 0xf;
         if(temp == 1)
-            return val_pe_reg_read(reg);
+            return val_hart_reg_read(reg);
         else
             return 0;
         break;
 
     case AA32: // If the register is UNK in pure AArch64 implementation, then skip register check
-        temp = val_pe_reg_read(ID_AA64PFR0_EL1);
+        temp = val_hart_reg_read(ID_AA64PFR0_EL1);
         temp = (temp & 1);
         if(temp == 0)
-            return val_pe_reg_read(reg);
+            return val_hart_reg_read(reg);
         else
             return 0;
         break;
@@ -149,15 +149,15 @@ void
 id_regs_check(void)
 {
   uint64_t reg_read_data;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t i = 0;
 
   /* Loop CLIDR to check if a cache level is implemented before comparing */
   while (i < MAX_CACHE_LEVEL) {
-      reg_read_data = val_pe_reg_read(CLIDR_EL1);
+      reg_read_data = val_hart_reg_read(CLIDR_EL1);
       if (reg_read_data & ((0x7) << (i * 3))) {
           /* Select the correct cache in csselr register */
-          val_pe_reg_write(CSSELR_EL1, i << 1);
+          val_hart_reg_write(CSSELR_EL1, i << 1);
           reg_read_data = return_reg_value(reg_list[0].reg_name, reg_list[0].dependency);
 
           if ((reg_read_data & (~reg_list[0].reg_mask)) != (cache_list[i] & (~reg_list[0].reg_mask))) {
@@ -187,15 +187,15 @@ id_regs_check(void)
 
 static
 void
-payload(uint32_t num_pe)
+payload(uint32_t num_hart)
 {
-  uint32_t my_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t my_index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t i;
   uint32_t timeout;
   uint64_t reg_read_data, debug_data=0, array_index=0;
 
-  if (num_pe == 1) {
-      val_print(ACS_PRINT_DEBUG, "\n       Skipping as num of PE is 1    ", 0);
+  if (num_hart == 1) {
+      val_print(ACS_PRINT_DEBUG, "\n       Skipping as num of HART is 1    ", 0);
       val_set_status(my_index, RESULT_SKIP(TEST_NUM, 1));
       return;
   }
@@ -203,10 +203,10 @@ payload(uint32_t num_pe)
   /* Loop CLIDR to check if a cache level is implemented */
   i = 0;
   while (i < MAX_CACHE_LEVEL) {
-      reg_read_data = val_pe_reg_read(CLIDR_EL1);
+      reg_read_data = val_hart_reg_read(CLIDR_EL1);
       if (reg_read_data & ((0x7) << (i * 3))) {
          /* Select the correct cache level in csselr register */
-         val_pe_reg_write(CSSELR_EL1, i << 1);
+         val_hart_reg_write(CSSELR_EL1, i << 1);
          cache_list[i] = return_reg_value(reg_list[0].reg_name, reg_list[0].dependency);
          val_data_cache_ops_by_va((addr_t)(cache_list + i), CLEAN_AND_INVALIDATE);
          val_print(ACS_PRINT_INFO, "\n       cache size read is %x ", cache_list[i]);
@@ -219,24 +219,24 @@ payload(uint32_t num_pe)
       val_data_cache_ops_by_va((addr_t)(rd_data_array + i), CLEAN_AND_INVALIDATE);
   }
 
-  for (i = 0; i < num_pe; i++) {
+  for (i = 0; i < num_hart; i++) {
       if (i != my_index) {
           timeout=TIMEOUT_LARGE;
           val_execute_on_pe(i, id_regs_check, 0);
           while ((--timeout) && (IS_RESULT_PENDING(val_get_status(i))));
 
           if(timeout == 0) {
-              val_print(ACS_PRINT_ERR, "\n       **Timed out** for PE index = %d", i);
+              val_print(ACS_PRINT_ERR, "\n       **Timed out** for HART index = %d", i);
               val_set_status(i, RESULT_FAIL(TEST_NUM, 2));
               return;
           }
 
           if(IS_TEST_FAIL(val_get_status(i))) {
               val_get_test_data(i, &debug_data, &array_index);
-              val_print(ACS_PRINT_ERR, "\n       Reg compare failed for PE index=%d for Register: ", i);
+              val_print(ACS_PRINT_ERR, "\n       Reg compare failed for HART index=%d for Register: ", i);
               val_print(ACS_PRINT_ERR, reg_list[array_index].reg_desc, 0);
-              val_print(ACS_PRINT_ERR, "\n       Current PE value = 0x%llx", rd_data_array[array_index] & (~reg_list[array_index].reg_mask));
-              val_print(ACS_PRINT_ERR, "         Other PE value = 0x%llx", debug_data);
+              val_print(ACS_PRINT_ERR, "\n       Current HART value = 0x%llx", rd_data_array[array_index] & (~reg_list[array_index].reg_mask));
+              val_print(ACS_PRINT_ERR, "         Other HART value = 0x%llx", debug_data);
               return;
           }
       }
@@ -247,19 +247,19 @@ payload(uint32_t num_pe)
 }
 
 uint32_t
-os_c001_entry(uint32_t num_pe)
+os_c001_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, val_pe_get_num());
+  status = val_initialize_test(TEST_NUM, TEST_DESC, val_hart_get_num());
 
   if (status != ACS_STATUS_SKIP)
   /* execute payload, which will execute relevant functions on current and other PEs */
-      payload(num_pe);
+      payload(num_hart);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

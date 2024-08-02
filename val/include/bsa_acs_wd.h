@@ -27,8 +27,8 @@
 #define  WD_OR_RSRV_SHIFT        16
 
 uint32_t
-os_w001_entry(uint32_t num_pe);
+os_w001_entry(uint32_t num_hart);
 uint32_t
-os_w002_entry(uint32_t num_pe);
+os_w002_entry(uint32_t num_hart);
 
 #endif // __BSA_ACS_WD_H

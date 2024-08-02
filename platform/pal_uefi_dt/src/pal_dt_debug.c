@@ -21,14 +21,14 @@
 #include "include/pal_dt.h"
 
 /**
-  @brief  This API is use to dump PE_INFO Table after filling from DT
+  @brief  This API is use to dump HART_INFO Table after filling from DT
 
-  @param  PeTable  - Address where the PE information needs to be filled.
+  @param  PeTable  - Address where the HART information needs to be filled.
 
   @return  None
 **/
 VOID
-dt_dump_pe_table(PE_INFO_TABLE *PeTable)
+dt_dump_hart_table(HART_INFO_TABLE *PeTable)
 {
   UINT32 Index = 0;
 
@@ -37,15 +37,15 @@ dt_dump_pe_table(PE_INFO_TABLE *PeTable)
     return;
   }
 
-  bsa_print(ACS_PRINT_DEBUG, L" ************PE TABLE DUMP************\n");
-  bsa_print(ACS_PRINT_DEBUG, L" NUM PE %d\n", PeTable->header.num_of_pe);
+  bsa_print(ACS_PRINT_DEBUG, L" ************HART TABLE DUMP************\n");
+  bsa_print(ACS_PRINT_DEBUG, L" NUM HART %d\n", PeTable->header.num_of_hart);
 
-  while (Index < PeTable->header.num_of_pe) {
-    bsa_print(ACS_PRINT_DEBUG, L" PE NUM      :%x\n", PeTable->pe_info[Index].pe_num);
-    bsa_print(ACS_PRINT_DEBUG, L" MPIDR       :%llx\n", PeTable->pe_info[Index].mpidr);
-//    bsa_print(ACS_PRINT_DEBUG, L"    ATTR     :%x\n", PeTable->pe_info[Index].attr);
-    bsa_print(ACS_PRINT_DEBUG, L" PMU GSIV    :%x\n", PeTable->pe_info[Index].pmu_gsiv);
-    bsa_print(ACS_PRINT_DEBUG, L" GIC MAINT GSIV    :%x\n", PeTable->pe_info[Index].gmain_gsiv);
+  while (Index < PeTable->header.num_of_hart) {
+    bsa_print(ACS_PRINT_DEBUG, L" HART NUM      :%x\n", PeTable->hart_info[Index].hart_num);
+    bsa_print(ACS_PRINT_DEBUG, L" MPIDR       :%llx\n", PeTable->hart_info[Index].mpidr);
+//    bsa_print(ACS_PRINT_DEBUG, L"    ATTR     :%x\n", PeTable->hart_info[Index].attr);
+    bsa_print(ACS_PRINT_DEBUG, L" PMU GSIV    :%x\n", PeTable->hart_info[Index].pmu_gsiv);
+    bsa_print(ACS_PRINT_DEBUG, L" GIC MAINT GSIV    :%x\n", PeTable->hart_info[Index].gmain_gsiv);
     Index++;
   }
   bsa_print(ACS_PRINT_DEBUG, L" *************************************\n");

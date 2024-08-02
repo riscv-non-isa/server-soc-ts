@@ -19,11 +19,11 @@
 #include "val/include/val_interface.h"
 
 #include "val/include/bsa_acs_timer.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_TIMER_TEST_NUM_BASE + 5)
 #define TEST_RULE  "B_TIME_09"
-#define TEST_DESC  "Restore PE timer on PE wake up        "
+#define TEST_DESC  "Restore HART timer on HART wake up        "
 
 static uint32_t intid;
 static uint64_t cnt_base_n;
@@ -52,9 +52,9 @@ static
 void
 payload()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint64_t sys_timer_ticks = val_get_counter_frequency() * 1;
-  uint64_t pe_timer_ticks = val_get_counter_frequency() * 2;
+  uint64_t hart_timer_ticks = val_get_counter_frequency() * 2;
   uint32_t ns_timer = 0;
   uint64_t timer_num, timer_cnt;
   int32_t status;
@@ -89,12 +89,12 @@ payload()
   val_timer_set_system_timer((addr_t)cnt_base_n, sys_timer_ticks);
 
   /* Start EL1 PHY timer */
-  val_timer_set_phy_el1(pe_timer_ticks);
+  val_timer_set_phy_el1(hart_timer_ticks);
 
-  /* Put current PE in to low power mode*/
+  /* Put current HART in to low power mode*/
   status = val_suspend_pe(0, 0);
   if (status) {
-      val_print(ACS_PRINT_DEBUG, "\n       Not able to suspend the PE : %d", status);
+      val_print(ACS_PRINT_DEBUG, "\n       Not able to suspend the HART : %d", status);
       val_timer_disable_system_timer((addr_t)cnt_base_n);
       val_gic_clear_interrupt(intid);
       val_timer_set_phy_el1(0);
@@ -111,17 +111,17 @@ payload()
       return;
   }
 
-  /* PE wake up from sys timer interrupt & start execution here */
-  /* Read PE timer*/
+  /* HART wake up from sys timer interrupt & start execution here */
+  /* Read HART timer*/
   timer_cnt = val_get_phy_el1_timer_count();
 
-  /*Disable PE timer*/
+  /*Disable HART timer*/
   val_timer_set_phy_el1(0);
 
-  val_print(ACS_PRINT_INFO, "\n       Read back PE timer count :%d", timer_cnt);
+  val_print(ACS_PRINT_INFO, "\n       Read back HART timer count :%d", timer_cnt);
 
   /* Check whether count is moved or not*/
-  if ((timer_cnt < ((pe_timer_ticks - sys_timer_ticks) + (sys_timer_ticks/100)))
+  if ((timer_cnt < ((hart_timer_ticks - sys_timer_ticks) + (sys_timer_ticks/100)))
                                                       && (timer_cnt != 0))
     val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   else
@@ -129,19 +129,19 @@ payload()
 }
 
 uint32_t
-os_t005_entry(uint32_t num_pe)
+os_t005_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This Timer test is run on single processor
+  num_hart = 1;  //This Timer test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
   return status;

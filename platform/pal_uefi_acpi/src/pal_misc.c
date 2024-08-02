@@ -312,19 +312,19 @@ pal_mem_set (
 /**
   @brief  Allocate memory which is to be used to share data across PEs
 
-  @param  num_pe      - Number of PEs in the system
-  @param  sizeofentry - Size of memory region allocated to each PE
+  @param  num_hart      - Number of PEs in the system
+  @param  sizeofentry - Size of memory region allocated to each HART
 
   @return None
 **/
 VOID
-pal_mem_allocate_shared(UINT32 num_pe, UINT32 sizeofentry)
+pal_mem_allocate_shared(UINT32 num_hart, UINT32 sizeofentry)
 {
   EFI_STATUS Status;
   gSharedMemory = 0;
 
   Status = gBS->AllocatePool ( EfiBootServicesData,
-                               (num_pe * sizeofentry),
+                               (num_hart * sizeofentry),
                                (VOID **) &gSharedMemory );
 
   bsa_print(ACS_PRINT_INFO, L" Shared memory is %llx\n", gSharedMemory);
@@ -332,7 +332,7 @@ pal_mem_allocate_shared(UINT32 num_pe, UINT32 sizeofentry)
   if (EFI_ERROR(Status)) {
     bsa_print(ACS_PRINT_ERR, L" Allocate Pool shared memory failed %x\n", Status);
   }
-  pal_pe_data_cache_ops_by_va((UINT64)&gSharedMemory, CLEAN_AND_INVALIDATE);
+  pal_hart_data_cache_ops_by_va((UINT64)&gSharedMemory, CLEAN_AND_INVALIDATE);
 
   return;
 

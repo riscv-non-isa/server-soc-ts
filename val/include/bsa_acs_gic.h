@@ -68,25 +68,25 @@ typedef struct {
 } GICv2m_MSI_FRAME_INFO;
 
 uint32_t
-os_g001_entry(uint32_t num_pe);
+os_g001_entry(uint32_t num_hart);
 uint32_t
-os_g002_entry(uint32_t num_pe);
+os_g002_entry(uint32_t num_hart);
 uint32_t
-os_g003_entry(uint32_t num_pe);
+os_g003_entry(uint32_t num_hart);
 uint32_t
-os_g004_entry(uint32_t num_pe);
+os_g004_entry(uint32_t num_hart);
 uint32_t
-os_g005_entry(uint32_t num_pe);
+os_g005_entry(uint32_t num_hart);
 uint32_t
-os_g006_entry(uint32_t num_pe);
+os_g006_entry(uint32_t num_hart);
 uint32_t
-os_g007_entry(uint32_t num_pe);
+os_g007_entry(uint32_t num_hart);
 uint32_t
-hyp_g001_entry(uint32_t num_pe);
+hyp_g001_entry(uint32_t num_hart);
 uint32_t
-hyp_g002_entry(uint32_t num_pe);
+hyp_g002_entry(uint32_t num_hart);
 uint32_t
-hyp_g003_entry(uint32_t num_pe);
+hyp_g003_entry(uint32_t num_hart);
 
 uint32_t
 val_get_max_intid(void);
@@ -98,7 +98,7 @@ addr_t
 val_get_gicr_base(uint32_t *rdbase_len, uint32_t gicr_rd_index);
 
 addr_t
-val_gic_get_pe_rdbase(uint64_t mpidr);
+val_gic_get_hart_rdbase(uint64_t mpidr);
 
 addr_t
 val_get_gich_base(void);
@@ -121,15 +121,15 @@ val_gic_is_valid_espi(uint32_t int_id);
 uint32_t
 val_gic_is_valid_eppi(uint32_t int_id);
 
-uint32_t os_v2m001_entry(uint32_t num_pe);
-uint32_t os_v2m002_entry(uint32_t num_pe);
-uint32_t os_v2m003_entry(uint32_t num_pe);
-uint32_t os_v2m004_entry(uint32_t num_pe);
+uint32_t os_v2m001_entry(uint32_t num_hart);
+uint32_t os_v2m002_entry(uint32_t num_hart);
+uint32_t os_v2m003_entry(uint32_t num_hart);
+uint32_t os_v2m004_entry(uint32_t num_hart);
 
 /* ITS tests */
-uint32_t os_its001_entry(uint32_t num_pe);
-uint32_t os_its002_entry(uint32_t num_pe);
-uint32_t os_its003_entry(uint32_t num_pe);
-uint32_t os_its004_entry(uint32_t num_pe);
+uint32_t os_its001_entry(uint32_t num_hart);
+uint32_t os_its002_entry(uint32_t num_hart);
+uint32_t os_its003_entry(uint32_t num_hart);
+uint32_t os_its004_entry(uint32_t num_hart);
 
 #endif

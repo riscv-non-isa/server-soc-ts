@@ -20,16 +20,16 @@
 
 #include "val/include/bsa_acs_peripherals.h"
 #include "val/include/bsa_acs_memory.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_MEMORY_MAP_TEST_BASE + 3)
 #define TEST_RULE  "B_MEM_05"
-#define TEST_DESC  "PE must access all NS addr space      "
+#define TEST_DESC  "HART must access all NS addr space      "
 
 static uint64_t check_number_of_bits(uint32_t index, uint64_t data)
 {
         /* Read ID_AA64MMFR0_EL1[3:0] to get max no. of bits
-         * that PE can access, Valid value: 0x0 to 0x6*/
+         * that HART can access, Valid value: 0x0 to 0x6*/
          data = data & 0xF;
          if (data == 0)
             return ((uint64_t)0x1 << (int)32);
@@ -59,16 +59,16 @@ payload()
   addr_t   addr;
   uint64_t data;
   uint64_t value = 0;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
-  data = val_pe_reg_read(ID_AA64MMFR0_EL1);
-  /*Check max bits that PE can access*/
+  data = val_hart_reg_read(ID_AA64MMFR0_EL1);
+  /*Check max bits that HART can access*/
   value = check_number_of_bits(index, data);
 
   addr = val_get_max_memory();
   if (addr < value)
   {
-      /* PE can access the Non-Secure address space*/
+      /* HART can access the Non-Secure address space*/
       val_set_status(index, RESULT_PASS(TEST_NUM, 1));
       return;
   }
@@ -78,19 +78,19 @@ payload()
 }
 
 uint32_t
-os_m003_entry(uint32_t num_pe)
+os_m003_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, val_pe_get_num());
+  status = val_initialize_test(TEST_NUM, TEST_DESC, val_hart_get_num());
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

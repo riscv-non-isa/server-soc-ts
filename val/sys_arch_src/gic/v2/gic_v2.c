@@ -18,7 +18,7 @@
 #include "include/bsa_acs_val.h"
 #include "include/bsa_acs_gic.h"
 #include "include/bsa_acs_gic_support.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "gic_v2.h"
 #include "gic.h"
 #include "bsa_exception.h"
@@ -119,7 +119,7 @@ v2_Init(void)
   /* Set vector table */
   bsa_gic_vector_table_init();
 
-  if (val_pe_reg_read(CurrentEL) == AARCH64_EL2) {
+  if (val_hart_reg_read(CurrentEL) == AARCH64_EL2) {
     /* Route exception to EL2 */
     GicWriteHcr(1 << 27);
   }
@@ -138,7 +138,7 @@ v2_Init(void)
 
   cpuTarget = val_mmio_read(val_get_gicd_base() + GIC_ICDIPTR);
 
-  /* Route SPI to primary PE */
+  /* Route SPI to primary HART */
   if (cpuTarget != 0) {
       for (index = 8; index < (max_num_interrupts / 4); index++) {
           val_mmio_write(gicd_base + GIC_ICDIPTR + (index * 4), cpuTarget);

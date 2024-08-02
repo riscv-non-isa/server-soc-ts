@@ -18,7 +18,7 @@
 #include "val/include/bsa_acs_val.h"
 #include "val/include/val_interface.h"
 
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_smmu.h"
 #include "val/include/bsa_acs_pcie.h"
 
@@ -33,13 +33,13 @@ payload()
 
   uint32_t num_smmu;
   uint32_t index;
-  uint32_t pe_s_el2;
+  uint32_t hart_s_el2;
   uint32_t smmu_rev;
   uint32_t minor;
   uint32_t s1ts, s1p;
 
-  index = val_pe_get_index_mpid(val_pe_get_mpid());
-  pe_s_el2 = VAL_EXTRACT_BITS(val_pe_reg_read(ID_AA64PFR0_EL1), 36, 39);
+  index = val_hart_get_index_mpid(val_hart_get_mpid());
+  hart_s_el2 = VAL_EXTRACT_BITS(val_hart_reg_read(ID_AA64PFR0_EL1), 36, 39);
 
   num_smmu = val_smmu_get_info(SMMU_NUM_CTRL, 0);
   if (num_smmu == 0) {
@@ -64,8 +64,8 @@ payload()
       else if (smmu_rev == 3) {
           minor = VAL_EXTRACT_BITS(val_smmu_read_cfg(SMMUv3_AIDR, num_smmu), 0, 3);
           /* If minor < 2 : SMMU not implementing S_EL2 */
-          if (!(pe_s_el2 && (minor > 1))) {
-              /* Either PE or SMMU does not support S_EL2 */
+          if (!(hart_s_el2 && (minor > 1))) {
+              /* Either HART or SMMU does not support S_EL2 */
               s1p = VAL_EXTRACT_BITS(val_smmu_read_cfg(SMMUv3_IDR0, num_smmu), 1, 1);
               // Stage 1 translation functionality cannot be provided by SMMU v3.0/3.1 revisions
               if (!s1p) {
@@ -75,7 +75,7 @@ payload()
                   return;
               }
           } else {
-            /* If both PE & SMMU Implement S_EL2, Skip this test */
+            /* If both HART & SMMU Implement S_EL2, Skip this test */
             val_print(ACS_PRINT_DEBUG, "\n       S-EL2 implemented...Skipping", 0);
             val_set_status(index, RESULT_SKIP(TEST_NUM, 2));
             return;
@@ -93,19 +93,19 @@ payload()
 }
 
 uint32_t
-os_i004_entry(uint32_t num_pe)
+os_i004_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

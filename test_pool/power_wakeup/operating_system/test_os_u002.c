@@ -16,7 +16,7 @@
  **/
 
 #include "val/include/bsa_acs_val.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/val_interface.h"
 
 #include "val/include/bsa_acs_wakeup.h"
@@ -36,7 +36,7 @@ static
 void
 isr()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t status;
 
   val_print(ACS_PRINT_DEBUG, "\n       Received interrupt            ", 0);
@@ -99,14 +99,14 @@ void
 payload_target_pe()
 {
   uint64_t data1, data2;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
-//  val_print(ACS_PRINT_DEBUG, "\n       Print from target PE     :%X", index);
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
+//  val_print(ACS_PRINT_DEBUG, "\n       Print from target HART     :%X", index);
   val_get_test_data(index, &data1, &data2);
-  val_pe_reg_write(VBAR_EL2, data2);
+  val_hart_reg_write(VBAR_EL2, data2);
 
   val_gic_cpuif_init();
   val_suspend_pe(0, 0);
-  // Set the status to indicate that target PE has resumed execution from sleep mode
+  // Set the status to indicate that target HART has resumed execution from sleep mode
   val_set_status(index, RESULT_PASS(TEST_NUM, 1));
 }
 
@@ -122,12 +122,12 @@ void
 payload()
 {
   uint64_t timeout = TIMEOUT_SMALL;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t target_pe, status;
   uint64_t timer_expire_ticks = TIMEOUT_SMALL;
 
-  // Step1: Choose the index of the target PE
-  if ((index + 1) >= val_pe_get_num())
+  // Step1: Choose the index of the target HART
+  if ((index + 1) >= val_hart_get_num())
       target_pe = index-1;
   else
       target_pe = index+1;
@@ -143,8 +143,8 @@ payload()
       return;
   }
 
-  // Step3: Route the interrupt to target PE and install ISR
-  val_gic_route_interrupt_to_pe(intid, val_pe_get_mpid_index(target_pe));
+  // Step3: Route the interrupt to target HART and install ISR
+  val_gic_route_interrupt_to_pe(intid, val_hart_get_mpid_index(target_pe));
   if (val_gic_install_isr(intid, isr)) {
       val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
       val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
@@ -152,15 +152,15 @@ payload()
       return;
   }
 
-  // Step4: val_execute_on_pe will call payload on target PE and target PE will do following:
-  //        1. program VBAR of target PE with the same vale as main PE
-  //        2. initialize gic cpu interface for target PE
+  // Step4: val_execute_on_pe will call payload on target HART and target HART will do following:
+  //        1. program VBAR of target HART with the same vale as main HART
+  //        2. initialize gic cpu interface for target HART
   //        3. place itself in sleep mode and expect the wakeup_event to wake it up
-  //        4. after wake-up it will update the status, which main PE will rely on
-  val_execute_on_pe(target_pe, payload_target_pe, val_pe_reg_read(VBAR_EL2));
+  //        4. after wake-up it will update the status, which main HART will rely on
+  val_execute_on_pe(target_pe, payload_target_pe, val_hart_reg_read(VBAR_EL2));
 
   // Step5: Program timer/watchdog, which on expiry will generate an interrupt
-  //        and wake target PE
+  //        and wake target HART
   if (wakeup_event == SYSTIMER_SEMF) {
       cnt_base_n = val_timer_get_info(TIMER_INFO_SYS_CNT_BASE_N, timer_num);
       val_timer_set_system_timer((addr_t)cnt_base_n, timer_expire_ticks);
@@ -174,13 +174,13 @@ payload()
       }
   }
 
-  // Step6: Wait for target PE to update the status, if a timeout occurs that would mean that
-  //        target PE was not able to wakeup
+  // Step6: Wait for target HART to update the status, if a timeout occurs that would mean that
+  //        target HART was not able to wakeup
   while ((IS_TEST_PASS(val_get_status(target_pe))) && (--timeout))
   ;
 
   if (timeout == 0)
-      val_print(ACS_PRINT_ERR, "\n       Target PE was not able to wake up successfully "
+      val_print(ACS_PRINT_ERR, "\n       Target HART was not able to wake up successfully "
                                 "from sleep \n       due to watchdog/sytimer interrupt", 0);
 
   // Step7: Clear the pending/active interrupt if any
@@ -201,14 +201,14 @@ payload()
   }
   val_gic_end_of_interrupt(intid);     // trigger END of interrupt for above interrupt
 
-  // Step8: Wait for target PE to switch itself off, if it still doesn't switch off timeout
+  // Step8: Wait for target HART to switch itself off, if it still doesn't switch off timeout
   //        value should be increased
   timeout = TIMEOUT_MEDIUM;
   while (--timeout)
   ;
 
-  // Step9: Generate timer interrupt again, when target PE is off and make sure it doesn't wakeup
-  val_gic_route_interrupt_to_pe(intid, val_pe_get_mpid_index(target_pe));
+  // Step9: Generate timer interrupt again, when target HART is off and make sure it doesn't wakeup
+  val_gic_route_interrupt_to_pe(intid, val_hart_get_mpid_index(target_pe));
   if (val_gic_install_isr(intid, isr)) {
       val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
       val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
@@ -255,7 +255,7 @@ payload()
   }
   val_gic_end_of_interrupt(intid);     // trigger END of interrupt for above interrupt
 
-  // Step11: If event triggered woke up the target PE when it was off, then making PSCI call
+  // Step11: If event triggered woke up the target HART when it was off, then making PSCI call
   //         to switch it ON again would throw an error response, based on which the test is
   //         passed or failed.
   val_execute_on_pe(target_pe, payload_dummy, 0);
@@ -265,7 +265,7 @@ payload()
   else
       val_set_status(index, RESULT_PASS(TEST_NUM, 1));
 
-  // Step12:  Route interrupt back to main PE*/
+  // Step12:  Route interrupt back to main HART*/
   val_gic_route_interrupt_to_pe(intid, index);
 
   return;
@@ -273,18 +273,18 @@ payload()
 
 
 uint32_t
-os_u002_entry(uint32_t num_pe)
+os_u002_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL, status_test = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor, which will start and trigger interrupt to
-               // target PE.
-  status_test = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  num_hart = 1;  //This test is run on single processor, which will start and trigger interrupt to
+               // target HART.
+  status_test = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status_test != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

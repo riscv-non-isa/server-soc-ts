@@ -26,13 +26,13 @@ PERIPHERAL_INFO_TABLE  *g_peripheral_info_table;
   @brief  Sequentially execute all the peripheral tests
           1. Caller       - Application
           2. Prerequisite - val_peripheral_create_info_table
-  @param  num_pe - number of PEs to run this test on
+  @param  num_hart - number of PEs to run this test on
   @param  g_sw_view - Keeps the information about which view tests to be run
 
   @result  consolidated status of all the tests
 **/
 uint32_t
-val_peripheral_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_peripheral_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
 
   uint32_t status, i;
@@ -59,13 +59,13 @@ val_peripheral_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
 #ifndef TARGET_LINUX
-      status |= os_d001_entry(num_pe);
-      status |= os_d002_entry(num_pe);
-      status |= os_d003_entry(num_pe);
-      status |= os_d005_entry(num_pe);
+      status |= os_d001_entry(num_hart);
+      status |= os_d002_entry(num_hart);
+      status |= os_d003_entry(num_hart);
+      status |= os_d005_entry(num_hart);
 #endif
 #if defined(TARGET_LINUX) || defined(ENABLE_OOB) || defined(TARGET_EMULATION)
-      status |= os_d004_entry(num_pe);
+      status |= os_d004_entry(num_hart);
 #endif
   }
 

@@ -31,16 +31,16 @@ typedef struct {
 }VAL_SHARED_MEM_t;
 
 uint64_t
-val_pe_reg_read(uint32_t reg_id);
+val_hart_reg_read(uint32_t reg_id);
 
 void
-val_pe_reg_write(uint32_t reg_id, uint64_t write_data);
+val_hart_reg_write(uint32_t reg_id, uint64_t write_data);
 
 uint32_t
-val_pe_reg_read_tcr(uint32_t ttbr1, PE_TCR_BF *tcr);
+val_hart_reg_read_tcr(uint32_t ttbr1, PE_TCR_BF *tcr);
 
 uint32_t
-val_pe_reg_read_ttbr(uint32_t ttbr1, uint64_t *ttbr_ptr);
+val_hart_reg_read_ttbr(uint32_t ttbr1, uint64_t *ttbr_ptr);
 
 uint8_t
 val_is_el3_enabled(void);

@@ -62,12 +62,12 @@ uint32_t val_mmu_get_mapping_count(void)
   @brief   This API will execute all Memory tests
            1. Caller       -  Application layer.
            2. Prerequisite -  val_memory_create_info_table
-  @param   num_pe - the number of PE to run these tests on.
+  @param   num_hart - the number of HART to run these tests on.
   @param   g_sw_view - Keeps the information about which view tests to be run
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_memory_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_memory_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
 
   uint32_t status, i;
@@ -95,14 +95,14 @@ val_memory_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
 #if defined(ENABLE_OOB) || defined(TARGET_EMULATION)
-      status |= os_m001_entry(num_pe);
+      status |= os_m001_entry(num_hart);
 #endif
 #ifndef TARGET_LINUX
-      status |= os_m002_entry(num_pe);
-      status |= os_m003_entry(num_pe);
+      status |= os_m002_entry(num_hart);
+      status |= os_m003_entry(num_hart);
 #endif
 #if defined(TARGET_LINUX) || defined(ENABLE_OOB) || defined(TARGET_EMULATION)
-      status |= os_m004_entry(num_pe);
+      status |= os_m004_entry(num_hart);
 #endif
 
   }

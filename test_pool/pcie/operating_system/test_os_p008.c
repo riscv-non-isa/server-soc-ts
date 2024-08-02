@@ -19,7 +19,7 @@
 #include "val/include/val_interface.h"
 
 #include "val/include/bsa_acs_pcie.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_memory.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 8)
@@ -92,7 +92,7 @@ payload(void)
 {
 
   uint32_t reg_value;
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t ecam_index;
   uint32_t num_ecam;
   uint32_t end_bus;
@@ -105,7 +105,7 @@ payload(void)
   uint32_t segment = 0;
   addr_t   ecam_base = 0;
 
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   num_ecam = val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
 
   for (ecam_index = 0; ecam_index < num_ecam; ecam_index++)
@@ -113,7 +113,7 @@ payload(void)
       /* Get the maximum bus value from PCIe info table */
       end_bus = val_pcie_get_info(PCIE_INFO_END_BUS, ecam_index);
       segment = val_pcie_get_info(PCIE_INFO_SEGMENT, ecam_index);
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
 
       /* Get the highest BDF value for that segment */
       bdf = get_max_bdf(segment, end_bus);
@@ -129,7 +129,7 @@ payload(void)
       /* Bus value must not exceed 255 */
       if (bus_index > end_bus) {
           val_print(ACS_PRINT_DEBUG, "\n       Bus index exceeded END_BUS Number", 0);
-          val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 2));
+          val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 2));
           return;
       }
 
@@ -148,7 +148,7 @@ payload(void)
 
               if (ecam_base == 0) {
                   val_print(ACS_PRINT_ERR, "\n       ECAM Base is zero ", 0);
-                  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 1));
+                  val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 1));
                   return;
               }
 
@@ -162,30 +162,30 @@ payload(void)
               if (reg_value != PCIE_UNKNOWN_RESPONSE)
               {
                   val_print(ACS_PRINT_ERR, "\n       Failed for BDF: 0x%x", bdf);
-                  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 2));
+                  val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 2));
                   return;
               }
 
-              val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+              val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
           }
       }
   }
 }
 
 uint32_t
-os_p008_entry(uint32_t num_pe)
+os_p008_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from single PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from single HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

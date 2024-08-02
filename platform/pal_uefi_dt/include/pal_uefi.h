@@ -89,26 +89,28 @@ typedef struct {
 #define CONDUIT_NONE     -2
 
 typedef struct {
-  UINT32 num_of_pe;
-}PE_INFO_HDR;
+  UINT32 num_of_hart;
+}HART_INFO_HDR;
 
 /**
-  @brief  structure instance for PE entry
+  @brief  structure instance for HART entry
 **/
 typedef struct {
-  UINT32   pe_num;    ///< PE Index
-  UINT32   attr;      ///< PE attributes
-  UINT64   mpidr;     ///< PE MPIDR
-  UINT32   pmu_gsiv;  ///< PMU Interrupt ID
-  UINT32   gmain_gsiv;  ///< GIC Maintenance Interrupt ID
-}PE_INFO_ENTRY;
+  uint32_t   hart_num;        ///< HART Index
+  uint64_t   hart_id;         ///< Hart ID (mhartid) of the hart
+  uint32_t   acpi_processor_uid;
+  uint32_t   ext_intc_id;     ///< The unique ID of the external interrupts connected to this hart.
+  uint64_t   imsic_base;      ///< Physical base address of the Incoming MSI Controller (IMSIC) MMIO region of this hart.
+  uint32_t   imsic_size;      ///< Size in bytes of the IMSIC MMIO region of this hart.
+  char8_t    isa_string[512]; ///< Null-terminated ASCII Instruction Set Architecture (ISA) string for this hart.
+}HART_INFO_ENTRY;
 
 typedef struct {
-  PE_INFO_HDR    header;
-  PE_INFO_ENTRY  pe_info[];
-}PE_INFO_TABLE;
+  HART_INFO_HDR    header;
+  HART_INFO_ENTRY  hart_info[];
+}HART_INFO_TABLE;
 
-VOID     pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type);
+VOID     pal_hart_data_cache_ops_by_va(UINT64 addr, UINT32 type);
 
 #define CLEAN_AND_INVALIDATE  0x1
 #define CLEAN                 0x2
@@ -459,6 +461,6 @@ VOID    *pal_mem_phys_to_virt(UINT64 pa);
 UINT64  pal_memory_get_unpopulated_addr(UINT64 *addr, UINT32 instance);
 
 VOID    pal_mem_free(VOID *buffer);
-UINT32  pal_pe_get_num();
+UINT32  pal_hart_get_num();
 
 #endif

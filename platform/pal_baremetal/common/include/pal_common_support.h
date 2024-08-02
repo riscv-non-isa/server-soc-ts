@@ -245,26 +245,28 @@ typedef struct {
 } ARM_SMC_ARGS;
 
 typedef struct {
-  uint32_t num_of_pe;
-} PE_INFO_HDR;
+  uint32_t num_of_hart;
+} HART_INFO_HDR;
 
 /**
-  @brief  structure instance for PE entry
+  @brief  structure instance for HART entry
 **/
 typedef struct {
-  uint32_t   pe_num;    ///< PE Index
-  uint32_t   attr;      ///< PE attributes
-  uint64_t   mpidr;     ///< PE MPIDR
-  uint32_t   pmu_gsiv;  ///< PMU Interrupt ID
-  uint32_t   gmain_gsiv;  ///< GIC Maintenance Interrupt ID
-} PE_INFO_ENTRY;
+  uint32_t   hart_num;        ///< HART Index
+  uint64_t   hart_id;         ///< Hart ID (mhartid) of the hart
+  uint32_t   acpi_processor_uid;
+  uint32_t   ext_intc_id;     ///< The unique ID of the external interrupts connected to this hart.
+  uint64_t   imsic_base;      ///< Physical base address of the Incoming MSI Controller (IMSIC) MMIO region of this hart.
+  uint32_t   imsic_size;      ///< Size in bytes of the IMSIC MMIO region of this hart.
+  char8_t    isa_string[512]; ///< Null-terminated ASCII Instruction Set Architecture (ISA) string for this hart.
+} HART_INFO_ENTRY;
 
 typedef struct {
-  PE_INFO_HDR    header;
-  PE_INFO_ENTRY  pe_info[];
-} PE_INFO_TABLE;
+  HART_INFO_HDR    header;
+  HART_INFO_ENTRY  hart_info[];
+} HART_INFO_TABLE;
 
-void pal_pe_data_cache_ops_by_va(uint64_t addr, uint32_t type);
+void pal_hart_data_cache_ops_by_va(uint64_t addr, uint32_t type);
 
 typedef struct {
   uint32_t   gic_version;

@@ -20,7 +20,7 @@
 
 #include "val/include/bsa_acs_gic.h"
 #include "val/include/bsa_acs_iic.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 3)
 #define TEST_RULE  "ME_IIC_040_010"
@@ -37,15 +37,15 @@ static
 void
 payload()
 {
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t vgein;
   uint64_t val_w;
   uint64_t val_r;
 
   for (vgein = 1; vgein <= 0x3F; vgein++) {
-    val_w = (val_pe_get_hstatus() & (~HSTATUS_VGEIN)) | (vgein << HSTATUS_VGEIN_SHIFT);
-    val_pe_set_hstatus(val_w);
-    val_r = val_pe_get_hstatus();
+    val_w = (val_hart_get_hstatus() & (~HSTATUS_VGEIN)) | (vgein << HSTATUS_VGEIN_SHIFT);
+    val_hart_set_hstatus(val_w);
+    val_r = val_hart_get_hstatus();
     // val_print(ACS_PRINT_INFO, "\n       val_w=0x%lx", val_w);
     // val_print(ACS_PRINT_INFO, "\n       val_r=0x%lx", val_r);
     if ((val_w & HSTATUS_VGEIN) != (val_r & HSTATUS_VGEIN)) {
@@ -65,20 +65,20 @@ payload()
 }
 
 uint32_t
-os_i003_entry(uint32_t num_pe)
+os_i003_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This IIC test is run on single processor
+  num_hart = 1;  //This IIC test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

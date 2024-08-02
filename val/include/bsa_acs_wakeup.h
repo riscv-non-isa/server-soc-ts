@@ -21,8 +21,8 @@
 #include "bsa_acs_timer.h"
 #include "bsa_acs_wd.h"
 
-uint32_t os_u001_entry(uint32_t num_pe);
-uint32_t os_u002_entry(uint32_t num_pe);
+uint32_t os_u001_entry(uint32_t num_hart);
+uint32_t os_u002_entry(uint32_t num_hart);
 
 #endif
 

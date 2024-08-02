@@ -21,7 +21,7 @@
 #include "../include/bsa_acs_memory.h"
 #include "../include/bsa_acs_iovirt.h"
 #include "../include/bsa_acs_pgt.h"
-#include "../include/bsa_acs_pe.h"
+#include "../include/bsa_acs_hart.h"
 #include "smmu_reg.h"
 
 #ifdef TARGET_EMULATION

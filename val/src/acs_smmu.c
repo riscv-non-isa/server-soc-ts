@@ -48,12 +48,12 @@ val_smmu_read_cfg(uint32_t offset, uint32_t index)
   @brief   This API executes all the SMMU tests sequentially
            1. Caller       -  Application layer.
            2. Prerequisite -  val_smmu_create_info_table()
-  @param   num_pe - the number of PE to run these tests on.
+  @param   num_hart - the number of HART to run these tests on.
   @param   g_sw_view - Keeps the information about which view tests to be run
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_smmu_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_smmu_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
   uint32_t status, i;
   uint32_t num_smmu;
@@ -87,18 +87,18 @@ val_smmu_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
   ver_smmu = val_smmu_get_info(SMMU_CTRL_ARCH_MAJOR_REV, 0);
   if (g_sw_view[G_SW_OS]) {
        val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-       status |= os_i001_entry(num_pe);
-       status |= os_i002_entry(num_pe);
-       status |= os_i003_entry(num_pe);
-       status |= os_i004_entry(num_pe);
+       status |= os_i001_entry(num_hart);
+       status |= os_i002_entry(num_hart);
+       status |= os_i003_entry(num_hart);
+       status |= os_i004_entry(num_hart);
   }
 
   if (g_sw_view[G_SW_HYP]) {
        val_print(ACS_PRINT_ERR, "\nHypervisor View:\n", 0);
-       status |= hyp_i002_entry(num_pe);
+       status |= hyp_i002_entry(num_hart);
        if (ver_smmu == 2)
-           status |= hyp_i003_entry(num_pe);
-       status |= hyp_i004_entry(num_pe);
+           status |= hyp_i003_entry(num_hart);
+       status |= hyp_i004_entry(num_hart);
   }
 
   val_print_test_end(status, "SMMU");

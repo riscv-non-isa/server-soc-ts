@@ -64,7 +64,7 @@ UINT64
 pal_get_madt_ptr();
 
 /**
-  @brief  This API fills in the PE_INFO_TABLE  with information about GIC maintenance
+  @brief  This API fills in the HART_INFO_TABLE  with information about GIC maintenance
           interrupt in the system. This is achieved by parsing the DT.
 
   @param  PeTable  - Address where the information needs to be filled.
@@ -72,12 +72,12 @@ pal_get_madt_ptr();
   @return  None
 **/
 VOID
-pal_pe_info_table_gmaint_gsiv_dt(PE_INFO_TABLE *PeTable)
+pal_hart_info_table_gmaint_gsiv_dt(HART_INFO_TABLE *PeTable)
 {
   int i, offset, prop_len;
   UINT64 dt_ptr = 0;
   UINT32 *Pintr;
-  PE_INFO_ENTRY *Ptr = NULL;
+  HART_INFO_ENTRY *Ptr = NULL;
   int interrupt_cell;
 
   if (PeTable == NULL)
@@ -89,7 +89,7 @@ pal_pe_info_table_gmaint_gsiv_dt(PE_INFO_TABLE *PeTable)
       return;
   }
 
-  Ptr = PeTable->pe_info;
+  Ptr = PeTable->hart_info;
   for (i = 0; i < (sizeof(gicv3_dt_arr)/GIC_COMPATIBLE_STR_LEN); i++) {
       /* Search for GICv3 nodes*/
       offset = fdt_node_offset_by_compatible((const void *)dt_ptr, -1, gicv3_dt_arr[i]);
@@ -138,7 +138,7 @@ pal_pe_info_table_gmaint_gsiv_dt(PE_INFO_TABLE *PeTable)
       return;
   }
 
-  for (i = 0; i < PeTable->header.num_of_pe; i++) {
+  for (i = 0; i < PeTable->header.num_of_hart; i++) {
       if ((interrupt_cell == 3) || (interrupt_cell == 4)) {
           if (Pintr[0])
               Ptr->gmain_gsiv = fdt32_to_cpu(Pintr[1]) + PPI_OFFSET;
@@ -415,7 +415,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
   GIC_INFO_ENTRY           *GicEntry = NULL;
   UINT64 dt_ptr, cpuif_base, cpuif_length;
   UINT32 *Preg_val, *Prdregions_val;
-  UINT32 num_of_pe, num_of_rd = 0, Index = 0;
+  UINT32 num_of_hart, num_of_rd = 0, Index = 0;
   int prop_len, i;
   int addr_cell, size_cell;
   int offset, parent_offset, num_gic_interfaces;
@@ -557,9 +557,9 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
       } else
         cpuif_length = fdt32_to_cpu(Preg_val[Index++]);
 
-      num_of_pe = pal_pe_get_num();
+      num_of_hart = pal_hart_get_num();
       bsa_print(ACS_PRINT_DEBUG, L"  GIC CPUIF base %lx\n", cpuif_base);
-      while (num_of_pe--) {
+      while (num_of_hart--) {
           GicEntry->type = ENTRY_TYPE_CPUIF;
           GicEntry->base = cpuif_base;
           GicEntry->length = cpuif_length;

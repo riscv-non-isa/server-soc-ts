@@ -50,7 +50,7 @@ val_gic_reg_read(uint32_t reg_id)
       case ICH_MISR_EL2:
           return GicReadIchMisr();
       default:
-           val_report_status(val_pe_get_index_mpid(val_pe_get_mpid()),
+           val_report_status(val_hart_get_index_mpid(val_hart_get_mpid()),
                                                   RESULT_FAIL(0, 0xFF), NULL);
   }
 
@@ -87,7 +87,7 @@ val_gic_reg_write(uint32_t reg_id, uint64_t write_data)
           GicWriteIccPmr(write_data);
           break;
       default:
-           val_report_status(val_pe_get_index_mpid(val_pe_get_mpid()),
+           val_report_status(val_hart_get_index_mpid(val_hart_get_mpid()),
                                                   RESULT_FAIL(0, 0xFF), NULL);
   }
 
@@ -235,7 +235,7 @@ uint32_t val_gic_its_configure()
       g_gic_its_info->GicDBase = g_gic_entry->base;
     else if ((g_gic_entry->type == ENTRY_TYPE_GICR_GICRD)
              || (g_gic_entry->type == ENTRY_TYPE_GICC_GICRD)) {
-      /* Calculate Current PE Redistributor Base Address */
+      /* Calculate Current HART Redistributor Base Address */
       if (g_gic_its_info->GicRdBase == 0) {
         if (g_gic_entry->type == ENTRY_TYPE_GICR_GICRD)
           g_gic_its_info->GicRdBase = val_its_get_curr_rdbase(g_gic_entry->base,

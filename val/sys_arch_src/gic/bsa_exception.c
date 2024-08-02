@@ -19,7 +19,7 @@
 #include "gic.h"
 #include "include/bsa_acs_val.h"
 #include "include/bsa_acs_common.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 
 typedef void (*bsa_fp) (uint64_t, void *);
 bsa_fp g_esr_handler[4];

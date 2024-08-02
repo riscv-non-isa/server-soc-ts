@@ -49,7 +49,7 @@ payload (void)
   status = 0;
   test_skip = 1;
   next_irq_pin = current_irq_pin + 1;
-  index = val_pe_get_index_mpid (val_pe_get_mpid());
+  index = val_hart_get_index_mpid (val_hart_get_mpid());
   count = val_peripheral_get_info (NUM_ALL, 0);
 
   if (!count) {
@@ -151,19 +151,19 @@ payload (void)
 }
 
 uint32_t
-os_p063_entry(uint32_t num_pe)
+os_p063_entry(uint32_t num_hart)
 {
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test (TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test (TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP) {
-      val_run_test_payload (TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload (TEST_NUM, num_hart, payload, 0);
   }
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

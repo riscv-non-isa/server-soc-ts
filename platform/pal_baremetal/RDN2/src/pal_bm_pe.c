@@ -74,7 +74,7 @@ static const uint64_t phy_mpidr_array[PLATFORM_OVERRIDE_PE_CNT] = {
 
 };
 
-uint32_t pal_get_pe_count(void)
+uint32_t pal_get_hart_count(void)
 {
     return PLATFORM_OVERRIDE_PE_CNT;
 }
@@ -93,7 +93,7 @@ uint64_t *pal_get_phy_mpidr_list_base(void)
   @return status of the API
 **/
 uint32_t
-pal_pe_install_esr(uint32_t ExceptionType,  void (*esr)(uint64_t, void *))
+pal_hart_install_esr(uint32_t ExceptionType,  void (*esr)(uint64_t, void *))
 {
 
 #ifdef ENABLE_OOB
@@ -143,7 +143,7 @@ pal_pe_install_esr(uint32_t ExceptionType,  void (*esr)(uint64_t, void *))
   @return  None
 **/
 void
-pal_pe_update_elr(void *context, uint64_t offset)
+pal_hart_update_elr(void *context, uint64_t offset)
 {
 #ifdef ENABLE_OOB
  /* Below code is not applicable for Bare-metal
@@ -165,7 +165,7 @@ pal_pe_update_elr(void *context, uint64_t offset)
   @return  ESR
 **/
 uint64_t
-pal_pe_get_esr(void *context)
+pal_hart_get_esr(void *context)
 {
   /*TO DO - Baremetal
    * Place holder to return ESR from context saving structure
@@ -182,7 +182,7 @@ pal_pe_get_esr(void *context)
   @return  FAR
 **/
 uint64_t
-pal_pe_get_far(void *context)
+pal_hart_get_far(void *context)
 {
   /* TO DO - Baremetal
    * Place holder to return FAR from context saving structure

@@ -31,7 +31,7 @@
 static   EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *gMadtHdr;
 UINT8   *gSecondaryPeStack;
 UINT64  gMpidrMax;
-static UINT32 g_num_pe;
+static UINT32 g_num_hart;
 extern INT32 gPsciConduit;
 UINT32
 pal_strncmp(CHAR8 *str1, CHAR8 *str2, UINT32 len);
@@ -143,13 +143,13 @@ PalGetSecondaryStackBase()
 /**
   @brief   Return the number of PEs in the System.
   @param   None
-  @return  num_of_pe
+  @return  num_of_hart
 **/
 UINT32
-pal_pe_get_num()
+pal_hart_get_num()
 {
 
-  return (UINT32)g_num_pe;
+  return (UINT32)g_num_hart;
 }
 
 /**
@@ -165,7 +165,7 @@ PalGetMaxMpidr()
 }
 
 /**
-  @brief  Allocate memory region for secondary PE stack use. SIZE of stack for each PE
+  @brief  Allocate memory region for secondary HART stack use. SIZE of stack for each HART
           is a #define
 
   @param  mpidr Pass MIPDR register content
@@ -191,34 +191,34 @@ PalAllocateSecondaryStack(UINT64 mpidr)
       if (EFI_ERROR(Status)) {
           bsa_print(ACS_PRINT_ERR, L"\n FATAL - Allocation for Seconday stack failed %x\n", Status);
       }
-      pal_pe_data_cache_ops_by_va((UINT64)&gSecondaryPeStack, CLEAN_AND_INVALIDATE);
+      pal_hart_data_cache_ops_by_va((UINT64)&gSecondaryPeStack, CLEAN_AND_INVALIDATE);
   }
 
 }
 
 /**
-  @brief  This API fills in the PE_INFO Table with information about the PEs in the
+  @brief  This API fills in the HART_INFO Table with information about the PEs in the
           system. This is achieved by parsing the ACPI - MADT table.
 
-  @param  PeTable  - Address where the PE information needs to be filled.
+  @param  PeTable  - Address where the HART information needs to be filled.
 
   @return  None
 **/
 VOID
-pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
+pal_hart_create_info_table(HART_INFO_TABLE *PeTable)
 {
   EFI_ACPI_6_1_GIC_STRUCTURE    *Entry = NULL;
-  PE_INFO_ENTRY                 *Ptr = NULL;
+  HART_INFO_ENTRY                 *Ptr = NULL;
   UINT32                        TableLength = 0;
   UINT32                        Length = 0;
   UINT64                        MpidrAff0Max = 0, MpidrAff1Max = 0, MpidrAff2Max = 0, MpidrAff3Max = 0;
 
 
   if (PeTable == NULL) {
-    bsa_print(ACS_PRINT_ERR, L" Input PE Table Pointer is NULL. Cannot create PE INFO\n");
+    bsa_print(ACS_PRINT_ERR, L" Input HART Table Pointer is NULL. Cannot create HART INFO\n");
     return;
   }
-  pal_pe_create_info_table_dt(PeTable);
+  pal_hart_create_info_table_dt(PeTable);
   return;
 
   gMadtHdr = (EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER *) pal_get_madt_ptr();
@@ -228,23 +228,23 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
     bsa_print(ACS_PRINT_INFO, L"  MADT is at %x and length is %x\n", gMadtHdr, TableLength);
   }
 
-  PeTable->header.num_of_pe = 0;
+  PeTable->header.num_of_hart = 0;
 
   Entry = (EFI_ACPI_6_1_GIC_STRUCTURE *) (gMadtHdr + 1);
   Length = sizeof (EFI_ACPI_6_1_MULTIPLE_APIC_DESCRIPTION_TABLE_HEADER);
-  Ptr = PeTable->pe_info;
+  Ptr = PeTable->hart_info;
 
   do {
 
     if (Entry->Type == EFI_ACPI_6_1_GIC) {
-      //Fill in the cpu num and the mpidr in pe info table
+      //Fill in the cpu num and the mpidr in hart info table
       Ptr->mpidr    = Entry->MPIDR;
-      Ptr->pe_num   = PeTable->header.num_of_pe;
+      Ptr->hart_num   = PeTable->header.num_of_hart;
       Ptr->pmu_gsiv = Entry->PerformanceInterruptGsiv;
-      bsa_print(ACS_PRINT_DEBUG, L"  MPIDR %x PE num %d\n", Ptr->mpidr, Ptr->pe_num);
-      pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
+      bsa_print(ACS_PRINT_DEBUG, L"  MPIDR %x HART num %d\n", Ptr->mpidr, Ptr->hart_num);
+      pal_hart_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
       Ptr++;
-      PeTable->header.num_of_pe++;
+      PeTable->header.num_of_hart++;
 
       MpidrAff0Max = UPDATE_AFF_MAX(MpidrAff0Max, Entry->MPIDR, 0x000000ff);
       MpidrAff1Max = UPDATE_AFF_MAX(MpidrAff1Max, Entry->MPIDR, 0x0000ff00);
@@ -258,9 +258,9 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   }while(Length < TableLength);
 
   gMpidrMax = MpidrAff0Max | MpidrAff1Max | MpidrAff2Max | MpidrAff3Max;
-  g_num_pe = PeTable->header.num_of_pe;
-  pal_pe_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
-  pal_pe_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
+  g_num_hart = PeTable->header.num_of_hart;
+  pal_hart_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
+  pal_hart_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
   PalAllocateSecondaryStack(gMpidrMax);
 
 }
@@ -275,7 +275,7 @@ pal_pe_create_info_table(PE_INFO_TABLE *PeTable)
   @return status of the API
 **/
 UINT32
-pal_pe_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
+pal_hart_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
 {
 
   EFI_STATUS  Status;
@@ -314,7 +314,7 @@ pal_pe_install_esr(UINT32 ExceptionType,  VOID (*esr)(UINT64, VOID *))
   @return  None
 **/
 VOID
-pal_pe_call_smc(ARM_SMC_ARGS *ArmSmcArgs, INT32 Conduit)
+pal_hart_call_smc(ARM_SMC_ARGS *ArmSmcArgs, INT32 Conduit)
 {
   ArmCallSmc (ArmSmcArgs, Conduit);
 }
@@ -331,10 +331,10 @@ ModuleEntryPoint();
   @return  None
 **/
 VOID
-pal_pe_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
+pal_hart_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
 {
   ArmSmcArgs->Arg2 = (UINT64)ModuleEntryPoint;
-  pal_pe_call_smc(ArmSmcArgs, gPsciConduit);
+  pal_hart_call_smc(ArmSmcArgs, gPsciConduit);
 }
 
 /**
@@ -346,7 +346,7 @@ pal_pe_execute_payload(ARM_SMC_ARGS *ArmSmcArgs)
   @return  None
 **/
 VOID
-pal_pe_update_elr(VOID *context, UINT64 offset)
+pal_hart_update_elr(VOID *context, UINT64 offset)
 {
   ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->ELR = offset;
 }
@@ -359,7 +359,7 @@ pal_pe_update_elr(VOID *context, UINT64 offset)
   @return  ESR
 **/
 UINT64
-pal_pe_get_esr(VOID *context)
+pal_hart_get_esr(VOID *context)
 {
   return ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->ESR;
 }
@@ -372,7 +372,7 @@ pal_pe_get_esr(VOID *context)
   @return  FAR
 **/
 UINT64
-pal_pe_get_far(VOID *context)
+pal_hart_get_far(VOID *context)
 {
   return ((EFI_SYSTEM_CONTEXT_AARCH64*)context)->FAR;
 }
@@ -395,7 +395,7 @@ DataCacheInvalidateVA(UINT64 addr);
   @return  None
 **/
 VOID
-pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type)
+pal_hart_data_cache_ops_by_va(UINT64 addr, UINT32 type)
 {
   switch(type){
       case CLEAN_AND_INVALIDATE:
@@ -414,7 +414,7 @@ pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type)
 }
 
 /**
-  @brief  This API fills in the PE_INFO_TABLE  with information about PMU
+  @brief  This API fills in the HART_INFO_TABLE  with information about PMU
           in the system. This is achieved by parsing the DT.
 
   @param  PeTable  - Address where the PMU information needs to be filled.
@@ -422,14 +422,14 @@ pal_pe_data_cache_ops_by_va(UINT64 addr, UINT32 type)
   @return  None
 **/
 VOID
-pal_pe_info_table_pmu_gsiv_dt(PE_INFO_TABLE *PeTable)
+pal_hart_info_table_pmu_gsiv_dt(HART_INFO_TABLE *PeTable)
 {
   int i, arr_idx, offset, prop_len;
   UINT64 dt_ptr = 0;
   UINT32 *Pintr;
   int index = 0;
   int interrupt_cell, interrupt_frame_count;
-  PE_INFO_ENTRY *Ptr = NULL;
+  HART_INFO_ENTRY *Ptr = NULL;
   int intr_type = 0;
   int curr_pmu_intr_num = 0, prev_pmu_intr_num = 0;
 
@@ -442,7 +442,7 @@ pal_pe_info_table_pmu_gsiv_dt(PE_INFO_TABLE *PeTable)
       return;
   }
 
-  Ptr = PeTable->pe_info;
+  Ptr = PeTable->hart_info;
 
   for (arr_idx = 0; arr_idx < (sizeof(pmu_dt_arr)/PMU_COMPATIBLE_STR_LEN); arr_idx++) {
 
@@ -490,8 +490,8 @@ pal_pe_info_table_pmu_gsiv_dt(PE_INFO_TABLE *PeTable)
                   index++; /*Skip CPU affinity */
               } else {
                 /* Skip PMU node , if interrupt type not mentioned*/
-                Ptr = PeTable->pe_info;
-                for (i = 0; i < PeTable->header.num_of_pe; i++) {
+                Ptr = PeTable->hart_info;
+                for (i = 0; i < PeTable->header.num_of_hart; i++) {
                     Ptr->pmu_gsiv = 0; /* Set to zero*/
                     Ptr++;
                 }
@@ -505,8 +505,8 @@ pal_pe_info_table_pmu_gsiv_dt(PE_INFO_TABLE *PeTable)
               if (intr_type == INTERRUPT_TYPE_PPI) {
                 curr_pmu_intr_num += PPI_OFFSET;
                 if ((prev_pmu_intr_num != 0) && (curr_pmu_intr_num != prev_pmu_intr_num)) {
-                    Ptr = PeTable->pe_info;
-                    for (i = 0; i < PeTable->header.num_of_pe; i++) {
+                    Ptr = PeTable->hart_info;
+                    for (i = 0; i < PeTable->header.num_of_hart; i++) {
                       Ptr->pmu_gsiv = 0; /* Set to zero*/
                       Ptr++;
                     }
@@ -514,7 +514,7 @@ pal_pe_info_table_pmu_gsiv_dt(PE_INFO_TABLE *PeTable)
                     return;
                 }
                 if (prev_pmu_intr_num == 0) { /* Update table first time with same id*/
-                    for (i = 0; i < PeTable->header.num_of_pe; i++) {
+                    for (i = 0; i < PeTable->header.num_of_hart; i++) {
                       Ptr->pmu_gsiv = curr_pmu_intr_num;
                       Ptr++;
                     }
@@ -534,17 +534,17 @@ pal_pe_info_table_pmu_gsiv_dt(PE_INFO_TABLE *PeTable)
 }
 
 /**
-  @brief  This API fills in the PE_INFO Table with information about the PEs in the
+  @brief  This API fills in the HART_INFO Table with information about the PEs in the
           system. This is achieved by parsing the DT blob.
 
-  @param  PeTable  - Address where the PE information needs to be filled.
+  @param  PeTable  - Address where the HART information needs to be filled.
 
   @return  None
 **/
 VOID
-pal_pe_create_info_table_dt(PE_INFO_TABLE *PeTable)
+pal_hart_create_info_table_dt(HART_INFO_TABLE *PeTable)
 {
-  PE_INFO_ENTRY *Ptr = NULL;
+  HART_INFO_ENTRY *Ptr = NULL;
   UINT64 dt_ptr;
   UINT32 *prop_val;
   UINT32 reg_val[2];
@@ -554,7 +554,7 @@ pal_pe_create_info_table_dt(PE_INFO_TABLE *PeTable)
   CHAR8 * Pstatus;
 
   /* initialise number of PEs to zero */
-  PeTable->header.num_of_pe = 0;
+  PeTable->header.num_of_hart = 0;
 
   dt_ptr = pal_get_dt_ptr();
   if (dt_ptr == 0) {
@@ -587,11 +587,11 @@ pal_pe_create_info_table_dt(PE_INFO_TABLE *PeTable)
         return;
   }
 
-  Ptr = PeTable->pe_info;
+  Ptr = PeTable->hart_info;
 
   /* Perform a DT traversal till all cpu node are parsed */
   while (offset != -FDT_ERR_NOTFOUND) {
-      bsa_print(ACS_PRINT_DEBUG, L"  SUBNODE cpu%d offset %x\n", PeTable->header.num_of_pe, offset);
+      bsa_print(ACS_PRINT_DEBUG, L"  SUBNODE cpu%d offset %x\n", PeTable->header.num_of_hart, offset);
 
       prop_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "reg", 3, &prop_len);
       if ((prop_len < 0) || (prop_val == NULL)) {
@@ -599,7 +599,7 @@ pal_pe_create_info_table_dt(PE_INFO_TABLE *PeTable)
         return;
       }
 
-      /* In DT v0.4 specification "fail" value of status field is added, to indicate PE is
+      /* In DT v0.4 specification "fail" value of status field is added, to indicate HART is
          not operational or exist
       */
       Pstatus = (CHAR8 *)fdt_getprop_namelen((void *)dt_ptr, offset, "status", 6, &prop_len);
@@ -624,9 +624,9 @@ pal_pe_create_info_table_dt(PE_INFO_TABLE *PeTable)
         Ptr->mpidr = (reg_val[0] & PROPERTY_MASK_PE_AFF0_AFF2);
       }
 
-      Ptr->pe_num   = PeTable->header.num_of_pe;
-      pal_pe_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
-      PeTable->header.num_of_pe++;
+      Ptr->hart_num   = PeTable->header.num_of_hart;
+      pal_hart_data_cache_ops_by_va((UINT64)Ptr, CLEAN_AND_INVALIDATE);
+      PeTable->header.num_of_hart++;
 
       MpidrAff0Max = UPDATE_AFF_MAX(MpidrAff0Max, Ptr->mpidr, 0x000000ff);
       MpidrAff1Max = UPDATE_AFF_MAX(MpidrAff1Max, Ptr->mpidr, 0x0000ff00);
@@ -638,12 +638,12 @@ pal_pe_create_info_table_dt(PE_INFO_TABLE *PeTable)
           fdt_node_offset_by_prop_value((const void *) dt_ptr, offset, "device_type", "cpu", 4);
   }
   gMpidrMax = MpidrAff0Max | MpidrAff1Max | MpidrAff2Max | MpidrAff3Max;
-  g_num_pe = PeTable->header.num_of_pe;
-  pal_pe_info_table_pmu_gsiv_dt(PeTable);
-  pal_pe_info_table_gmaint_gsiv_dt(PeTable);
-  pal_pe_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
-  pal_pe_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
+  g_num_hart = PeTable->header.num_of_hart;
+  pal_hart_info_table_pmu_gsiv_dt(PeTable);
+  pal_hart_info_table_gmaint_gsiv_dt(PeTable);
+  pal_hart_data_cache_ops_by_va((UINT64)PeTable, CLEAN_AND_INVALIDATE);
+  pal_hart_data_cache_ops_by_va((UINT64)&gMpidrMax, CLEAN_AND_INVALIDATE);
   PalAllocateSecondaryStack(gMpidrMax);
 
-  dt_dump_pe_table(PeTable);
+  dt_dump_hart_table(PeTable);
 }

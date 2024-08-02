@@ -2,7 +2,7 @@
 
 
 ## Base System Architecture
-**Base System Architecture** (BSA) specification specifies a hardware system architecture based on the Arm 64-bit architecture. Server system software such as operating systems, hypervisors, and firmware rely on this. It addresses PE features and key aspects of system architecture.
+**Base System Architecture** (BSA) specification specifies a hardware system architecture based on the Arm 64-bit architecture. Server system software such as operating systems, hypervisors, and firmware rely on this. It addresses HART features and key aspects of system architecture.
 
 For more information, download the [BSA specification](https://developer.arm.com/documentation/den0094/c/?lang=en)
 

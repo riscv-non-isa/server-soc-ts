@@ -67,20 +67,17 @@ void    *val_memcpy(void *dest_buffer, void *src_buffer, uint32_t len);
 void val_dump_dtb(void);
 uint64_t val_time_delay_ms(uint64_t time_ms);
 
-/* VAL PE APIs */
-uint32_t val_pe_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
-uint32_t val_pe_create_info_table(uint64_t *pe_info_table);
-void     val_pe_free_info_table(void);
-uint32_t val_pe_get_num(void);
-uint64_t val_pe_get_mpid_index(uint32_t index);
-uint32_t val_pe_get_pmu_gsiv(uint32_t index);
-uint32_t val_pe_get_gmain_gsiv(uint32_t index);
-char8_t *val_pe_get_isa_string (uint32_t index);
-uint64_t val_pe_get_imsic_base (int32_t index);
-uint64_t val_pe_get_mpid(void);
-uint32_t val_pe_get_index_mpid(uint64_t mpid);
-uint32_t val_pe_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *));
-uint32_t val_pe_get_primary_index(void);
+/* VAL HART APIs */
+uint32_t val_hart_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
+uint32_t val_hart_create_info_table(uint64_t *hart_info_table);
+void     val_hart_free_info_table(void);
+uint32_t val_hart_get_num(void);
+char8_t *val_hart_get_isa_string (uint32_t index);
+uint64_t val_hart_get_imsic_base (int32_t index);
+uint64_t val_hart_get_mpid(void);
+uint32_t val_hart_get_index_mpid(uint64_t hart_id);
+uint32_t val_hart_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *));
+uint32_t val_hart_get_primary_index(void);
 uint64_t val_get_primary_mpidr(void);
 
 void     val_execute_on_pe(uint32_t index, void (*payload)(void), uint64_t args);
@@ -108,7 +105,7 @@ typedef enum {
 uint32_t
 val_gic_get_info(GIC_INFO_e type);
 void     val_gic_free_info_table(void);
-uint32_t val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_gic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint32_t val_gic_install_isr(uint32_t int_id, void (*isr)(void));
 uint32_t val_gic_end_of_interrupt(uint32_t int_id);
 uint32_t val_gic_route_interrupt_to_pe(uint32_t int_id, uint64_t mpidr);
@@ -167,7 +164,7 @@ typedef enum {
 
 void     val_timer_create_info_table(uint64_t *timer_info_table);
 void     val_timer_free_info_table(void);
-uint32_t val_timer_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_timer_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint64_t val_timer_get_info(TIMER_INFO_e info_type, uint64_t instance);
 void     val_timer_set_phy_el1(uint64_t timeout);
 void     val_timer_set_vir_el1(uint64_t timeout);
@@ -192,7 +189,7 @@ typedef enum {
 
 void     val_wd_create_info_table(uint64_t *wd_info_table);
 void     val_wd_free_info_table(void);
-uint32_t val_wd_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_wd_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint64_t val_wd_get_info(uint32_t index, WD_INFO_TYPE_e info_type);
 uint32_t val_wd_set_ws0(uint32_t index, uint32_t timeout);
 uint64_t val_get_counter_frequency(void);
@@ -204,7 +201,7 @@ uint32_t val_pcie_create_device_bdf_table(void);
 addr_t val_pcie_get_ecam_base(uint32_t rp_bdf);
 void *val_pcie_bdf_table_ptr(void);
 void     val_pcie_free_info_table(void);
-uint32_t val_pcie_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint32_t val_pcie_is_devicedma_64bit(uint32_t bdf);
 uint32_t val_pcie_device_driver_present(uint32_t bdf);
 uint32_t val_pcie_scan_bridge_devices_and_check_memtype(uint32_t bdf);
@@ -284,7 +281,7 @@ typedef enum {
 void     val_iovirt_create_info_table(uint64_t *iovirt_info_table);
 void     val_iovirt_free_info_table(void);
 uint32_t val_iovirt_get_rc_smmu_index(uint32_t rc_seg_num, uint32_t rid);
-uint32_t val_smmu_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_smmu_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint64_t val_smmu_get_info(SMMU_INFO_e, uint32_t index);
 uint64_t val_iovirt_get_smmu_info(SMMU_INFO_e type, uint32_t index);
 
@@ -320,7 +317,7 @@ typedef enum {
 } BSA_POWER_SEM_e;
 
 uint32_t val_power_enter_semantic(BSA_POWER_SEM_e semantic);
-uint32_t val_wakeup_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_wakeup_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 void     val_debug_brk(uint32_t data);
 
 typedef enum {
@@ -361,7 +358,7 @@ typedef enum {
 
 void     val_peripheral_create_info_table(uint64_t *peripheral_info_table);
 void     val_peripheral_free_info_table(void);
-uint32_t val_peripheral_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_peripheral_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint64_t val_peripheral_get_info(PERIPHERAL_INFO_e info_type, uint32_t index);
 uint32_t val_peripheral_is_pcie(uint32_t bdf);
 void     val_peripheral_dump_info(void);
@@ -399,7 +396,7 @@ uint32_t val_enable_mmu(void);
 
 void     val_memory_create_info_table(uint64_t *memory_info_table);
 void     val_memory_free_info_table(void);
-uint32_t val_memory_execute_tests(uint32_t num_pe, uint32_t *g_sw_view);
+uint32_t val_memory_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint64_t val_memory_get_info(addr_t addr, uint64_t *attr);
 uint64_t val_memory_get_unpopulated_addr(addr_t *addr, uint32_t instance);
 uint64_t val_get_max_memory(void);

@@ -30,7 +30,7 @@
   src/AArch64/ModuleEntryPoint.S
   src/pal_misc.c
   src/pal_acpi.c
-  src/pal_pe.c
+  src/pal_hart.c
   src/pal_gic.c
   src/pal_timer_wd.c
   src/pal_pcie.c

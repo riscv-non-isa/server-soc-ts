@@ -17,7 +17,7 @@
 #include "val/include/bsa_acs_val.h"
 #include "val/include/val_interface.h"
 
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_pcie.h"
 
 #define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 4)
@@ -32,15 +32,15 @@ static
 void
 esr(uint64_t interrupt_type, void *context)
 {
-  uint32_t pe_index;
+  uint32_t hart_index;
 
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   /* Update the ELR to return to test specified address */
-  val_pe_update_elr(context, (uint64_t)branch_to_test);
+  val_hart_update_elr(context, (uint64_t)branch_to_test);
 
   val_print(ACS_PRINT_ERR, "\n       Received exception of type: %d", interrupt_type);
-  val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
+  val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 01));
 }
 
 static
@@ -95,7 +95,7 @@ payload(void)
 
   uint32_t bdf;
   uint32_t dp_type;
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t tbl_index;
   uint32_t read_value, old_value, value;
   uint32_t test_skip = 1;
@@ -108,16 +108,16 @@ payload(void)
 
   tbl_index = 0;
   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   /* Install sync and async handlers to handle exceptions.*/
-  status = val_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
-  status |= val_pe_install_esr(EXCEPT_AARCH64_SERROR, esr);
+  status = val_hart_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, esr);
+  status |= val_hart_install_esr(EXCEPT_AARCH64_SERROR, esr);
   branch_to_test = &&exception_return;
   if (status)
   {
       val_print(ACS_PRINT_ERR, "\n       Failed in installing the exception handler", 0);
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 01));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 01));
       return;
   }
 
@@ -177,7 +177,7 @@ payload(void)
             val_print(ACS_PRINT_ERR,
                     "\n       Memory offset + base 0x%llx", mem_base + mem_offset);
             val_print(ACS_PRINT_ERR, " exceeds the memory limit 0x%llx", mem_lim);
-            val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
+            val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 02));
             return;
         }
 
@@ -198,7 +198,7 @@ payload(void)
           val_print(ACS_PRINT_DEBUG, "\n       Value written into memory - 0x%x", KNOWN_DATA);
           val_print(ACS_PRINT_DEBUG, "\n       Value in memory after write - 0x%x", read_value);
           val_print(ACS_PRINT_ERR, "\n       Memory access check failed for BDF  0x%x", bdf);
-          val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 02));
+          val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 02));
           val_pcie_clear_urd(bdf);
           return;
         }
@@ -235,7 +235,7 @@ payload(void)
                val_print(ACS_PRINT_ERR, " is 0x%x", read_value);
                val_print(ACS_PRINT_ERR,
                        "\n       Out of range 0x%x", (new_mem_lim + MEM_OFFSET_SMALL));
-               val_set_status(pe_index, RESULT_FAIL(TEST_NUM, 03));
+               val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 03));
            }
         }
 
@@ -250,7 +250,7 @@ exception_return:
         /* Memory Space might have constraint on RW/RO behaviour
          * So not checking for Read-Write Data mismatch.
         */
-        if (IS_TEST_FAIL(val_get_status(pe_index))) {
+        if (IS_TEST_FAIL(val_get_status(hart_index))) {
           val_print(ACS_PRINT_ERR,
             "\n       Failed. Exception on Memory Access For Bdf : 0x%x", bdf);
           val_pcie_clear_urd(bdf);
@@ -263,26 +263,26 @@ exception_return:
   if (test_skip == 1) {
       val_print(ACS_PRINT_DEBUG,
         "\n       No RP type device found with valid Memory Base/Limit Reg.", 0);
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
   }
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
 }
 
 uint32_t
-os_p004_entry(uint32_t num_pe)
+os_p004_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

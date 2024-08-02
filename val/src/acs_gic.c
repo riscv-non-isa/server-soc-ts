@@ -28,12 +28,12 @@ GIC_INFO_TABLE  *g_gic_info_table;
   @brief   This API executes all the GIC tests sequentially
            1. Caller       -  Application layer.
            2. Prerequisite -  val_gic_create_info_table()
-  @param   num_pe - the number of PE to run these tests on.
+  @param   num_hart - the number of HART to run these tests on.
   @param   g_sw_view - Keeps the information about which view tests to be run
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_gic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
 
   uint32_t status, i;
@@ -58,15 +58,15 @@ val_gic_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-      status |= os_i001_entry(num_pe);
-      status |= os_i002_entry(num_pe);
-      status |= os_i003_entry(num_pe);
-      status |= os_i004_entry(num_pe);
-      status |= os_i005_entry(num_pe);
-      // status |= os_v2m001_entry(num_pe);
-      // status |= os_v2m002_entry(num_pe);
-      // status |= os_v2m003_entry(num_pe);
-      // status |= os_v2m004_entry(num_pe);
+      status |= os_i001_entry(num_hart);
+      status |= os_i002_entry(num_hart);
+      status |= os_i003_entry(num_hart);
+      status |= os_i004_entry(num_hart);
+      status |= os_i005_entry(num_hart);
+      // status |= os_v2m001_entry(num_hart);
+      // status |= os_v2m002_entry(num_hart);
+      // status |= os_v2m003_entry(num_hart);
+      // status |= os_v2m004_entry(num_hart);
   }
   val_print_test_end(status, "GIC");
 
@@ -217,22 +217,22 @@ val_get_gicr_base(uint32_t *rdbase_len, uint32_t gicr_rd_index)
 }
 
 /**
-  @brief   This API returns the base address of the GIC Redistributor for a PE
+  @brief   This API returns the base address of the GIC Redistributor for a HART
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
-  @param   mpidr - PE mpidr value
+  @param   mpidr - HART mpidr value
   @return  Address of GIC Redistributor
 **/
 addr_t
-val_gic_get_pe_rdbase(uint64_t mpidr)
+val_gic_get_hart_rdbase(uint64_t mpidr)
 {
   uint32_t     gicrd_baselen;
   uint32_t     gicr_rdindex = 0;
-  uint64_t     affinity, pe_affinity;
+  uint64_t     affinity, hart_affinity;
   uint64_t     gicrd_granularity;
-  uint64_t     gicrd_base, pe_gicrd_base;
+  uint64_t     gicrd_base, hart_gicrd_base;
 
-  pe_affinity = (mpidr & (PE_AFF0 | PE_AFF1 | PE_AFF2)) | ((mpidr & PE_AFF3) >> 8);
+  hart_affinity = (mpidr & (PE_AFF0 | PE_AFF1 | PE_AFF2)) | ((mpidr & PE_AFF3) >> 8);
   gicrd_granularity = GICR_CTLR_FRAME_SIZE + GICR_SGI_PPI_FRAME_SIZE;
 
   gicr_rdindex = 0;
@@ -246,7 +246,7 @@ val_gic_get_pe_rdbase(uint64_t mpidr)
       if (gicrd_baselen == 0)
       {
           affinity = (val_mmio_read64(gicrd_base + GICR_TYPER) & GICR_TYPER_AFF) >> 32;
-          if (affinity == pe_affinity) {
+          if (affinity == hart_affinity) {
               return gicrd_base;
           }
           return 0;
@@ -259,18 +259,18 @@ val_gic_get_pe_rdbase(uint64_t mpidr)
       val_print(ACS_PRINT_INFO, "       gicr_rdindex %d", gicr_rdindex);
       val_print(ACS_PRINT_INFO, "       gicrd_base 0x%lx\n", gicrd_base);
 
-      pe_gicrd_base = gicrd_base;
-      while (pe_gicrd_base < (gicrd_base + gicrd_baselen))
+      hart_gicrd_base = gicrd_base;
+      while (hart_gicrd_base < (gicrd_base + gicrd_baselen))
       {
           val_print(ACS_PRINT_INFO, "       GICR_TYPER 0x%lx\n",
-                    val_mmio_read64(pe_gicrd_base + GICR_TYPER));
+                    val_mmio_read64(hart_gicrd_base + GICR_TYPER));
 
-          affinity = (val_mmio_read64(pe_gicrd_base + GICR_TYPER) & GICR_TYPER_AFF) >> 32;
-          if (affinity == pe_affinity)
-              return pe_gicrd_base;
+          affinity = (val_mmio_read64(hart_gicrd_base + GICR_TYPER) & GICR_TYPER_AFF) >> 32;
+          if (affinity == hart_affinity)
+              return hart_gicrd_base;
 
           /* Move to the next GIC Redistributor frame */
-          pe_gicrd_base += gicrd_granularity;
+          hart_gicrd_base += gicrd_granularity;
       }
       gicr_rdindex++;
   }
@@ -308,7 +308,7 @@ val_get_gich_base(void)
   return 0;
 }
 /**
-  @brief   This API returns the base address of the CPU IF for the current PE
+  @brief   This API returns the base address of the CPU IF for the current HART
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
   @param   None
@@ -408,11 +408,11 @@ val_get_max_intid(void)
 }
 
 /**
-  @brief   This function routes interrupt to specific PE.
+  @brief   This function routes interrupt to specific HART.
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
   @param   int_id Interrupt ID to be routed
-  @param   mpidr MPIDR_EL1 reg value of the PE to which the interrupt should be routed
+  @param   mpidr MPIDR_EL1 reg value of the HART to which the interrupt should be routed
   @return  status
 **/
 uint32_t val_gic_route_interrupt_to_pe(uint32_t int_id, uint64_t mpidr)
@@ -476,7 +476,7 @@ void val_gic_clear_interrupt(uint32_t int_id)
 
 /**
   @brief   This function will initialize CPU interface registers required for interrupt
-           routing to a given PE
+           routing to a given HART
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
   @param   none

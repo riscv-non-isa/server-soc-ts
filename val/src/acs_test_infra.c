@@ -16,7 +16,7 @@
  **/
 
 #include "include/bsa_acs_val.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "include/bsa_acs_common.h"
 #include "sys_arch_src/gic/bsa_exception.h"
 
@@ -306,20 +306,20 @@ val_check_skip_module(uint32_t module_base)
 
   @param test_num unique number identifying this test
   @param desc     brief description of the test
-  @param num_pe   the number of PE to execute this test on.
+  @param num_hart   the number of HART to execute this test on.
 
   @return         Skip - if the user has overriden to skip the test.
  **/
 uint32_t
-val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_pe)
+val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_hart)
 {
 
   uint32_t i;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   g_override_skip = 0;
 
-  for (i = 0; i < num_pe; i++)
+  for (i = 0; i < num_hart; i++)
       val_set_status(i, RESULT_PENDING(test_num));
 
   /* Skip the test if it one of the -skip option parameters */
@@ -356,7 +356,7 @@ val_initialize_test(uint32_t test_num, char8_t *desc, uint32_t num_pe)
   val_print(ACS_PRINT_ERR, "%4d : ", test_num); //Always print this
   val_print(ACS_PRINT_TEST, desc, 0);
   val_report_status(0, BSA_ACS_START(test_num), NULL);
-  val_pe_initialize_default_exception_handler(val_pe_default_esr);
+  val_hart_initialize_default_exception_handler(val_hart_default_esr);
 
   g_bsa_tests_total++;
 
@@ -374,7 +374,7 @@ void
 val_allocate_shared_mem()
 {
 
-  pal_mem_allocate_shared(val_pe_get_num(), sizeof(VAL_SHARED_MEM_t));
+  pal_mem_allocate_shared(val_hart_get_num(), sizeof(VAL_SHARED_MEM_t));
 
 }
 
@@ -397,12 +397,12 @@ val_free_shared_mem()
 /**
   @brief  This function sets the address of the test entry and the test
           argument to the shared address space which is picked up by the
-          secondary PE identified by index.
+          secondary HART identified by index.
           1. Caller       - VAL
           2. Prerequisite - val_allocate_shared_mem
 
-  @param index     the PE Index
-  @param addr      Address of the test payload which needs to be executed by PE
+  @param index     the HART Index
+  @param addr      Address of the test payload which needs to be executed by HART
   @param test_data 64-bit data to be passed as a parameter to test payload
 
   @return        None
@@ -412,9 +412,9 @@ val_set_test_data(uint32_t index, uint64_t addr, uint64_t test_data)
 {
   volatile VAL_SHARED_MEM_t *mem;
 
-  if(index > val_pe_get_num())
+  if(index > val_hart_get_num())
   {
-      val_print(ACS_PRINT_ERR, "\n Incorrect PE index = %d", index);
+      val_print(ACS_PRINT_ERR, "\n Incorrect HART index = %d", index);
       return;
   }
 
@@ -434,7 +434,7 @@ val_set_test_data(uint32_t index, uint64_t addr, uint64_t test_data)
           1. Caller       - Test Suite
           2. Prerequisite - val_set_test_data
 
-  @param index   PE index whose data parameter has to be returned.
+  @param index   HART index whose data parameter has to be returned.
   @param *data0  Shared Data0.
   @param *data1  Shared Data1.
 
@@ -447,9 +447,9 @@ val_get_test_data(uint32_t index, uint64_t *data0, uint64_t *data1)
 
   volatile VAL_SHARED_MEM_t *mem;
 
-  if(index > val_pe_get_num())
+  if(index > val_hart_get_num())
   {
-      val_print(ACS_PRINT_ERR, "\n Incorrect PE index = %d", index);
+      val_print(ACS_PRINT_ERR, "\n Incorrect HART index = %d", index);
       return;
   }
 
@@ -466,74 +466,74 @@ val_get_test_data(uint32_t index, uint64_t *data0, uint64_t *data1)
 
 /**
   @brief  This function will wait for all PEs to report their status
-          or we timeout and set a failure for the PE which timed-out
+          or we timeout and set a failure for the HART which timed-out
           1. Caller       - Application layer
           2. Prerequisite - val_set_status
 
   @param test_num  Unique test number
-  @param num_pe    Number of PE who are executing this test
+  @param num_hart    Number of HART who are executing this test
   @param timeout   integer value ob expiry the API will timeout and return
 
   @return        None
  **/
 
 static void
-val_wait_for_test_completion(uint32_t test_num, uint32_t num_pe, uint32_t timeout)
+val_wait_for_test_completion(uint32_t test_num, uint32_t num_hart, uint32_t timeout)
 {
 
   uint32_t i = 0, j = 0;
 
-  //For single PE tests, there is no need to wait for the results
-  if (num_pe == 1)
+  //For single HART tests, there is no need to wait for the results
+  if (num_hart == 1)
       return;
 
   while(--timeout)
   {
       j = 0;
-      for (i = 0; i < num_pe; i++)
+      for (i = 0; i < num_hart; i++)
       {
           if (IS_RESULT_PENDING(val_get_status(i))) {
               j = i+1;
           }
       }
-      //If None of the PE have the status as Pending, return
+      //If None of the HART have the status as Pending, return
       if (!j)
           return;
   }
-  //We are here if we timed-out, set the last index PE as failed
+  //We are here if we timed-out, set the last index HART as failed
   val_set_status(j-1, RESULT_FAIL(test_num, 0xF));
 }
 
 /**
   @brief  This API Executes the payload function on secondary PEs
           1. Caller       - Application layer
-          2. Prerequisite - val_pe_create_info_table
+          2. Prerequisite - val_hart_create_info_table
 
   @param test_num   unique test number
-  @param num_pe     The number of PEs to run this test on
+  @param num_hart     The number of PEs to run this test on
   @param payload    Function pointer of the test entry function
   @param test_input optional parameter for the test payload
 
   @return        None
  **/
 void
-val_run_test_payload(uint32_t test_num, uint32_t num_pe, void (*payload)(void), uint64_t test_input)
+val_run_test_payload(uint32_t test_num, uint32_t num_hart, void (*payload)(void), uint64_t test_input)
 {
 
-  uint32_t my_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t my_index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t i;
 
-  payload();  //this is test run separately on present PE
-  if (num_pe == 1)
+  payload();  //this is test run separately on present HART
+  if (num_hart == 1)
       return;
 
-  //Now run the test on all other PE
-  for (i = 0; i < num_pe; i++) {
+  //Now run the test on all other HART
+  for (i = 0; i < num_hart; i++) {
       if (i != my_index)
           val_execute_on_pe(i, payload, test_input);
   }
 
-  val_wait_for_test_completion(test_num, num_pe, TIMEOUT_LARGE);
+  val_wait_for_test_completion(test_num, num_hart, TIMEOUT_LARGE);
 }
 
 /**
@@ -542,23 +542,23 @@ val_run_test_payload(uint32_t test_num, uint32_t num_pe, void (*payload)(void), 
           2. Prerequisite - val_set_status
 
   @param test_num   unique test number
-  @param num_pe     The number of PEs to query for status
+  @param num_hart     The number of PEs to query for status
   @param *ruleid    RuleID of the test
 
-  @return     Success or on failure - status of the last failed PE
+  @return     Success or on failure - status of the last failed HART
  **/
 uint32_t
-val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
+val_check_for_error(uint32_t test_num, uint32_t num_hart, char8_t *ruleid)
 {
   uint32_t i;
   uint32_t status = 0;
   uint32_t error_flag = 0;
-  uint32_t my_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t my_index = val_hart_get_index_mpid(val_hart_get_mpid());
   (void) test_num;
 
-  /* this special case is needed when the Main PE is not the first entry
-     of pe_info_table but num_pe is 1 for SOC tests */
-  if (num_pe == 1) {
+  /* this special case is needed when the Main HART is not the first entry
+     of hart_info_table but num_hart is 1 for SOC tests */
+  if (num_hart == 1) {
       status = val_get_status(my_index);
       val_report_status(my_index, status, ruleid);
       if (IS_TEST_PASS(status)) {
@@ -572,7 +572,7 @@ val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
       return ACS_STATUS_FAIL;
   }
 
-  for (i = 0; i < num_pe; i++) {
+  for (i = 0; i < num_hart; i++) {
       status = val_get_status(i);
       //val_print(ACS_PRINT_ERR, "Status %4x\n", status);
       if (IS_TEST_FAIL_SKIP(status)) {
@@ -608,7 +608,7 @@ val_check_for_error(uint32_t test_num, uint32_t num_pe, char8_t *ruleid)
 void
 val_data_cache_ops_by_va(addr_t addr, uint32_t type)
 {
-  pal_pe_data_cache_ops_by_va(addr, type);
+  pal_hart_data_cache_ops_by_va(addr, type);
 
 }
 
@@ -621,7 +621,7 @@ val_data_cache_ops_by_va(addr_t addr, uint32_t type)
   @return None
 **/
 void
-val_pe_update_elr(void *context, uint64_t offset)
+val_hart_update_elr(void *context, uint64_t offset)
 {
     if (pal_target_is_dt()) {
 #ifndef TARGET_LINUX
@@ -629,7 +629,7 @@ val_pe_update_elr(void *context, uint64_t offset)
 #endif
     }
     else
-        pal_pe_update_elr(context, offset);
+        pal_hart_update_elr(context, offset);
 }
 
 /**
@@ -640,9 +640,9 @@ val_pe_update_elr(void *context, uint64_t offset)
   @return ESR Value
 **/
 uint64_t
-val_pe_get_esr(void *context)
+val_hart_get_esr(void *context)
 {
-    return pal_pe_get_esr(context);
+    return pal_hart_get_esr(context);
 }
 
 /**
@@ -653,9 +653,9 @@ val_pe_get_esr(void *context)
   @return FAR value
 **/
 uint64_t
-val_pe_get_far(void *context)
+val_hart_get_far(void *context)
 {
-    return pal_pe_get_far(context);
+    return pal_hart_get_far(context);
 }
 
 /**
@@ -747,13 +747,13 @@ val_dump_dtb(void)
 }
 
 uint64_t
-val_pe_get_hstatus(void)
+val_hart_get_hstatus(void)
 {
-  return pal_pe_get_hstatus();
+  return pal_hart_get_hstatus();
 }
 
 void
-val_pe_set_hstatus(uint64_t val)
+val_hart_set_hstatus(uint64_t val)
 {
-  pal_pe_set_hstatus(val);
+  pal_hart_set_hstatus(val);
 }

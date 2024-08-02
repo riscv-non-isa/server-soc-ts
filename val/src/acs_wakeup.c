@@ -16,7 +16,7 @@
  **/
 
 #include "include/bsa_acs_val.h"
-#include "include/bsa_acs_pe.h"
+#include "include/bsa_acs_hart.h"
 #include "include/bsa_acs_common.h"
 #include "include/bsa_std_smc.h"
 
@@ -28,12 +28,12 @@ extern int32_t gPsciConduit;
   @brief   This API executes all the wakeup tests sequentially
            1. Caller       -  Application layer.
            2. Prerequisite -  None
-  @param   num_pe - the number of PE to run these tests on.
+  @param   num_hart - the number of HART to run these tests on.
   @param   g_sw_view - Keeps the information about which view tests to be run
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_wakeup_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
+val_wakeup_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
   uint32_t status, i;
 
@@ -58,12 +58,12 @@ val_wakeup_execute_tests(uint32_t num_pe, uint32_t *g_sw_view)
 
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
-      status |= os_u001_entry(num_pe);
+      status |= os_u001_entry(num_hart);
 
  /*B_WAK_09 is required only for SBSA complaince
 if (g_build_sbsa) {
-      // Test needs multi-PE interrupt handling support
-     // status |= os_u002_entry(num_pe);
+      // Test needs multi-HART interrupt handling support
+     // status |= os_u002_entry(num_hart);
 }
 */
   }
@@ -87,7 +87,7 @@ static uint32_t val_get_psci_ver(void)
 
   smc_args.Arg0 = ARM_SMC_ID_PSCI_VERSION;
 
-  pal_pe_call_smc(&smc_args, gPsciConduit);
+  pal_hart_call_smc(&smc_args, gPsciConduit);
 
   val_print(ACS_PRINT_DEBUG, "\n       PSCI VERSION = %X", smc_args.Arg0);
 
@@ -108,7 +108,7 @@ static uint32_t val_get_psci_features(uint64_t psci_func_id)
   smc_args.Arg0 = ARM_SMC_ID_PSCI_FEATURES;
   smc_args.Arg1 = psci_func_id;
 
-  pal_pe_call_smc(&smc_args, gPsciConduit);
+  pal_hart_call_smc(&smc_args, gPsciConduit);
 
   val_print(ACS_PRINT_DEBUG, "\n       PSCI FEATURS = %d", smc_args.Arg0);
 
@@ -147,7 +147,7 @@ val_suspend_pe(uint64_t entry, uint32_t context_id)
   smc_args.Arg1 = power_state;
   smc_args.Arg2 = entry;
   smc_args.Arg3 = context_id;
-  pal_pe_call_smc(&smc_args, gPsciConduit);
+  pal_hart_call_smc(&smc_args, gPsciConduit);
 
   return smc_args.Arg0;
 }

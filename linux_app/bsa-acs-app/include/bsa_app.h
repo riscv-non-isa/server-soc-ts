@@ -34,14 +34,14 @@ typedef unsigned long int addr_t;
 typedef unsigned char     char8_t;
 
 int
-execute_tests_pcie(int num_pe, unsigned int print_level);
+execute_tests_pcie(int num_hart, unsigned int print_level);
 
 int
-execute_tests_exerciser(int num_pe, unsigned int print_level);
+execute_tests_exerciser(int num_hart, unsigned int print_level);
 
 int
-execute_tests_peripheral(int num_pe, unsigned int print_level);
+execute_tests_peripheral(int num_hart, unsigned int print_level);
 
 int
-execute_tests_memory(int num_pe, unsigned int print_level);
+execute_tests_memory(int num_hart, unsigned int print_level);
 #endif

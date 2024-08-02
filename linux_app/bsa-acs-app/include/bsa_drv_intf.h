@@ -48,7 +48,7 @@ int
 call_drv_clean_test_env();
 
 int
-call_drv_execute_test(unsigned int test_num, unsigned int num_pe,
+call_drv_execute_test(unsigned int test_num, unsigned int num_hart,
   unsigned int print_level, unsigned long int test_input);
 
 int

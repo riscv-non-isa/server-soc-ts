@@ -21,7 +21,7 @@
  ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_gic.c
  ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_misc.c
  ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_pcie.c
- ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_pe.c
+ ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_hart.c
  ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_peripherals.c
  ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_smmu.c
  ${ROOT_DIR}/platform/pal_baremetal/${TARGET}/src/pal_bm_memory.c
@@ -33,7 +33,7 @@
  ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_misc.c
  ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_pcie_enumeration.c
  ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_pcie.c
- ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_pe.c
+ ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_hart.c
  ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_peripherals.c
  ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_pl011_uart.c
  ${ROOT_DIR}/platform/pal_baremetal/common/src/pal_timer_wd.c

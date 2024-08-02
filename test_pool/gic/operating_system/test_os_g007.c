@@ -19,7 +19,7 @@
 #include "val/include/val_interface.h"
 
 #include "val/include/bsa_acs_gic.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 7)
 #define TEST_RULE  "B_PPI_01"
@@ -42,13 +42,13 @@ void
 payload()
 {
   /* Check CTIIRQ interrupt received    (x)    -- not feasible */
-  /* Check PMU interrupt received - Checked in PE test         */
+  /* Check PMU interrupt received - Checked in HART test         */
   /* Check COMMIRQ interrupt received   (x)    -- not feasible */
   /* Check PMBIRQ interrupt received    (x)    -- requires access to secure monitor */
 
   uint32_t timeout = TIMEOUT_LARGE;
   uint32_t timer_expire_val = 100;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   /* Check non-secure virtual timer Private Peripheral Interrupt (PPI) assignment */
   val_set_status(0, RESULT_PENDING(TEST_NUM));
@@ -83,20 +83,20 @@ payload()
 }
 
 uint32_t
-os_g007_entry(uint32_t num_pe)
+os_g007_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  /* This GIC test is run on single processor */
+  num_hart = 1;  /* This GIC test is run on single processor */
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

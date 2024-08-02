@@ -19,15 +19,15 @@
 #define __BSA_ACS_IIC_H__
 
 uint32_t
-os_i001_entry(uint32_t num_pe);
+os_i001_entry(uint32_t num_hart);
 uint32_t
-os_i002_entry(uint32_t num_pe);
+os_i002_entry(uint32_t num_hart);
 uint32_t
-os_i003_entry(uint32_t num_pe);
+os_i003_entry(uint32_t num_hart);
 uint32_t
-os_i004_entry(uint32_t num_pe);
+os_i004_entry(uint32_t num_hart);
 uint32_t
-os_i005_entry(uint32_t num_pe);
+os_i005_entry(uint32_t num_hart);
 
 
 #endif

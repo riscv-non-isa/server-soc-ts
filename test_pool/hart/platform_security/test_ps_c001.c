@@ -14,49 +14,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-#include "val/include/bsa_acs_val.h"
-#include "val/include/bsa_acs_pe.h"
-#include "val/include/val_interface.h"
 
-#define TEST_NUM   (ACS_PE_TEST_NUM_BASE  +  3)
-#define TEST_RULE  "B_PE_03"
-#define TEST_DESC  "Check for AdvSIMD and FP support      "
+#include "val/include/bsa_acs_val.h"
+#include "val/include/bsa_acs_hart.h"
+
+#define TEST_NUM   (ACS_PE_PS_TEST_NUM_BASE  +  1)
+#define TEST_RULE  "B_PE_23, B_PE_24"
+#define TEST_DESC  "Check EL3 implementation              "
 
 static
 void
 payload()
 {
   uint64_t data = 0;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
-  data = val_pe_reg_read(ID_AA64PFR0_EL1);
-  data = (data & 0xF00000) >> 20;
+  data = val_hart_reg_read(ID_AA64PFR0_EL1);
 
-  if ((data == 0x0) || (data == 0x1))
-        val_set_status(index, RESULT_PASS(TEST_NUM, 1));
+  if (data & 0xF000) //bits 15:12 for EL3 support
+	val_set_status(index, RESULT_PASS(TEST_NUM, 1));
   else
-        val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+	val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
 
   return;
 
 }
 
 uint32_t
-os_c003_entry(uint32_t num_pe)
+ps_c001_entry(uint32_t num_hart)
 {
 
-  uint32_t status = ACS_STATUS_FAIL;  //default value
+  uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
-
-  /* This check is when user is forcing us to skip this test */
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 
   return status;
 }
+

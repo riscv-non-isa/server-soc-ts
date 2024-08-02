@@ -42,12 +42,12 @@ payload()
   uint32_t data;
   uint32_t are_ns = val_gic_get_info(GIC_INFO_AFFINITY_NS);
   uint32_t index, mpid;
-  uint64_t pe_rdbase;
+  uint64_t hart_rdbase;
 
-  mpid = val_pe_get_mpid();
-  val_print(ACS_PRINT_DEBUG, "\n       PE MPIDR 0x%x", mpid);
+  mpid = val_hart_get_mpid();
+  val_print(ACS_PRINT_DEBUG, "\n       HART MPIDR 0x%x", mpid);
 
-  index = val_pe_get_index_mpid(mpid);
+  index = val_hart_get_index_mpid(mpid);
 
   // Location of the Group 1 NS enable bit depends on whether affinity routing is enabled
   if (are_ns)
@@ -63,18 +63,18 @@ payload()
   }
   else {
     if (are_ns) {
-        /* Derive RDbase for PE */
-        pe_rdbase = val_gic_get_pe_rdbase(mpid);
-        val_print(ACS_PRINT_DEBUG, "\n       PE RD base address %llx", pe_rdbase);
-        if (pe_rdbase == 0) {
+        /* Derive RDbase for HART */
+        hart_rdbase = val_gic_get_hart_rdbase(mpid);
+        val_print(ACS_PRINT_DEBUG, "\n       HART RD base address %llx", hart_rdbase);
+        if (hart_rdbase == 0) {
             val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
             return;
         }
         /* Read out the bottom 8 bits of GICR_ISENABLER0 */
-        data = val_mmio_read(pe_rdbase + RD_FRAME_SIZE + GICR_ISENABLER) | 0xFFFF;
+        data = val_mmio_read(hart_rdbase + RD_FRAME_SIZE + GICR_ISENABLER) | 0xFFFF;
 
-        val_mmio_write(pe_rdbase + RD_FRAME_SIZE + GICR_ISENABLER, data);
-        data = val_mmio_read(pe_rdbase + RD_FRAME_SIZE + GICR_ISENABLER) | 0xFFFF;
+        val_mmio_write(hart_rdbase + RD_FRAME_SIZE + GICR_ISENABLER, data);
+        data = val_mmio_read(hart_rdbase + RD_FRAME_SIZE + GICR_ISENABLER) | 0xFFFF;
         val_print(ACS_PRINT_DEBUG, "  data 0x%x", data);
         data = VAL_EXTRACT_BITS(data, 0, 7);
         if (data == 0xFF) {
@@ -112,19 +112,19 @@ payload()
 }
 
 uint32_t
-os_g005_entry(uint32_t num_pe)
+os_g005_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This GIC test is run on single processor
+  num_hart = 1;  //This GIC test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

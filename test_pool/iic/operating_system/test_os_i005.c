@@ -1,5 +1,5 @@
 /** @file
- * Copyright (c) 2019-2020,2021 Arm Limited or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2018, 2021, Arm Limited or its affiliates. All rights reserved.
  * SPDX-License-Identifier : Apache-2.0
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,44 +18,43 @@
 #include "val/include/bsa_acs_val.h"
 #include "val/include/val_interface.h"
 
-#include "test_os_p024_data.h"
+#include "val/include/bsa_acs_gic.h"
+#include "val/include/bsa_acs_iic.h"
+#include "val/include/bsa_acs_hart.h"
 
-#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 24)
-#define TEST_RULE  "PCI_IN_05"
-#define TEST_DESC  "Device capabilities reg rule          "
+#define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 5)
+#define TEST_RULE  "ME_IIC_060_010"
+#define TEST_DESC  "Check supported guest mode interrupt identities          "
 
+/**
+ * @brief Verify the number of supported guest mode interrupt identities in IMSIC
+          structure of the ACPI MADT table is at least 63
+ */
 static
 void
-payload(void)
+payload()
 {
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
-  uint32_t hart_index;
-  uint32_t ret;
-  uint32_t table_entries;
+  if (val_gic_max_guest_intr_num() < 63) {
+    val_print(ACS_PRINT_ERR, "\n       Supported guest mode interrupt identities must be at least 63", 0);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+    return;
+  }
 
-  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
-
-  table_entries = sizeof(bf_info_table24)/sizeof(bf_info_table24[0]);
-  ret = val_pcie_register_bitfields_check((void *)&bf_info_table24, table_entries);
-
-  if (ret == ACS_STATUS_SKIP)
-      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
-  else if (ret)
-      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, ret));
-  else
-      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
-
+  val_set_status(index, RESULT_PASS(TEST_NUM, 1));
 }
 
 uint32_t
-os_p024_entry(uint32_t num_hart)
+os_i005_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_hart = 1;  //This test is run on single processor
+  num_hart = 1;  //This IIC test is run on single processor
 
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
+
   if (status != ACS_STATUS_SKIP)
       val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 

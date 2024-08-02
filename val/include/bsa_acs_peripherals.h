@@ -20,11 +20,11 @@
 
 
 
-uint32_t os_d001_entry(uint32_t num_pe);
-uint32_t os_d002_entry(uint32_t num_pe);
-uint32_t os_d003_entry(uint32_t num_pe);
-uint32_t os_d004_entry(uint32_t num_pe);
-uint32_t os_d005_entry(uint32_t num_pe);
+uint32_t os_d001_entry(uint32_t num_hart);
+uint32_t os_d002_entry(uint32_t num_hart);
+uint32_t os_d003_entry(uint32_t num_hart);
+uint32_t os_d004_entry(uint32_t num_hart);
+uint32_t os_d005_entry(uint32_t num_hart);
 
 
 #define WIDTH_BIT8     0x1

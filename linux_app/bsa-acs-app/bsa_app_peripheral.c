@@ -34,13 +34,13 @@ extern unsigned int  g_sw_view[3];
   This function calls the BSA Kernel Module in a loop to execute all the PCIe tests
 **/
 int
-execute_tests_peripheral(int num_pe, unsigned int print_level)
+execute_tests_peripheral(int num_hart, unsigned int print_level)
 {
 
     int status;
     call_update_sw_view(BSA_UPDATE_SW_VIEW, g_sw_view);
     call_update_skip_list(BSA_UPDATE_SKIP_LIST, g_skip_test_num);
-    call_drv_execute_test(BSA_PER_EXECUTE_TEST, num_pe, print_level, 0);
+    call_drv_execute_test(BSA_PER_EXECUTE_TEST, num_hart, print_level, 0);
     status  = call_drv_wait_for_completion();
     return status;
 }

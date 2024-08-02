@@ -29,17 +29,17 @@
 
 static void payload(void)
 {
-  int num_per = 0, num_smmu = 0, skip = 1;
+  int num_hartr = 0, num_smmu = 0, skip = 1;
   uint32_t max_pasids = 0;
-  uint32_t index = val_pe_get_index_mpid (val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid (val_hart_get_mpid());
 
-  num_per = val_peripheral_get_info(NUM_ALL, 0);
+  num_hartr = val_peripheral_get_info(NUM_ALL, 0);
 
   /* For each peripheral check for PASID support */
   /* If PASID is supported, test the max number of PASIDs supported */
-  for (num_per--; num_per >= 0; num_per--)
+  for (num_hartr--; num_hartr >= 0; num_hartr--)
   {
-     max_pasids = val_peripheral_get_info(MAX_PASIDS, num_per);
+     max_pasids = val_peripheral_get_info(MAX_PASIDS, num_hartr);
      val_print(ACS_PRINT_DEBUG, "\n       Peripheral check - Max PASID bits - 0x%x", max_pasids);
 
      if (max_pasids > 0)
@@ -54,7 +54,7 @@ static void payload(void)
      }
   }
 
-  if (num_per < 0)
+  if (num_hartr < 0)
   {
      /* For each SMMUv3 check for PASID support */
      /* If PASID is supported, test the max number of PASIDs supported */
@@ -90,19 +90,19 @@ static void payload(void)
 }
 
 uint32_t
-os_p042_entry(uint32_t num_pe)
+os_p042_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_pe = 1;  //This test is run on single processor
+  num_hart = 1;  //This test is run on single processor
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

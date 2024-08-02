@@ -16,7 +16,7 @@
  **/
 
 #include "val/include/bsa_acs_val.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 
 #define TEST_NUM   (ACS_PE_HYP_TEST_NUM_BASE  +  2)
 #define TEST_RULE  "B_PE_19"
@@ -27,9 +27,9 @@ void
 payload()
 {
   uint64_t data = 0;
-  uint32_t index = val_pe_get_index_mpid(val_pe_get_mpid());
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
-  data = val_pe_reg_read(ID_AA64MMFR0_EL1);
+  data = val_hart_reg_read(ID_AA64MMFR0_EL1);
 
   /* PEs must support 4kb granule for Stage 2.
    * Check For TGran4_2[43:40] != 1 ( 1: 4KB granule size not supported at stage 2.)
@@ -42,17 +42,17 @@ payload()
 }
 
 uint32_t
-hyp_c002_entry(uint32_t num_pe)
+hyp_c002_entry(uint32_t num_hart)
 {
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

@@ -20,7 +20,7 @@
 
 #include "val/include/bsa_acs_pcie_enumeration.h"
 #include "val/include/bsa_acs_pcie.h"
-#include "val/include/bsa_acs_pe.h"
+#include "val/include/bsa_acs_hart.h"
 #include "val/include/bsa_acs_smmu.h"
 #include "val/include/bsa_acs_pgt.h"
 #include "val/include/bsa_acs_iovirt.h"
@@ -112,13 +112,13 @@ create_va_pa_mapping (uint64_t txn_va, uint64_t txn_pa,
   mem_desc = &mem_desc_array[0];
 
   /* Get translation attributes via TCR and translation table base via TTBR */
-  if (val_pe_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc->tcr))
+  if (val_hart_reg_read_tcr(0 /*for TTBR0*/, &pgt_desc->tcr))
     return ACS_STATUS_FAIL;
-  if (val_pe_reg_read_ttbr(0 /*TTBR0*/, &ttbr))
+  if (val_hart_reg_read_ttbr(0 /*TTBR0*/, &ttbr))
     return ACS_STATUS_FAIL;
 
   pgt_desc->pgt_base = (ttbr & AARCH64_TTBR_ADDR_MASK);
-  pgt_desc->mair = val_pe_reg_read(MAIR_ELx);
+  pgt_desc->mair = val_hart_reg_read(MAIR_ELx);
   pgt_desc->stage = PGT_STAGE1;
 
   /* Get memory attributes of the test buffer, we'll use the same attibutes to create
@@ -304,7 +304,7 @@ payload(void)
 {
 
   uint32_t status;
-  uint32_t pe_index;
+  uint32_t hart_index;
   uint32_t bdf;
   uint32_t req_e_bdf;
   uint32_t req_rp_bdf;
@@ -328,7 +328,7 @@ payload(void)
 
   fail_cnt = 0;
   test_skip = 1;
-  pe_index = val_pe_get_index_mpid(val_pe_get_mpid());
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   instance = val_exerciser_get_info(EXERCISER_NUM_CARDS);
   pcie_device_bdf_table *bdf_tbl_ptr;
 
@@ -340,14 +340,14 @@ payload(void)
     val_print(ACS_PRINT_DEBUG, "\n       The test is applicable only if the system supports", 0);
     val_print(ACS_PRINT_DEBUG, "\n       P2P traffic. If the system supports P2P, pass the", 0);
     val_print(ACS_PRINT_DEBUG, "\n       command line option '-p2p' while running the binary", 0);
-    val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 1));
+    val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
     return;
   }
 
   if (val_pcie_p2p_support())
   {
     val_print(ACS_PRINT_DEBUG, "\n       PCIe Heirarchy does not support P2P", 0);
-    val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 2));
+    val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 2));
     return;
   }
 
@@ -453,11 +453,11 @@ payload(void)
   }
 
   if (test_skip == 1)
-      val_set_status(pe_index, RESULT_SKIP(TEST_NUM, 3));
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 3));
   else if (fail_cnt)
-      val_set_status(pe_index, RESULT_FAIL(TEST_NUM, fail_cnt));
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, fail_cnt));
   else
-      val_set_status(pe_index, RESULT_PASS(TEST_NUM, 1));
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
 
   return;
 
@@ -466,15 +466,15 @@ payload(void)
 uint32_t
 os_e002_entry(void)
 {
-  uint32_t num_pe = 1;
+  uint32_t num_hart = 1;
   uint32_t status = ACS_STATUS_FAIL;
 
-  status = val_initialize_test(TEST_NUM, TEST_DESC, num_pe);
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
   if (status != ACS_STATUS_SKIP)
-      val_run_test_payload(TEST_NUM, num_pe, payload, 0);
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
 
-  /* Get the result from all PE and check for failure */
-  status = val_check_for_error(TEST_NUM, num_pe, TEST_RULE);
+  /* Get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
 
   val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
 

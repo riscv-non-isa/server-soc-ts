@@ -29,11 +29,11 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 	```
 - [X] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
     * _BSA UEFI Apps_: Following Tables reserved:
-      - PE
-        - val_pe_create_info_table（）
+      - HART
+        - val_hart_create_info_table（）
           * pal_psci_get_conduit(void)  // Parse FADT table to check whether PSCI supported, return SMC or HVC.
             - [X] **should ported to return SBI**
-          * pal_pe_create_info_table()  // Check MADT table, count the GICC Entry as the PE count. Fill in MPIDR from GICC entry.
+          * pal_hart_create_info_table()  // Check MADT table, count the GICC Entry as the HART count. Fill in MPIDR from GICC entry.
             - [X] **should ported to parse MADT and count the RINTC entry**
             - PalAllocateSecondaryStack(gMpidrMax);
               - [ ] **should be ported for multi-processor test**
@@ -47,38 +47,38 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 
 
     * _BSA UEFI Apps_: Following tests reserved:
-      - PE
-        * val_pe_context_save ()  // save pe's stack pointer and elr register to global variables
+      - HART
+        * val_hart_context_save ()  // save hart's stack pointer and elr register to global variables
           - [*] **should be ported**
-        * val_pe_initialize_default_exception_handler() // Set exception handler
+        * val_hart_initialize_default_exception_handler() // Set exception handler
           - [*] **should be ported a RV64 default handler**
           - [ ] **only page fault is support in poc, should updated to catch any possible exceptions during test suite execution.**
-        * val_pe_default_esr() // Default handler, when exception occurs, dump error info and update elr to previously saved address
+        * val_hart_default_esr() // Default handler, when exception occurs, dump error info and update elr to previously saved address
           - [*] **should be ported**
-        * val_pe_context_restore()
+        * val_hart_context_restore()
           - [ ] **should be ported**
       - Timer
-        * num_pe = val_pe_get_num() // Return number of PE (HARTs)
+        * num_hart = val_hart_get_num() // Return number of HART (HARTs)
         * val_timer_execute_tests() // Will only execute *os\_t001\_entry*: "Check Counter Frequency".
-          - os_t001_entry(num_pe):
+          - os_t001_entry(num_hart):
             * val_initialize_test()
-              1. mpid = val_pe_reg_read(MPIDR_EL1) //Get the MPIDR register value.
-              2. index = val_pe_get_index_mpid (mpid ) // Return the PE index, and clean all the data caches whose mpid < PE index.
+              1. mpid = val_hart_reg_read(MPIDR_EL1) //Get the MPIDR register value.
+              2. index = val_hart_get_index_mpid (mpid ) // Return the HART index, and clean all the data caches whose mpid < HART index.
               3. val_set_status() // Set up the status of the test (Skip,Pending, Fail etc).
-              4. val_pe_initialize_default_exception_handler( val_pe_default_esr )
-                1. val_pe_default_esr:
+              4. val_hart_initialize_default_exception_handler( val_hart_default_esr )
+                1. val_hart_default_esr:
                   1. val_set_status( FAIL )
-                  2. val_pe_update_elr()
-                2. pal_pe_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, val_pe_default_esr)
+                  2. val_hart_update_elr()
+                2. pal_hart_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, val_hart_default_esr)
                   2. Cpu->RegisterInterruptHandler ()
             * val_run_test_payload()
-              1. index = val_pe_get_index_mpid(val_pe_get_mpid())
+              1. index = val_hart_get_index_mpid(val_hart_get_mpid())
               2. val_execute_on_pe( )
                 * Do while: *smc_call == ARM_SMC_ID_PSCI_CPU_ON_AARCH64* and not *timeout*
                   1. val_set_test_data()        //Set the TEST function pointer in a shared memory location.
-                  2. pal_pe_execute_payload( )  //
+                  2. pal_hart_execute_payload( )  //
                     1. SmcArgs->Arg2 = (uint64_t)ModuleEntryPoint;
-                    2. pal_pe_call_smc(ArmSmcArgs, gPsciConduit);
+                    2. pal_hart_call_smc(ArmSmcArgs, gPsciConduit);
                 * val_set_status( )
               3. val_wait_for_test_completion()
                 * Polling status in shared memory via val_get_status()
@@ -89,20 +89,20 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
             * val_report_status()
 
     * _VAL_: Following modules reserved:
-      - PE
+      - HART
       - GIC
       - Timer
       - Watchdog
 
     * _PAL_: Following modules reserved:
-      - PE
+      - HART
       - GIC
       - Watchdog Timer
 
 - [ ] Porting the PAL API to RISC-V Architecture
     * _VAL AArch64_:
       - src/AArch64/PeRegSysSupport.S: Read various system registers using MRS
-        - [ ] **Required** as called in val\_pe\_get\_mpid()
+        - [ ] **Required** as called in val\_hart\_get\_mpid()
       - src/AArch64/PeTestSupport.S
         * ArmCallWFI
         * SpeProgramUnderProfiling
@@ -138,9 +138,9 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
               isb           //Instruction Barrier.
               ret
           ```
-      - src/AArch64/ModuleEntryPoint.S: This is the functions that a PE will execute when power on.
-      - src/pal_pe.c
-        * pal_pe_update_elr() // this is used in val_pe_default_esr() to change the exception return address
+      - src/AArch64/ModuleEntryPoint.S: This is the functions that a HART will execute when power on.
+      - src/pal_hart.c
+        * pal_hart_update_elr() // this is used in val_hart_default_esr() to change the exception return address
         - [ ] **should be ported to update sepc in RV64**
 
 - [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
