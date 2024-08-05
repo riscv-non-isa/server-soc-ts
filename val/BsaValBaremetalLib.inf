@@ -47,6 +47,7 @@
   src/acs_exerciser.c
   src/acs_pgt.c
   src/acs_dma.c
+  src/acs_qos.c
   sys_arch_src/smmu_v3/smmu_v3.c
   sys_arch_src/gic/gic.c
   sys_arch_src/gic/bsa_exception.c

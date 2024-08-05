@@ -637,6 +637,9 @@ ShellAppMain (
   /***  Starting PCIe Exerciser tests ***/
   // Status |= val_exerciser_execute_tests(g_sw_view);
 
+  /***  Starting QoS tests          ***/
+  Status |= val_qos_execute_tests(val_hart_get_num(), g_sw_view);
+
 print_test_status:
   val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------", 0);
   val_print(ACS_PRINT_TEST, "\n     Total Tests run  = %4d", g_bsa_tests_total);

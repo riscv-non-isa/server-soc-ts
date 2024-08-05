@@ -403,4 +403,8 @@ uint64_t val_get_max_memory(void);
 
 /* PCIe Exerciser tests */
 uint32_t val_exerciser_execute_tests(uint32_t *g_sw_view);
+
+/* QoS tests */
+uint32_t val_qos_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
+
 #endif
