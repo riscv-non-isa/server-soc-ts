@@ -154,7 +154,7 @@ payload1()
 
   intid = val_timer_get_info(TIMER_INFO_PHY_EL1_INTID, 0);
   if (val_gic_install_isr(intid, isr1)) {
-    val_print(ACS_PRINT_WARN, "\n       GIC Install Handler Failed...", 0);
+    val_print(ACS_PRINT_WARN, "\n       IIC Install Handler Failed...", 0);
     val_set_status(index, RESULT_FAIL(TEST_NUM1, 2));
     return;
   }
@@ -173,7 +173,7 @@ payload2()
   val_set_status(index, RESULT_FAIL(TEST_NUM2, 1));
   intid = val_timer_get_info(TIMER_INFO_VIR_EL1_INTID, 0);
   if (val_gic_install_isr(intid, isr2)) {
-    val_print(ACS_PRINT_WARN, "\n       GIC Install Handler Failed...", 0);
+    val_print(ACS_PRINT_WARN, "\n       IIC Install Handler Failed...", 0);
     val_set_status(index, RESULT_FAIL(TEST_NUM2, 2));
     return;
   }
@@ -196,7 +196,7 @@ payload3()
   val_set_status(index, RESULT_FAIL(TEST_NUM3, 1));
   intid = val_timer_get_info(TIMER_INFO_PHY_EL2_INTID, 0);
   if (val_gic_install_isr(intid, isr3)) {
-    val_print(ACS_PRINT_WARN, "\n       GIC Install Handler Failed...", 0);
+    val_print(ACS_PRINT_WARN, "\n       IIC Install Handler Failed...", 0);
     val_set_status(index, RESULT_FAIL(TEST_NUM3, 2));
     return;
   }
@@ -263,7 +263,7 @@ payload4()
             val_set_status(index, RESULT_PASS(TEST_NUM4, 1));
           }
       } else {
-          val_print(ACS_PRINT_WARN, "\n       GIC Install Handler Failed...", 0);
+          val_print(ACS_PRINT_WARN, "\n       IIC Install Handler Failed...", 0);
           val_set_status(index, RESULT_FAIL(TEST_NUM4, 1));
       }
   }
@@ -325,7 +325,7 @@ payload5()
           val_power_enter_semantic(BSA_POWER_SEM_B);
           wakeup_clear_failsafe();
       } else{
-          val_print(ACS_PRINT_WARN, "\n       GIC Install Handler Failed...", 0);
+          val_print(ACS_PRINT_WARN, "\n       IIC Install Handler Failed...", 0);
           val_set_status(index, RESULT_FAIL(TEST_NUM5, 1));
           return;
       }

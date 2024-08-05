@@ -183,7 +183,7 @@ v3_route_extended_interrupt(uint32_t int_id)
 }
 
 /**
-  @brief  Initializes the GIC v3 Extended Interrupts
+  @brief  Initializes the IIC v3 Extended Interrupts
   @param  none
   @return init success or failure
 **/

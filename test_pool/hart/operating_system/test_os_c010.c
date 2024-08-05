@@ -98,7 +98,7 @@ payload()
   }
 
   if (val_gic_install_isr(int_id, isr)) {
-      val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
+      val_print(ACS_PRINT_ERR, "\n       IIC Install Handler Failed...", 0);
       val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
       return;
   }

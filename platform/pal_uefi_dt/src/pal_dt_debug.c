@@ -45,7 +45,7 @@ dt_dump_hart_table(HART_INFO_TABLE *PeTable)
     bsa_print(ACS_PRINT_DEBUG, L" MPIDR       :%llx\n", PeTable->hart_info[Index].mpidr);
 //    bsa_print(ACS_PRINT_DEBUG, L"    ATTR     :%x\n", PeTable->hart_info[Index].attr);
     bsa_print(ACS_PRINT_DEBUG, L" PMU GSIV    :%x\n", PeTable->hart_info[Index].pmu_gsiv);
-    bsa_print(ACS_PRINT_DEBUG, L" GIC MAINT GSIV    :%x\n", PeTable->hart_info[Index].gmain_gsiv);
+    bsa_print(ACS_PRINT_DEBUG, L" IIC MAINT GSIV    :%x\n", PeTable->hart_info[Index].gmain_gsiv);
     Index++;
   }
   bsa_print(ACS_PRINT_DEBUG, L" *************************************\n");
@@ -54,7 +54,7 @@ dt_dump_hart_table(HART_INFO_TABLE *PeTable)
 /**
   @brief  This API is use to dump GIC_INFO Table after filling from DT
 
-  @param  GicTable  - Address where the GIC information needs to be filled.
+  @param  GicTable  - Address where the IIC information needs to be filled.
 
   @return  None
 **/
@@ -68,15 +68,15 @@ dt_dump_gic_table(GIC_INFO_TABLE *GicTable)
     return;
   }
 
-  bsa_print(ACS_PRINT_DEBUG, L" ************GIC TABLE************\n");
-  bsa_print(ACS_PRINT_DEBUG, L" GIC version %d\n", GicTable->header.gic_version);
-  bsa_print(ACS_PRINT_DEBUG, L" GIC num D %d\n", GicTable->header.num_gicd);
-  bsa_print(ACS_PRINT_DEBUG, L" GIC num GICC RD %d\n", GicTable->header.num_gicc_rd);
-  bsa_print(ACS_PRINT_DEBUG, L" GIC num GICR RD %d\n", GicTable->header.num_gicr_rd);
-//  bsa_print(ACS_PRINT_DEBUG, L" GIC num ITS %d\n", GicTable->header.num_its);
+  bsa_print(ACS_PRINT_DEBUG, L" ************IIC TABLE************\n");
+  bsa_print(ACS_PRINT_DEBUG, L" IIC version %d\n", GicTable->header.gic_version);
+  bsa_print(ACS_PRINT_DEBUG, L" IIC num D %d\n", GicTable->header.num_gicd);
+  bsa_print(ACS_PRINT_DEBUG, L" IIC num GICC RD %d\n", GicTable->header.num_gicc_rd);
+  bsa_print(ACS_PRINT_DEBUG, L" IIC num GICR RD %d\n", GicTable->header.num_gicr_rd);
+//  bsa_print(ACS_PRINT_DEBUG, L" IIC num ITS %d\n", GicTable->header.num_its);
 
   while (GicTable->gic_info[Index].type != 0xFF) {
-    bsa_print(ACS_PRINT_DEBUG, L" GIC TYPE     :%x\n", GicTable->gic_info[Index].type);
+    bsa_print(ACS_PRINT_DEBUG, L" IIC TYPE     :%x\n", GicTable->gic_info[Index].type);
     bsa_print(ACS_PRINT_DEBUG, L" BASE         :%x\n", GicTable->gic_info[Index].base);
     bsa_print(ACS_PRINT_DEBUG, L" LEN          :%x\n", GicTable->gic_info[Index].length);
 //    bsa_print(ACS_PRINT_DEBUG, L"     ITS ID   :%x\n", GicTable->gic_info[Index].entry_id);

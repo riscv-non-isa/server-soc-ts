@@ -68,7 +68,7 @@ uint64_t val_its_get_curr_rdbase(uint64_t rd_base, uint32_t length)
       return curr_rd_base;
     }
 
-    /* Move to the next GIC Redistributor frame */
+    /* Move to the next IIC Redistributor frame */
     curr_rd_base += rd_granularity;
   }
 
@@ -485,7 +485,7 @@ SetInitialConfiguration(
   uint32_t     its_index
   )
 {
-  /* Program GIC Redistributor with the Min ID bits supported. */
+  /* Program IIC Redistributor with the Min ID bits supported. */
   uint32_t    gicd_typer_idbits, gits_typer_bits;
   uint64_t    write_value;
   uint64_t    ItsBase;
@@ -558,7 +558,7 @@ uint32_t val_its_init(void)
   val_print(ACS_PRINT_INFO, "  ITS : Info Block\n", 0);
   for (index = 0; index < g_gic_its_info->GicNumIts; index++)
   {
-      val_print(ACS_PRINT_INFO, "  GIC ITS Index: %x", index);
+      val_print(ACS_PRINT_INFO, "  IIC ITS Index: %x", index);
       val_print(ACS_PRINT_INFO, " ID: %x", g_gic_its_info->GicIts[index].ID);
       val_print(ACS_PRINT_INFO, " Base: %x\n", g_gic_its_info->GicIts[index].Base);
   }

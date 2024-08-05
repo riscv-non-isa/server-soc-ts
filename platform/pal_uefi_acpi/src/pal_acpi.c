@@ -42,7 +42,7 @@ pal_dump_dtb()
 }
 /**
   @brief   Checks if System information is passed using Device Tree (DT)
-           This api is also used to check if GIC/Interrupt Init ACS Code
+           This api is also used to check if IIC/Interrupt Init ACS Code
            is used or not. In case of DT, ACS Code is used for INIT
 
   @param  None
@@ -57,7 +57,7 @@ pal_target_is_dt()
 
 /**
   @brief   Checks if System information is passed using Baremetal (BM)
-           This api is also used to check if GIC/Interrupt Init ACS Code
+           This api is also used to check if IIC/Interrupt Init ACS Code
            is used or not. In case of BM, ACS Code is used for INIT
 
   @param  None

@@ -47,7 +47,7 @@
 #define ARM_GICD_TYPER_LPIS                 (1 << 17) /* LPIS Enable */
 #define ARM_GICD_TYPER_IDbits(GICD_Typer)   ((GICD_Typer >> 19) & 0x1F) /* IDBits implemented */
 
-/* GIC Redistributor Control frame */
+/* IIC Redistributor Control frame */
 #define ARM_GICR_CTLR           0x0000  /* Redistributor Control Register      */
 #define ARM_GICR_PROPBASER      0x0070  /* Redistributor Config base Register  */
 #define ARM_GICR_PENDBASER      0x0078  /* Redistributor Pending base Register */
@@ -57,7 +57,7 @@
 #define ARM_GICR_TYPER          0x0008  // Redistributor Type Register
 
 
-// GIC Redistributor
+// IIC Redistributor
 #define ARM_GICR_CTLR_FRAME_SIZE    SIZE_64KB
 #define ARM_GICR_SGI_PPI_FRAME_SIZE SIZE_64KB
 #define ARM_GICR_VLPI_FRAME_SIZE    SIZE_64KB
@@ -80,7 +80,7 @@
 #define PENDBASER_PA_LEN                        36
 #define ARM_GICR_PENDBASER_PA_MASK              (((1ul << PENDBASER_PA_LEN) - 1) << PENDBASER_PA_SHIFT)
 
-/* GIC ITS Register Offset from ITS_CTRL_BASE */
+/* IIC ITS Register Offset from ITS_CTRL_BASE */
 #define ARM_GITS_CTLR               0x0000
 #define ARM_GITS_IIDR               0x0004
 #define ARM_GITS_TYPER              0x0008

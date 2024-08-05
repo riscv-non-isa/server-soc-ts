@@ -20,7 +20,7 @@
 
 #define GIC_SUCCESS 0
 
-/* GIC specific registers */
+/* IIC specific registers */
 
 #define GICD_CTRL           0x0000
 #define GICD_TYPER          0x0004

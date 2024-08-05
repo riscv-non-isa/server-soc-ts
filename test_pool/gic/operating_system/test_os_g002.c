@@ -43,7 +43,7 @@ payload()
   gic_version = val_gic_get_info(GIC_INFO_VERSION);
   num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
 
-  val_print(ACS_PRINT_INFO, "\n       Received GIC version = %4d      ", gic_version);
+  val_print(ACS_PRINT_INFO, "\n       Received IIC version = %4d      ", gic_version);
 
   if (gic_version < 3) {
     if ((num_ecam > 0) && (num_msi_frame == 0)) {
@@ -65,7 +65,7 @@ os_g002_entry(uint32_t num_hart)
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_hart = 1;  //This GIC test is run on single processor
+  num_hart = 1;  //This IIC test is run on single processor
 
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 

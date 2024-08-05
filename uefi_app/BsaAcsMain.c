@@ -266,7 +266,7 @@ HelpMsg (
          "        1 prints all, 5 prints only the errors\n"
          "        Note: pal_mmio prints can be enabled for specific modules by passing\n"
          "              module numbers along with global verbosity level 1\n"
-         "              Module numbers are HART 0, MEM 1, GIC 2, SMMU 3, TIMER 4, WAKEUP 5   ...\n"
+         "              Module numbers are HART 0, MEM 1, IIC 2, SMMU 3, TIMER 4, WAKEUP 5   ...\n"
          "              PERIPHERAL 6, Watchdog 7, PCIe 8, Exerciser 9   ...\n"
          "              E.g., To enable mmio prints for HART and TIMER pass -v 104\n"
          "-mmio   Pass this flag to enable pal_mmio_read/write prints, use with -v 1\n"
@@ -613,8 +613,8 @@ ShellAppMain (
   /***  Starting Memory Map tests     ***/
   // Status |= val_memory_execute_tests(val_hart_get_num(), g_sw_view);
 
-  /***  Starting GIC tests            ***/
-  Status |= val_gic_execute_tests(val_hart_get_num(), g_sw_view);
+  /***  Starting IIC tests            ***/
+  Status |= val_iic_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting System MMU tests     ***/
   // Status |= val_smmu_execute_tests(val_hart_get_num(), g_sw_view);

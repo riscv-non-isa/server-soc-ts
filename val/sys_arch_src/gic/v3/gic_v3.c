@@ -100,7 +100,7 @@ CurrentCpuRDBase(uint64_t mGicRedistributorBase, uint32_t length)
       return GicCpuRedistributorBase;
     }
 
-    /* Move to the next GIC Redistributor frame */
+    /* Move to the next IIC Redistributor frame */
     GicCpuRedistributorBase += GicRedistributorGranularity;
   }
 
@@ -285,7 +285,7 @@ v3_SetInterruptPriority(uint32_t int_id, uint32_t priority)
 
 
 /**
-  @brief  Initializes the GIC v3
+  @brief  Initializes the IIC v3
   @param  none
   @return init success or failure
 **/

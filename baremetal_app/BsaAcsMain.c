@@ -255,8 +255,8 @@ ShellAppMainbsa(
   /***  Starting Memory Map tests     ***/
   Status |= val_memory_execute_tests(val_hart_get_num(), g_sw_view);
 
-  /***  Starting GIC tests            ***/
-  Status |= val_gic_execute_tests(val_hart_get_num(), g_sw_view);
+  /***  Starting IIC tests            ***/
+  Status |= val_iic_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting System MMU tests     ***/
   Status |= val_smmu_execute_tests(val_hart_get_num(), g_sw_view);

@@ -33,7 +33,7 @@ payload()
   num_of_hart = val_hart_get_num();
   gic_version = val_gic_get_info(GIC_INFO_VERSION);
 
-  /* For Gic v2 number of max HART 8, for GIC v3 and higher number of max HART 2^28 */
+  /* For Gic v2 number of max HART 8, for IIC v3 and higher number of max HART 2^28 */
   if (((gic_version == 2) && (num_of_hart <= 8)) ||
       ((gic_version >= 3)  && (num_of_hart <= (2 << 27)))) {
       val_set_status(index, RESULT_PASS(TEST_NUM, 1));

@@ -22,7 +22,7 @@
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 1)
 #define TEST_RULE  "B_GIC_01"
-#define TEST_DESC  "Check GIC version                     "
+#define TEST_DESC  "Check IIC version                     "
 
 static
 void
@@ -33,10 +33,10 @@ payload()
   uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
 
   gic_version = val_gic_get_info(GIC_INFO_VERSION);
-  val_print(ACS_PRINT_INFO, "\n       Received GIC version = %4d      ", gic_version);
+  val_print(ACS_PRINT_INFO, "\n       Received IIC version = %4d      ", gic_version);
 
   if (gic_version < 2) {
-      val_print(ACS_PRINT_ERR, "\n       GIC version is %x                 ", gic_version);
+      val_print(ACS_PRINT_ERR, "\n       IIC version is %x                 ", gic_version);
       val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
       return;
   }
@@ -51,7 +51,7 @@ os_g001_entry(uint32_t num_hart)
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_hart = 1;  //This GIC test is run on single processor
+  num_hart = 1;  //This IIC test is run on single processor
 
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 

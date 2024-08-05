@@ -31,7 +31,7 @@ GIC_ITS_INFO    *g_gic_its_info;
 
 #ifndef TARGET_LINUX
 /**
-  @brief   This API provides a 'C' interface to call GIC System register reads
+  @brief   This API provides a 'C' interface to call IIC System register reads
            1. Caller       -  Test Suite
            2. Prerequisite -  None
   @param   reg_id  - the system register index for which data is returned
@@ -59,7 +59,7 @@ val_gic_reg_read(uint32_t reg_id)
 }
 
 /**
-  @brief   This API provides a 'C' interface to call GIC System register writes
+  @brief   This API provides a 'C' interface to call IIC System register writes
            1. Caller       -  Test Suite
            2. Prerequisite -  None
   @param   reg_id  - the system register index for which data is written
@@ -146,7 +146,7 @@ val_gic_install_isr(uint32_t int_id, void (*isr)(void))
       ret_val = pal_gic_install_isr(int_id, isr);
 #ifndef TARGET_LINUX
       if (int_id > 31 && int_id < 1024) {
-          /**** UEFI GIC code is not enabling interrupt in the Distributor ***/
+          /**** UEFI IIC code is not enabling interrupt in the Distributor ***/
           /**** So, do this here as a fail-safe. Remove if PAL guarantees this ***/
           val_mmio_write(val_get_gicd_base() + GICD_ISENABLER + (4 * reg_offset),
                          (uint32_t)1 << reg_shift);

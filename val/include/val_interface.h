@@ -83,7 +83,7 @@ uint64_t val_get_primary_mpidr(void);
 void     val_execute_on_pe(uint32_t index, void (*payload)(void), uint64_t args);
 int      val_suspend_pe(uint64_t entry, uint32_t context_id);
 
-/* GIC VAL APIs */
+/* IIC VAL APIs */
 uint32_t    val_gic_create_info_table(uint64_t *gic_info_table);
 
 typedef enum {
@@ -105,7 +105,7 @@ typedef enum {
 uint32_t
 val_gic_get_info(GIC_INFO_e type);
 void     val_gic_free_info_table(void);
-uint32_t val_gic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
+uint32_t val_iic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint32_t val_gic_install_isr(uint32_t int_id, void (*isr)(void));
 uint32_t val_gic_end_of_interrupt(uint32_t int_id);
 uint32_t val_gic_route_interrupt_to_pe(uint32_t int_id, uint64_t mpidr);

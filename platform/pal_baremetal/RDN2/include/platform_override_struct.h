@@ -100,7 +100,7 @@ typedef struct {
 #define MAX_NAMED_COMP_LENGTH 256
 typedef struct {
         uint32_t its_count;
-        uint32_t identifiers[1];     /* GIC ITS identifier arrary */
+        uint32_t identifiers[1];     /* IIC ITS identifier arrary */
 }PLATFORM_OVERRIDE_IORT_ITS_GROUP;
 
 

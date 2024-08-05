@@ -25,7 +25,7 @@
 GIC_INFO_TABLE  *g_gic_info_table;
 
 /**
-  @brief   This API executes all the GIC tests sequentially
+  @brief   This API executes all the IIC tests sequentially
            1. Caller       -  Application layer.
            2. Prerequisite -  val_gic_create_info_table()
   @param   num_hart - the number of HART to run these tests on.
@@ -33,14 +33,14 @@ GIC_INFO_TABLE  *g_gic_info_table;
   @return  Consolidated status of all the tests run.
 **/
 uint32_t
-val_gic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
+val_iic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 {
 
   uint32_t status, i;
 
   for (i = 0; i < g_num_skip; i++) {
       if (g_skip_test_num[i] == ACS_GIC_TEST_NUM_BASE) {
-          val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all GIC tests\n", 0);
+          val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all IIC tests\n", 0);
           return ACS_STATUS_SKIP;
       }
   }
@@ -48,11 +48,11 @@ val_gic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
   /* Check if there are any tests to be executed in current module with user override options*/
   status = val_check_skip_module(ACS_GIC_TEST_NUM_BASE);
   if (status) {
-      val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all GIC tests\n", 0);
+      val_print(ACS_PRINT_INFO, "\n       USER Override - Skipping all IIC tests\n", 0);
       return ACS_STATUS_SKIP;
   }
 
-  val_print_test_start("GIC");
+  val_print_test_start("IIC");
   status      = ACS_STATUS_PASS;
   g_curr_module = 1 << GIC_MODULE;
 
@@ -68,7 +68,7 @@ val_gic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       // status |= os_v2m003_entry(num_hart);
       // status |= os_v2m004_entry(num_hart);
   }
-  val_print_test_end(status, "GIC");
+  val_print_test_end(status, "IIC");
 
   return status;
 
@@ -76,7 +76,7 @@ val_gic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
 
 
 /**
-  @brief   This API will call PAL layer to fill in the GIC information
+  @brief   This API will call PAL layer to fill in the IIC information
            into the g_gic_info_table pointer.
            1. Caller       -  Application layer.
            2. Prerequisite -  Memory allocated and passed as argument.
@@ -92,20 +92,20 @@ val_gic_create_info_table(uint64_t *gic_info_table)
       val_print(ACS_PRINT_ERR, "Input for Create Info table cannot be NULL\n", 0);
       return ACS_STATUS_ERR;
   }
-  val_print(ACS_PRINT_INFO, " Creating GIC INFO table\n", 0);
+  val_print(ACS_PRINT_INFO, " Creating IIC INFO table\n", 0);
 
   g_gic_info_table = (GIC_INFO_TABLE *)gic_info_table;
 
   pal_gic_create_info_table(g_gic_info_table);
 
-  /* print GIC version */
+  /* print IIC version */
   val_print(ACS_PRINT_INFO, " RV porting: INTC info print to be added\n", 0);
   // gic_version = val_gic_get_info(GIC_INFO_VERSION);
   // num_msi_frame = val_gic_get_info(GIC_INFO_NUM_MSI_FRAME);
   // if ((gic_version != 2) || (num_msi_frame == 0)) /* check if not a GICv2m system */
-  //     val_print(ACS_PRINT_TEST, " GIC INFO: GIC version                :    v%d\n", gic_version);
+  //     val_print(ACS_PRINT_TEST, " IIC INFO: IIC version                :    v%d\n", gic_version);
   // else
-  //     val_print(ACS_PRINT_TEST, " GIC INFO: GIC version                :    v2m\n", 0);
+  //     val_print(ACS_PRINT_TEST, " IIC INFO: IIC version                :    v2m\n", 0);
 
   // val_print(ACS_PRINT_TEST, " GIC_INFO: Number of GICD             : %4d\n",
   //                                                            g_gic_info_table->header.num_gicd);
@@ -119,7 +119,7 @@ val_gic_create_info_table(uint64_t *gic_info_table)
   //                                                            g_gic_info_table->header.num_its);
 
   // if (g_gic_info_table->header.num_gicd == 0) {
-  //     val_print(ACS_PRINT_ERR,"\n ** CRITICAL ERROR: GIC Distributor count is 0 **\n", 0);
+  //     val_print(ACS_PRINT_ERR,"\n ** CRITICAL ERROR: IIC Distributor count is 0 **\n", 0);
   //     return ACS_STATUS_ERR;
   // }
 
@@ -146,12 +146,12 @@ val_gic_free_info_table(void)
 }
 
 /**
-  @brief   This API returns the base address of the GIC Distributor.
-           The assumption is we have only 1 GIC Distributor. IS this true?
+  @brief   This API returns the base address of the IIC Distributor.
+           The assumption is we have only 1 IIC Distributor. IS this true?
            1. Caller       -  VAL
            2. Prerequisite -  val_gic_create_info_table
   @param   None
-  @return  Address of GIC Distributor
+  @return  Address of IIC Distributor
 **/
 addr_t
 val_get_gicd_base(void)
@@ -160,7 +160,7 @@ val_get_gicd_base(void)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ACS_PRINT_ERR, "GIC INFO table not available\n", 0);
+      val_print(ACS_PRINT_ERR, "IIC INFO table not available\n", 0);
       return 0;
   }
 
@@ -177,13 +177,13 @@ val_get_gicd_base(void)
 }
 
 /**
-  @brief   This API returns the base address of the GIC Redistributor
+  @brief   This API returns the base address of the IIC Redistributor
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
   @param   rdbase_len - To Store the Lenght of the Redistributor
   @param   gicr_rd_index - Used to obtain correct GICR RD base structure
                            address for cases when system has multiple GICR RD structure.
-  @return  Address of GIC Redistributor
+  @return  Address of IIC Redistributor
 **/
 addr_t
 val_get_gicr_base(uint32_t *rdbase_len, uint32_t gicr_rd_index)
@@ -192,7 +192,7 @@ val_get_gicr_base(uint32_t *rdbase_len, uint32_t gicr_rd_index)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ACS_PRINT_ERR, "GIC INFO table not available\n", 0);
+      val_print(ACS_PRINT_ERR, "IIC INFO table not available\n", 0);
       return 0;
   }
   gic_entry = g_gic_info_table->gic_info;
@@ -217,11 +217,11 @@ val_get_gicr_base(uint32_t *rdbase_len, uint32_t gicr_rd_index)
 }
 
 /**
-  @brief   This API returns the base address of the GIC Redistributor for a HART
+  @brief   This API returns the base address of the IIC Redistributor for a HART
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
   @param   mpidr - HART mpidr value
-  @return  Address of GIC Redistributor
+  @return  Address of IIC Redistributor
 **/
 addr_t
 val_gic_get_hart_rdbase(uint64_t mpidr)
@@ -269,7 +269,7 @@ val_gic_get_hart_rdbase(uint64_t mpidr)
           if (affinity == hart_affinity)
               return hart_gicrd_base;
 
-          /* Move to the next GIC Redistributor frame */
+          /* Move to the next IIC Redistributor frame */
           hart_gicrd_base += gicrd_granularity;
       }
       gicr_rdindex++;
@@ -292,7 +292,7 @@ val_get_gich_base(void)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ACS_PRINT_ERR, "GIC INFO table not available\n", 0);
+      val_print(ACS_PRINT_ERR, "IIC INFO table not available\n", 0);
       return 0;
   }
 
@@ -312,7 +312,7 @@ val_get_gich_base(void)
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
   @param   None
-  @return  Address of GIC Redistributor
+  @return  Address of IIC Redistributor
 **/
 addr_t
 val_get_cpuif_base(void)
@@ -320,7 +320,7 @@ val_get_cpuif_base(void)
   GIC_INFO_ENTRY  *gic_entry;
 
   if (g_gic_info_table == NULL) {
-      val_print(ACS_PRINT_ERR, "GIC INFO table not available\n", 0);
+      val_print(ACS_PRINT_ERR, "IIC INFO table not available\n", 0);
       return 0;
   }
 
@@ -339,7 +339,7 @@ val_get_cpuif_base(void)
 
 /**
   @brief   This function is a single point of entry to retrieve
-           all GIC related information.
+           all IIC related information.
            1. Caller       -  Test Suite
            2. Prerequisite -  val_gic_create_info_table
   @param   type   the type of information being requested
@@ -350,7 +350,7 @@ val_gic_get_info(GIC_INFO_e type)
 {
 
   if (g_gic_info_table == NULL) {
-      val_print(ACS_PRINT_ERR, "\n   Get GIC info called before gic info table is filled ",        0);
+      val_print(ACS_PRINT_ERR, "\n   Get IIC info called before gic info table is filled ",        0);
       return 0;
   }
 
@@ -388,14 +388,14 @@ val_gic_get_info(GIC_INFO_e type)
           return g_gic_info_table->header.num_msi_frame;
 
       default:
-          val_print(ACS_PRINT_ERR, "\n    GIC Info - TYPE not recognized %d  ", type);
+          val_print(ACS_PRINT_ERR, "\n    IIC Info - TYPE not recognized %d  ", type);
           break;
   }
   return ACS_STATUS_ERR;
 }
 
 /**
-  @brief   This API returns the max interrupt ID supported by the GIC Distributor
+  @brief   This API returns the max interrupt ID supported by the IIC Distributor
            1. Caller       -  VAL
            2. Prerequisite -  val_gic_create_info_table
   @param   None

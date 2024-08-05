@@ -39,7 +39,7 @@ EFI_HARDWARE_INTERRUPT2_PROTOCOL *gInterrupt2 = NULL;
 
 /**
   @brief  Installs an Interrupt Service Routine for int_id.
-          Enable the interrupt in the GIC Distributor and GIC CPU Interface and hook
+          Enable the interrupt in the IIC Distributor and IIC CPU Interface and hook
           the interrupt service routine for the Interrupt ID.
 
   @param  int_id  Interrupt ID which needs to be enabled and service routine installed for
@@ -90,7 +90,7 @@ pal_gic_install_isr(uint32_t int_id,  void (*isr)())
 
 /**
   @brief  Indicate that processing of interrupt is complete by writing to
-          End of interrupt register in the GIC CPU Interface
+          End of interrupt register in the IIC CPU Interface
 
   @param  int_id  Interrupt ID which needs to be acknowledged that it is complete
 
@@ -163,7 +163,7 @@ pal_gic_free_irq (
 
 /**
   @brief  Indicate that processing of interrupt is complete by writing to
-          End of interrupt register in the GIC CPU Interface
+          End of interrupt register in the IIC CPU Interface
 
   @param  int_id  Interrupt ID which needs to be acknowledged that it is complete
 

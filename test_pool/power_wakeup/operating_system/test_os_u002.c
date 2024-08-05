@@ -146,7 +146,7 @@ payload()
   // Step3: Route the interrupt to target HART and install ISR
   val_gic_route_interrupt_to_pe(intid, val_hart_get_mpid_index(target_pe));
   if (val_gic_install_isr(intid, isr)) {
-      val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
+      val_print(ACS_PRINT_ERR, "\n       IIC Install Handler Failed...", 0);
       val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
       val_gic_route_interrupt_to_pe(intid, index);
       return;
@@ -210,7 +210,7 @@ payload()
   // Step9: Generate timer interrupt again, when target HART is off and make sure it doesn't wakeup
   val_gic_route_interrupt_to_pe(intid, val_hart_get_mpid_index(target_pe));
   if (val_gic_install_isr(intid, isr)) {
-      val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
+      val_print(ACS_PRINT_ERR, "\n       IIC Install Handler Failed...", 0);
       val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
       val_gic_route_interrupt_to_pe(intid, index);
       return;

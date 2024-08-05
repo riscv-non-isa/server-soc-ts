@@ -388,7 +388,7 @@ void pal_mmu_add_mmap(void)
     timer_count = platform_timer_cfg.gt_info.timer_count;
     map_timer_device_region(timer_count, map_length, device_mem_region_attr);
 
-    // Map GIC device region to memory. This includes GICC, GICD, GICRD, GICH and GIC_ITS
+    // Map IIC device region to memory. This includes GICC, GICD, GICRD, GICH and GIC_ITS
     gicc_count    = platform_gic_cfg.num_gicc;
     gicd_count    = platform_gic_cfg.num_gicd;
     gicc_rd_count = platform_gic_cfg.num_gicc_rd;

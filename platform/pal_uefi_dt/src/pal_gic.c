@@ -64,7 +64,7 @@ UINT64
 pal_get_madt_ptr();
 
 /**
-  @brief  This API fills in the HART_INFO_TABLE  with information about GIC maintenance
+  @brief  This API fills in the HART_INFO_TABLE  with information about IIC maintenance
           interrupt in the system. This is achieved by parsing the DT.
 
   @param  PeTable  - Address where the information needs to be filled.
@@ -119,7 +119,7 @@ pal_hart_info_table_gmaint_gsiv_dt(HART_INFO_TABLE *PeTable)
   }
 
   if (offset < 0) {
-      bsa_print(ACS_PRINT_DEBUG, L"  GIC compatible node not found\n");
+      bsa_print(ACS_PRINT_DEBUG, L"  IIC compatible node not found\n");
       return;
   }
 
@@ -152,7 +152,7 @@ pal_hart_info_table_gmaint_gsiv_dt(HART_INFO_TABLE *PeTable)
 }
 
 /**
-  @brief  Populate information about the GIC sub-system at the input address.
+  @brief  Populate information about the IIC sub-system at the input address.
           In a UEFI-ACPI framework, this information is part of the MADT table.
 
   @param  GicTable  Address of the memory region where this information is to be filled in
@@ -168,7 +168,7 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
   UINT32                         TableLength;
 
   if (GicTable == NULL) {
-    bsa_print(ACS_PRINT_ERR, L" Input GIC Table Pointer is NULL. Cannot create GIC INFO\n");
+    bsa_print(ACS_PRINT_ERR, L" Input IIC Table Pointer is NULL. Cannot create IIC INFO\n");
     return;
   }
 
@@ -201,7 +201,7 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
       if (Entry->PhysicalBaseAddress != 0) {
         GicEntry->type = ENTRY_TYPE_CPUIF;
         GicEntry->base = Entry->PhysicalBaseAddress;
-        bsa_print(ACS_PRINT_INFO, L"  GIC CPUIF base %x\n", GicEntry->base);
+        bsa_print(ACS_PRINT_INFO, L"  IIC CPUIF base %x\n", GicEntry->base);
         GicEntry++;
       }
 
@@ -227,7 +227,7 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->type = ENTRY_TYPE_GICD;
         GicEntry->base = ((EFI_ACPI_6_1_GIC_DISTRIBUTOR_STRUCTURE *)Entry)->PhysicalBaseAddress;
         GicTable->header.gic_version = ((EFI_ACPI_6_1_GIC_DISTRIBUTOR_STRUCTURE *)Entry)->GicVersion;
-        bsa_print(ACS_PRINT_INFO, L"  GIC DIS base %x\n", GicEntry->base);
+        bsa_print(ACS_PRINT_INFO, L"  IIC DIS base %x\n", GicEntry->base);
         GicTable->header.num_gicd++;
         GicEntry++;
     }
@@ -245,8 +245,8 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->type = ENTRY_TYPE_GICITS;
         GicEntry->base = ((EFI_ACPI_6_1_GIC_ITS_STRUCTURE *)Entry)->PhysicalBaseAddress;
         GicEntry->entry_id = ((EFI_ACPI_6_1_GIC_ITS_STRUCTURE *)Entry)->GicItsId;
-        bsa_print(ACS_PRINT_INFO, L"  GIC ITS base %x\n", GicEntry->base);
-        bsa_print(ACS_PRINT_INFO, L"  GIC ITS ID%x\n", GicEntry->entry_id);
+        bsa_print(ACS_PRINT_INFO, L"  IIC ITS base %x\n", GicEntry->base);
+        bsa_print(ACS_PRINT_INFO, L"  IIC ITS ID%x\n", GicEntry->entry_id);
         GicTable->header.num_its++;
         GicEntry++;
     }
@@ -258,9 +258,9 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
         GicEntry->flags = ((EFI_ACPI_6_1_GIC_MSI_FRAME_STRUCTURE *)Entry)->Flags;
         GicEntry->spi_count = ((EFI_ACPI_6_1_GIC_MSI_FRAME_STRUCTURE *)Entry)->SPICount;
         GicEntry->spi_base = ((EFI_ACPI_6_1_GIC_MSI_FRAME_STRUCTURE *)Entry)->SPIBase;
-        bsa_print(ACS_PRINT_INFO, L" GIC MSI Frame base %x\n", GicEntry->base);
-        bsa_print(ACS_PRINT_INFO, L" GIC MSI SPI base %x\n", GicEntry->spi_base);
-        bsa_print(ACS_PRINT_INFO, L" GIC MSI SPI Count %x\n", GicEntry->spi_count);
+        bsa_print(ACS_PRINT_INFO, L" IIC MSI Frame base %x\n", GicEntry->base);
+        bsa_print(ACS_PRINT_INFO, L" IIC MSI SPI base %x\n", GicEntry->spi_base);
+        bsa_print(ACS_PRINT_INFO, L" IIC MSI SPI Count %x\n", GicEntry->spi_count);
         GicTable->header.num_msi_frame++;
         GicEntry++;
     }
@@ -275,7 +275,7 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
 }
 
 /**
-  @brief  Enable the interrupt in the GIC Distributor and GIC CPU Interface and hook
+  @brief  Enable the interrupt in the IIC Distributor and IIC CPU Interface and hook
           the interrupt service routine for the IRQ to the UEFI Framework
 
   @param  int_id  Interrupt ID which needs to be enabled and service routine installed for
@@ -311,7 +311,7 @@ pal_gic_install_isr(UINT32 int_id,  VOID (*isr)())
 
 /**
   @brief  Indicate that processing of interrupt is complete by writing to
-          End of interrupt register in the GIC CPU Interface
+          End of interrupt register in the IIC CPU Interface
 
   @param  int_id  Interrupt ID which needs to be acknowledged that it is complete
 
@@ -404,9 +404,9 @@ pal_gic_free_irq (
 }
 
 /**
-  @brief  This API fills in the GIC_INFO Table with information about the GIC in the
+  @brief  This API fills in the GIC_INFO Table with information about the IIC in the
           system. This is achieved by parsing the DT blob.
-  @param  GicTable  - Address where the GIC information needs to be filled.
+  @param  GicTable  - Address where the IIC information needs to be filled.
   @return  None
 **/
 VOID
@@ -444,7 +444,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
   }
 
   if (offset < 0) {
-      bsa_print(ACS_PRINT_DEBUG, L"  GIC v3 compatible node not found\n");
+      bsa_print(ACS_PRINT_DEBUG, L"  IIC v3 compatible node not found\n");
       for (i = 0; i < (sizeof(gicv2_dt_arr)/GIC_COMPATIBLE_STR_LEN); i++) {
           /* Search for GICv2 nodes*/
           offset = fdt_node_offset_by_compatible((const void *)dt_ptr, -1, gicv2_dt_arr[i]);
@@ -461,7 +461,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
   }
 
   if (offset < 0) {
-      bsa_print(ACS_PRINT_DEBUG, L"  GIC v2 compatible node not found\n");
+      bsa_print(ACS_PRINT_DEBUG, L"  IIC v2 compatible node not found\n");
       return;
   }
 
@@ -506,7 +506,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
   } else
     GicEntry->length = fdt32_to_cpu(Preg_val[Index++]);
 
-  bsa_print(ACS_PRINT_DEBUG, L"  GIC DIS base %lx\n", GicEntry->base);
+  bsa_print(ACS_PRINT_DEBUG, L"  IIC DIS base %lx\n", GicEntry->base);
   GicTable->header.num_gicd++;
   GicEntry++;
 
@@ -520,7 +520,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
       } else
           num_of_rd = fdt32_to_cpu(Prdregions_val[0]);
 
-      bsa_print(ACS_PRINT_DEBUG, L"  NUM GIC RD %d\n", num_of_rd);
+      bsa_print(ACS_PRINT_DEBUG, L"  NUM IIC RD %d\n", num_of_rd);
       i = num_of_rd;
       /* Fill details for Redistributor */
       while (i--) {
@@ -558,7 +558,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
         cpuif_length = fdt32_to_cpu(Preg_val[Index++]);
 
       num_of_hart = pal_hart_get_num();
-      bsa_print(ACS_PRINT_DEBUG, L"  GIC CPUIF base %lx\n", cpuif_base);
+      bsa_print(ACS_PRINT_DEBUG, L"  IIC CPUIF base %lx\n", cpuif_base);
       while (num_of_hart--) {
           GicEntry->type = ENTRY_TYPE_CPUIF;
           GicEntry->base = cpuif_base;
@@ -566,7 +566,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
           GicEntry++;
       }
   } else
-    bsa_print(ACS_PRINT_WARN, L"  GIC CPUIF not present\n");
+    bsa_print(ACS_PRINT_WARN, L"  IIC CPUIF not present\n");
 
   bsa_print(ACS_PRINT_INFO, L"  Number of gic interface %d\n", num_gic_interfaces);
   bsa_print(ACS_PRINT_INFO, L"  Number of RD %d\n", num_of_rd);
@@ -644,7 +644,7 @@ pal_gic_create_info_table_dt(GIC_INFO_TABLE *GicTable)
           } else
              GicEntry->length = fdt32_to_cpu(Preg_val[Index++]);
 
-          bsa_print(ACS_PRINT_DEBUG, L"  GIC v2m frame base %x\n", GicEntry->base);
+          bsa_print(ACS_PRINT_DEBUG, L"  IIC v2m frame base %x\n", GicEntry->base);
 
           /* read the arm,msi-base-spi property value */
           Preg_val = (UINT32 *)fdt_getprop_namelen((void *)dt_ptr, offset, "arm,msi-base-spi", 16,

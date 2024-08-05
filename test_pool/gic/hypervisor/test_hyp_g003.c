@@ -25,11 +25,11 @@
 
 #define TEST_NUM   (ACS_GIC_HYP_TEST_NUM_BASE + 3)
 #define TEST_RULE  "B_PPI_02"
-#define TEST_DESC  "Check GIC Maintenance PPI Assignment  "
+#define TEST_DESC  "Check IIC Maintenance PPI Assignment  "
 
 static uint32_t intid;
 
-/* Interrupt handler for the GIC Maintenance interrupt*/
+/* Interrupt handler for the IIC Maintenance interrupt*/
 static
 void
 isr_mnt()
@@ -45,7 +45,7 @@ isr_mnt()
     val_gic_reg_write(ICH_HCR_EL2, data);
 
     val_set_status(index, RESULT_PASS(TEST_NUM, 1));
-    val_print(ACS_PRINT_INFO, "\n       Received GIC maintenance interrupt ", 0);
+    val_print(ACS_PRINT_INFO, "\n       Received IIC maintenance interrupt ", 0);
     val_gic_end_of_interrupt(intid);
 }
 
@@ -54,7 +54,7 @@ void
 payload()
 {
 
-    /*Check GIC Maintenance interrupt received*/
+    /*Check IIC Maintenance interrupt received*/
     uint32_t data;
     uint32_t timeout = TIMEOUT_LARGE;
     uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
@@ -66,15 +66,15 @@ payload()
         return;
     }
 
-    /*Check GIC maintenance interrupt*/
+    /*Check IIC maintenance interrupt*/
     val_set_status(index, RESULT_PENDING(TEST_NUM));
-    /*Get GIC maintenance interrupt ID*/
+    /*Get IIC maintenance interrupt ID*/
     intid = val_hart_get_gmain_gsiv(index);
-    /*Recommended GIC maintenance interrupt ID is 25 as per SBSA*/
+    /*Recommended IIC maintenance interrupt ID is 25 as per SBSA*/
     if (g_build_sbsa) {
         if (intid != 25) {
            val_print(ACS_PRINT_ERR,
-                     "\n       GIC Maintenance interrupt not mapped to PPI ID 25, id %d", intid);
+                     "\n       IIC Maintenance interrupt not mapped to PPI ID 25, id %d", intid);
            val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
            return;
         }
@@ -82,19 +82,19 @@ payload()
     /*Check if interrupt is in PPI INTID range*/
     if ((intid < 16 || intid > 31) && (!val_gic_is_valid_eppi(intid))) {
         val_print(ACS_PRINT_DEBUG,
-            "\n       GIC Maintenance interrupt not mapped to PPI base range,"
+            "\n       IIC Maintenance interrupt not mapped to PPI base range,"
             "\n       INTID: %d   ", intid);
         val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
         return;
     }
 
     if (val_gic_install_isr(intid, isr_mnt)) {
-        val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
+        val_print(ACS_PRINT_ERR, "\n       IIC Install Handler Failed...", 0);
         val_set_status(index, RESULT_FAIL(TEST_NUM, 3));
         return;
     }
 
-    /*Write to GIC registers which will generate Maintenance interrupt*/
+    /*Write to IIC registers which will generate Maintenance interrupt*/
     data = val_gic_reg_read(ICH_HCR_EL2);
     /*set ICH_HCR_EL2 bits [2:0] to enable the interrupt*/
     data |= 0x7;
@@ -117,7 +117,7 @@ hyp_g003_entry(uint32_t num_hart)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
-    /*This GIC test is run on single processor*/
+    /*This IIC test is run on single processor*/
     num_hart = 1;
 
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);

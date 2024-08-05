@@ -38,7 +38,7 @@
   /* Please MAKE SURE all the table sizes are 16 Bytes aligned */
   #define PE_INFO_TBL_SZ         16384  /*Supports max 400 PEs     */
                                         /*[24 B Each + 4 B Header] */
-  #define GIC_INFO_TBL_SZ        240000 /*Supports max 832 GIC info (GICH,CPUIF,RD,ITS,MSI,D)*/
+  #define GIC_INFO_TBL_SZ        240000 /*Supports max 832 IIC info (GICH,CPUIF,RD,ITS,MSI,D)*/
                                         /*[48 B Each + 32 B Header]*/
   #define TIMER_INFO_TBL_SZ      2048   /*Supports max 4 system timers*/
                                         /*[248 B Each + 56 B Header]  */

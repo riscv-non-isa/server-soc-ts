@@ -82,7 +82,7 @@ v2_EnableInterruptSource(uint32_t int_id)
 }
 
 /**
-  @brief  Initializes the GIC v2
+  @brief  Initializes the IIC v2
   @param  none
   @return init success or failure
 **/

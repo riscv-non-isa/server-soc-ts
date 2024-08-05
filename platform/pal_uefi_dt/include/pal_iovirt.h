@@ -50,7 +50,7 @@ typedef struct {
 
 typedef struct {
         UINT32 its_count;
-        UINT32 identifiers[1];     /* GIC ITS identifier arrary */
+        UINT32 identifiers[1];     /* IIC ITS identifier arrary */
 }IORT_ITS_GROUP;
 
 typedef struct {

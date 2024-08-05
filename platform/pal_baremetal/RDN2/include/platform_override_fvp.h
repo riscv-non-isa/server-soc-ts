@@ -100,7 +100,7 @@
 #define PLATFORM_OVERRIDE_PE15_PMU_GSIV    0x17
 #define PLATFORM_OVERRIDE_PE15_GMAIN_GSIV  0x19
 
-/* GIC platform config parameters*/
+/* IIC platform config parameters*/
 #define PLATFORM_OVERRIDE_GIC_VERSION       0x3
 #define PLATFORM_OVERRIDE_CORE_COUNT        0x4
 #define PLATFORM_OVERRIDE_CLUSTER_COUNT     0x2

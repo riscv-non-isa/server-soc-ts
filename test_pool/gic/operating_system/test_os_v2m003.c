@@ -68,7 +68,7 @@ payload()
 
     /* Register an interrupt handler to verify */
     if (val_gic_install_isr(int_id, isr)) {
-      val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
+      val_print(ACS_PRINT_ERR, "\n       IIC Install Handler Failed...", 0);
       val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
       return;
     }
@@ -109,7 +109,7 @@ os_v2m003_entry(uint32_t num_hart)
 
   uint32_t status = ACS_STATUS_FAIL;
 
-  num_hart = 1;  //This GIC test is run on single processor
+  num_hart = 1;  //This IIC test is run on single processor
 
   status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
 

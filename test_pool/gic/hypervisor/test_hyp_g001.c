@@ -95,7 +95,7 @@ payload()
     }
 
     if (val_gic_install_isr(intid, isr_vir)) {
-        val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
+        val_print(ACS_PRINT_ERR, "\n       IIC Install Handler Failed...", 0);
         val_set_status(index, RESULT_FAIL(TEST_NUM, 3));
         return;
     }
@@ -118,7 +118,7 @@ hyp_g001_entry(uint32_t num_hart)
 {
 
     uint32_t status = ACS_STATUS_FAIL;
-    /*This GIC test is run on single processor*/
+    /*This IIC test is run on single processor*/
     num_hart = 1;
 
     status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);

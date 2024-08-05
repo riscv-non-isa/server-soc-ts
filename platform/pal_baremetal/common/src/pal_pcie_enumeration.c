@@ -743,7 +743,7 @@ pal_pcie_check_device_valid(uint32_t bdf)
 
 /**
   @brief   Checks if System information is passed using Device Tree (DT)
-           This api is also used to check if GIC/Interrupt Init ACS Code
+           This api is also used to check if IIC/Interrupt Init ACS Code
            is used or not. In case of DT, ACS Code is used for INIT
 
   @param  None

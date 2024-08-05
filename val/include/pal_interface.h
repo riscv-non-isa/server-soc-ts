@@ -246,10 +246,10 @@ uint64_t *pal_get_phy_mpidr_list_base(void);
 /* ********** HART INFO END **********/
 
 
-/** GIC Tests Related definitions **/
+/** IIC Tests Related definitions **/
 
 /**
-  @brief  GIC Info header - Summary of GIC subsytem
+  @brief  IIC Info header - Summary of IIC subsytem
 **/
 typedef struct {
   uint32_t gic_version;
@@ -284,7 +284,7 @@ typedef enum {
 }INTR_TRIGGER_INFO_TYPE_e;
 
 /**
-  @brief  structure instance for GIC entry
+  @brief  structure instance for IIC entry
 **/
 typedef struct {
   uint32_t type;
@@ -297,11 +297,11 @@ typedef struct {
 }GIC_INFO_ENTRY;
 
 /**
-  @brief  GIC Information Table
+  @brief  IIC Information Table
 **/
 typedef struct {
   GIC_INFO_HDR   header;
-  GIC_INFO_ENTRY gic_info[];  ///< Array of Information blocks - instantiated for each GIC type
+  GIC_INFO_ENTRY gic_info[];  ///< Array of Information blocks - instantiated for each IIC type
 }GIC_INFO_TABLE;
 
 typedef struct {
@@ -331,7 +331,7 @@ uint32_t pal_target_is_bm(void);
 /** Timer tests related definitions **/
 
 /**
-  @brief  GIC Info header - Summary of Timer subsytem
+  @brief  IIC Info header - Summary of Timer subsytem
 **/
 typedef struct {
   uint32_t s_el1_timer_flag;

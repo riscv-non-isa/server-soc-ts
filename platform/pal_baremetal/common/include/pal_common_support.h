@@ -288,7 +288,7 @@ typedef enum {
 }INTR_TRIGGER_INFO_TYPE_e;
 
 /**
-  @brief  structure instance for GIC entry
+  @brief  structure instance for IIC entry
 **/
 typedef struct {
   uint32_t type;
@@ -301,11 +301,11 @@ typedef struct {
 }GIC_INFO_ENTRY;
 
 /**
-  @brief  GIC Information Table
+  @brief  IIC Information Table
 **/
 typedef struct {
   GIC_INFO_HDR   header;
-  GIC_INFO_ENTRY gic_info[];  ///< Array of Information blocks - instantiated for each GIC type
+  GIC_INFO_ENTRY gic_info[];  ///< Array of Information blocks - instantiated for each IIC type
 }GIC_INFO_TABLE;
 
 typedef struct {

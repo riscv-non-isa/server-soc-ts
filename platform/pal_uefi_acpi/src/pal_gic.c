@@ -37,7 +37,7 @@ UINT64
 pal_get_madt_ptr();
 
 /**
-  @brief  Populate information about the GIC sub-system at the input address.
+  @brief  Populate information about the IIC sub-system at the input address.
           In a UEFI-ACPI framework, this information is part of the MADT table.
 
   @param  GicTable  Address of the memory region where this information is to be filled in
@@ -55,7 +55,7 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
   // UINT32                         is_gicr_present = 0;
 
   if (GicTable == NULL) {
-    bsa_print(ACS_PRINT_ERR, L" Input GIC Table Pointer is NULL. Cannot create GIC INFO\n");
+    bsa_print(ACS_PRINT_ERR, L" Input IIC Table Pointer is NULL. Cannot create IIC INFO\n");
     return;
   }
 
@@ -120,7 +120,7 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
 }
 
 /**
-  @brief  Enable the interrupt in the GIC Distributor and GIC CPU Interface and hook
+  @brief  Enable the interrupt in the IIC Distributor and IIC CPU Interface and hook
           the interrupt service routine for the IRQ to the UEFI Framework
 
   @param  int_id  Interrupt ID which needs to be enabled and service routine installed for
@@ -156,7 +156,7 @@ pal_gic_install_isr(UINT32 int_id,  VOID (*isr)())
 
 /**
   @brief  Indicate that processing of interrupt is complete by writing to
-          End of interrupt register in the GIC CPU Interface
+          End of interrupt register in the IIC CPU Interface
 
   @param  int_id  Interrupt ID which needs to be acknowledged that it is complete
 

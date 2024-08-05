@@ -87,7 +87,7 @@ payload()
       /* Install ISR */
       intid = val_timer_get_info(TIMER_INFO_SYS_INTID, timer_num);
       if (val_gic_install_isr(intid, isr)) {
-          val_print(ACS_PRINT_ERR, "\n       GIC Install Handler Failed...", 0);
+          val_print(ACS_PRINT_ERR, "\n       IIC Install Handler Failed...", 0);
           val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
           return;
       }

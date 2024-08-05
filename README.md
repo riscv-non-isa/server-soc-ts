@@ -37,7 +37,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
             - [X] **should ported to parse MADT and count the RINTC entry**
             - PalAllocateSecondaryStack(gMpidrMax);
               - [ ] **should be ported for multi-processor test**
-      - GIC
+      - IIC
         - pal_gic_create_info_table( ) // Parse MADT Table, check the APIC entry.
 
       - Timer
@@ -90,13 +90,13 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 
     * _VAL_: Following modules reserved:
       - HART
-      - GIC
+      - IIC
       - Timer
       - Watchdog
 
     * _PAL_: Following modules reserved:
       - HART
-      - GIC
+      - IIC
       - Watchdog Timer
 
 - [ ] Porting the PAL API to RISC-V Architecture
@@ -110,7 +110,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
         * ArmExecuteMemoryBarrier
       - src/AArch64/ArchTimerSupport.S: Read various timer registers using MRS
         - [ ] **Required** as called in val_timer_get_info()
-      - src/AArch64/GicSupport.S: Read/Write GIC registers using MRS or MSR
+      - src/AArch64/GicSupport.S: Read/Write IIC registers using MRS or MSR
         * No Required Now.
     * _PAL AArch64_:
       - src/AArch64/ArmSmc.S: Calling SMC, we should replace this with SBI call.

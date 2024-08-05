@@ -33,7 +33,7 @@
 #include "include/pal_dt.h"
 /**
   @brief   Checks if System information is passed using Device Tree (DT)
-           This api is also used to check if GIC/Interrupt Init ACS Code
+           This api is also used to check if IIC/Interrupt Init ACS Code
            is used or not. In case of DT, ACS Code is used for INIT
 
   @param  None

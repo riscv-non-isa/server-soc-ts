@@ -21,7 +21,7 @@
 extern PLATFORM_OVERRIDE_GIC_INFO_TABLE platform_gic_cfg;
 
 /**
-  @brief  Populate information about the GIC sub-system at the input address.
+  @brief  Populate information about the IIC sub-system at the input address.
 
   @param  GicTable  Address of the memory region where this information is to be filled in
 

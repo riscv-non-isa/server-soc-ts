@@ -22,7 +22,7 @@
 #include "../gic.h"
 
 /**
-  @brief  Initializes the GIC
+  @brief  Initializes the IIC
   @param  none
   @return init success or failure
 **/
