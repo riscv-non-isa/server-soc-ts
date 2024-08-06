@@ -123,6 +123,29 @@ createGicInfoTable (
 
 }
 
+EFI_STATUS
+createMngInfoTable (
+
+)
+{
+  EFI_STATUS Status;
+  UINT64     *MngInfoTable;
+
+  Status = gBS->AllocatePool (EfiBootServicesData,
+                               MNG_INFO_TBL_SZ,
+                               (VOID **) &MngInfoTable);
+
+  if (EFI_ERROR(Status))
+  {
+    Print(L"Allocate Pool failed %x\n", Status);
+    return Status;
+  }
+
+  val_mng_create_info_table(MngInfoTable);
+
+  return Status;
+
+}
 
 
 EFI_STATUS
@@ -587,6 +610,10 @@ ShellAppMain (
   if (Status)
     return Status;
 
+  Status = createMngInfoTable();
+  if (Status)
+    return Status;
+
   val_print(ACS_PRINT_TEST, "\n Allocate shared mem and flush image\n", 0);
   val_allocate_shared_mem();
 
@@ -596,7 +623,6 @@ ShellAppMain (
   val_hart_context_save(AA64ReadSp(), (uint64_t)branch_label);
   val_hart_initialize_default_exception_handler(val_hart_default_esr);
 
-  val_print(ACS_PRINT_TEST, "\n Create Timer Info Table\n", 0);
   createTimerInfoTable();
 
   // val_print(ACS_PRINT_TEST, "\n Create WDT Info Table\n", 0);
@@ -639,6 +665,9 @@ ShellAppMain (
 
   /***  Starting QoS tests          ***/
   Status |= val_qos_execute_tests(val_hart_get_num(), g_sw_view);
+
+  /***  Starting MNG tests          ***/
+  Status |= val_mng_execute_tests(val_hart_get_num(), g_sw_view);
 
 print_test_status:
   val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------", 0);

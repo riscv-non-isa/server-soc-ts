@@ -253,7 +253,7 @@ pal_hart_create_info_table(HART_INFO_TABLE *PeTable)
         Ptr->imsic_size = Entry->IMSICSize;
         bsa_print(ACS_PRINT_DEBUG, L"  HartID 0x%lx HART num 0x%x\n", Ptr->hart_id, Ptr->hart_num);
         bsa_print(ACS_PRINT_DEBUG, L"    Processor UID %d\n", Ptr->acpi_processor_uid);
-        bsa_print(ACS_PRINT_DEBUG, L"    IMSIC Base 0x%lx IMSIC Soze 0x%x\n", Ptr->imsic_base, Ptr->imsic_size);
+        bsa_print(ACS_PRINT_DEBUG, L"    IMSIC Base 0x%lx IMSIC Size 0x%x\n", Ptr->imsic_base, Ptr->imsic_size);
 
         // Find Hart Info node first.
         HartInfoNode = (EFI_ACPI_6_5_RHCT_HART_INFO_NODE_STRUCTURE *)((UINTN)gRhctHdr + gRhctHdr->RHCTNodeOffset);

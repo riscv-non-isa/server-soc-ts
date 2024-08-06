@@ -48,6 +48,7 @@
   # src/acs_pgt.c
   # sys_arch_src/smmu_v3/smmu_v3.c
   src/acs_qos.c
+  src/acs_mng.c
   sys_arch_src/gic/gic.c
   sys_arch_src/gic/bsa_exception.c
   sys_arch_src/gic/RISCV64/bsa_exception_asm.S

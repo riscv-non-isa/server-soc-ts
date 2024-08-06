@@ -407,4 +407,16 @@ uint32_t val_exerciser_execute_tests(uint32_t *g_sw_view);
 /* QoS tests */
 uint32_t val_qos_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 
+/* MNG tests */
+typedef enum {
+    MNG_MC_HOST_IF_TABLE = 1,
+    MNG_MC_DEVICE_TYPE,
+    MNG_IPMI_DEVICE_INFO_TABLE,
+    MNG_IPMI_IF_TYPE
+} MNG_INFO_e;
+
+void val_mng_create_info_table(uint64_t *mng_info_table);
+uint32_t val_mng_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
+uint32_t val_mng_get_info(MNG_INFO_e type);
+
 #endif

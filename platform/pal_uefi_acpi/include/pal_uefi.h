@@ -472,4 +472,12 @@ UINT64  pal_memory_get_unpopulated_addr(UINT64 *addr, UINT32 instance);
 VOID    pal_mem_free(VOID *buffer);
 UINT32  pal_hart_get_num();
 
+typedef struct {
+  UINT32    num_smbios_structure;
+  UINT64    mc_host_if_tbl_addr;  // Management Controller Host Interface (Type 42)
+  UINT32    mc_host_if_type;
+  UINT64    ipmi_device_info_tbl_addr; // IPMI Device Information (Type 38)
+  UINT32    ipmi_device_if_type;
+}MNG_INFO_TABLE;
+
 #endif

@@ -940,5 +940,16 @@ uint32_t pal_exerciser_ops(EXERCISER_OPS ops, uint64_t param, uint32_t instance)
 uint32_t pal_exerciser_get_data(EXERCISER_DATA_TYPE type, exerciser_data_t *data, uint32_t bdf,
                                                                                   uint64_t ecam);
 
+/**  MNG Test related Definitions **/
+typedef struct {
+  uint32_t    num_smbios_structure;
+  uint64_t    mc_host_if_tbl_addr;  // Management Controller Host Interface (Type 42)
+  uint32_t    mc_host_if_type;
+  uint64_t    ipmi_device_info_tbl_addr; // IPMI Device Information (Type 38)
+  uint32_t    ipmi_device_if_type;
+}MNG_INFO_TABLE;
+
+void pal_mng_create_info_table(MNG_INFO_TABLE *mng_info_table);
+
 #endif
 

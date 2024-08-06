@@ -46,6 +46,7 @@
 #define ACS_PCIE_TEST_NUM_BASE       800
 #define ACS_EXERCISER_TEST_NUM_BASE  900
 #define ACS_QOS_TEST_NUM_BASE        1000
+#define ACS_MNG_TEST_NUM_BASE        1100
 #define STATE_BIT   28
 #define STATE_MASK 0xF
 

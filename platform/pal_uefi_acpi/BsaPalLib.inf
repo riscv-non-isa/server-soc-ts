@@ -33,6 +33,7 @@
   src/pal_hart.c
   src/pal_gic.c
   src/pal_timer_wd.c
+  src/pal_mng.c
   # src/pal_pcie.c
   # src/pal_iovirt.c
   # src/pal_pcie_enumeration.c
@@ -68,6 +69,7 @@
   gEfiPciIoProtocolGuid                         ## CONSUMES
   gHardwareInterrupt2ProtocolGuid               ## CONSUMES
   gEfiPciRootBridgeIoProtocolGuid               ## CONSUMES
+  gEfiSmbiosProtocolGuid                        ## CONSUMES
 
 [Guids]
   gEfiAcpi20TableGuid

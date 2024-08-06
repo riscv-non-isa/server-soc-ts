@@ -52,6 +52,8 @@
                                         /*[72 B Each + 16 B Header]*/
   // #define PCIE_INFO_TBL_SZ       512    /*Supports max 20 RC's    */
                                         /*[24 B Each + 4 B Header]*/
+  #define MNG_INFO_TBL_SZ        1024   /*Size TBD*/
+
 
   #ifdef _AARCH64_BUILD_
   unsigned long __stack_chk_guard = 0xBAAAAAAD;
