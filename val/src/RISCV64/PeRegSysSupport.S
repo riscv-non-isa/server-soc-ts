@@ -421,6 +421,7 @@ ASM_PFX(AA64ReadSp):
 
 ASM_PFX(AA64WriteSp):
 #  mov   sp, x0
+  mv  sp, a0
   ret
 
 ASM_PFX(AA64ReadFar2):

@@ -620,6 +620,7 @@ ShellAppMain (
   /* Initialise exception vector, so any unexpected exception gets handled by default
      BSA exception handler */
   branch_label = &&print_test_status;
+  val_print(ACS_PRINT_TEST, "\n   branch_label=0x%lx\n", (uint64_t)branch_label);
   val_hart_context_save(AA64ReadSp(), (uint64_t)branch_label);
   val_hart_initialize_default_exception_handler(val_hart_default_esr);
 
@@ -690,5 +691,6 @@ print_test_status:
 
   val_hart_context_restore(AA64WriteSp(g_stack_pointer));
 
+  val_print(ACS_PRINT_TEST, "\n      *** BSA tests exit ***\n\n", 0);
   return(0);
 }

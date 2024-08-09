@@ -460,9 +460,6 @@ pal_hart_data_cache_ops_by_va(UINT64 addr, UINT32 type)
   }
 }
 
-
-#define CSR_HSTATUS			0x600
-
 UINT64
 pal_hart_get_hstatus (void)
 {

@@ -255,6 +255,7 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   ShellPkg/ShellPkg.dec
+  Silicon/RISC-V/ProcessorPkg/RiscVProcessorPkg.dec
 
 [LibraryClasses]
   BsaValLib
@@ -266,6 +267,7 @@
   ShellCEntryLib
   UefiBootServicesTableLib
   UefiRuntimeServicesTableLib
+  RiscVOpensbiLib
 
 [Protocols]
   gEfiAcpiTableProtocolGuid                     ## CONSUMES

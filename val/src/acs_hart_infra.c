@@ -340,6 +340,7 @@ val_hart_context_restore(uint64_t sp)
 void
 val_hart_initialize_default_exception_handler(void (*esr)(uint64_t, void *))
 {
+    val_hart_install_esr(EXCEPT_RISCV_ILLEGAL_INST, esr);
     val_hart_install_esr(EXCEPT_RISCV_LOAD_ACCESS_PAGE_FAULT, esr);
 }
 
@@ -357,20 +358,22 @@ val_hart_default_esr(uint64_t interrupt_type, void *context)
 {
     uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
     val_print(ACS_PRINT_WARN, "\n        Unexpected exception of type %d occured", interrupt_type);
+    val_print(ACS_PRINT_WARN, "\n        hart index %d", index);
+    val_print(ACS_PRINT_WARN, "\n        g_exception_ret_addr 0x%lx", g_exception_ret_addr);
 
-#ifndef TARGET_LINUX
-    if (pal_target_is_dt() || pal_target_is_bm()) {
-      val_print(ACS_PRINT_WARN, "\n        FAR reported = 0x%llx", bsa_gic_get_far());
-      val_print(ACS_PRINT_WARN, "\n        ESR reported = 0x%llx", bsa_gic_get_esr());
-    } else {
-      val_print(ACS_PRINT_WARN, "\n        FAR reported = 0x%llx", val_hart_get_far(context));
-      val_print(ACS_PRINT_WARN, "\n        ESR reported = 0x%llx", val_hart_get_esr(context));
-    }
-#endif
+// #ifndef TARGET_LINUX
+//     if (pal_target_is_dt() || pal_target_is_bm()) {
+//       val_print(ACS_PRINT_WARN, "\n        FAR reported = 0x%llx", bsa_gic_get_far());
+//       val_print(ACS_PRINT_WARN, "\n        ESR reported = 0x%llx", bsa_gic_get_esr());
+//     } else {
+//       val_print(ACS_PRINT_WARN, "\n        FAR reported = 0x%llx", val_hart_get_far(context));
+//       val_print(ACS_PRINT_WARN, "\n        ESR reported = 0x%llx", val_hart_get_esr(context));
+//     }
+// #endif
 
     val_set_status(index, RESULT_FAIL(0, 1));
     val_hart_update_elr(context, g_exception_ret_addr);
-    val_print(ACS_PRINT_TEST, "\n  val_hart_default_esr return\n", 0);
+    val_print(ACS_PRINT_TEST, "\n        exception return\n", 0);
 }
 
 /**

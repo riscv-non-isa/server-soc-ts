@@ -20,9 +20,13 @@
 
 #include "val/include/bsa_acs_gic.h"
 #include "val/include/bsa_acs_iic.h"
+#include "val/include/bsa_acs_hart.h"
+
+#include <sbi/riscv_asm.h>
+#include <sbi/riscv_encoding.h>
 
 #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 2)
-#define TEST_RULE  "MF_IIC_030_010, ME_IIC_070_010, ME_IIC_080_010"
+#define TEST_RULE  "MF_IIC_030_010"
 #define TEST_DESC  "External interrupt functionality                     "
 
 /**
@@ -52,7 +56,23 @@ static
 void
 payload()
 {
-  val_print(ACS_PRINT_ERR, "\n       Skip - not implemented", 0);
+  /* Check point 1: Verify presence of siselect, sireg, stopi, and stopei CSRs. */
+  val_print(ACS_PRINT_ERR, "\n       CSR_SISELECT: 0x%lx", csr_read(CSR_SISELECT));
+
+  /*
+    The allocated values for siselect:
+      0x00–0x2F reserved
+      0x30–0x3F major interrupt priorities
+      0x40–0x6F reserved
+      0x70–0xFF external interrupts (only with an IMSIC)
+  */
+  /* Try read siselect value 0x30 to see if sireg works */
+  csr_write(CSR_SISELECT, 0x30);
+  val_print(ACS_PRINT_ERR, "\n       CSR_SIREG: 0x%lx", csr_read(CSR_SIREG));
+  val_print(ACS_PRINT_ERR, "\n       CSR_STOPEI: 0x%lx", csr_read(CSR_STOPEI));
+  val_print(ACS_PRINT_ERR, "\n       CSR_STOPI: 0x%lx", csr_read(CSR_STOPI));
+
+  val_print(ACS_PRINT_ERR, "\n       Skip - rest not implemented", 0);
   val_set_status(0, RESULT_SKIP(TEST_NUM, 1));
 }
 
