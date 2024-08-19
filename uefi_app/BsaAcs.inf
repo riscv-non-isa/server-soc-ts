@@ -267,6 +267,7 @@
   ShellCEntryLib
   UefiBootServicesTableLib
   UefiRuntimeServicesTableLib
+  DxeServicesLib
   RiscVOpensbiLib
 
 [Protocols]

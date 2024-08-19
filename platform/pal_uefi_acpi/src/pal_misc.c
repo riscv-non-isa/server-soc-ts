@@ -14,8 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 **/
+
+#include <PiDxe.h>
+
 #include  <Library/ShellCEntryLib.h>
 #include  <Library/UefiBootServicesTableLib.h>
+#include <Library/DxeServicesTableLib.h>
 #include  <Library/UefiLib.h>
 #include  <Library/ShellLib.h>
 #include  <Library/PrintLib.h>
@@ -711,4 +715,31 @@ pal_mem_free_pages(
   )
 {
   gBS->FreePages((EFI_PHYSICAL_ADDRESS)(UINTN)PageBase, NumPages);
+}
+
+VOID
+pal_mem_map_add_mmio (
+  UINT64  Address,
+  UINT64  Size
+  )
+{
+  EFI_STATUS  Status;
+  EFI_CPU_ARCH_PROTOCOL   *Cpu;
+
+  /* Check Whether Cpu architectural protocol is installed */
+  Status = gBS->LocateProtocol ( &gEfiCpuArchProtocolGuid, NULL, (VOID **)&Cpu);
+  if (EFI_ERROR(Status)) {
+    bsa_print(ACS_PRINT_ERR, L" Could not get Cpu Arch Protocol %x\n", Status);
+    return;
+  }
+
+  /* Set Memory Attributes */
+  Status = Cpu->SetMemoryAttributes (Cpu,
+                                     Address,
+                                     Size,
+                                     EFI_MEMORY_UC | EFI_MEMORY_RUNTIME);
+  if (EFI_ERROR (Status)) {
+    bsa_print(ACS_PRINT_ERR, L" Could not Set Memory Attribute %x\n", Status);
+    return;
+  }
 }

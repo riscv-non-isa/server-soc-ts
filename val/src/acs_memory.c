@@ -514,3 +514,9 @@ val_memory_free_aligned(void *addr)
 {
   pal_mem_free_aligned(addr);
 }
+
+void
+val_memory_map_add_mmio (uint64_t  Address, uint64_t  Length)
+{
+  pal_mem_map_add_mmio(Address, Length);
+}

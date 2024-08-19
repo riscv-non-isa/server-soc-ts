@@ -43,7 +43,7 @@
   src/acs_wd.c
   src/acs_wakeup.c
   # src/acs_peripherals.c
-  # src/acs_memory.c
+  src/acs_memory.c
   # src/acs_exerciser.c
   # src/acs_pgt.c
   # sys_arch_src/smmu_v3/smmu_v3.c
@@ -59,9 +59,11 @@
   # sys_arch_src/pcie/pcie.c
   sys_arch_src/gic/its/bsa_gic_its.c
   sys_arch_src/gic/its/bsa_gic_redistributor.c
+  sys_arch_src/aia/aia.c
 
 [Packages]
   MdePkg/MdePkg.dec
+  Silicon/RISC-V/ProcessorPkg/RiscVProcessorPkg.dec
 
 [BuildOptions]
   GCC:*_*_*_ASM_FLAGS  =  -march=rv64gc

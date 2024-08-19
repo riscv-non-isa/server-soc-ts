@@ -40,6 +40,8 @@ addr_t val_memory_get_addr(MEMORY_INFO_e mem_type, uint32_t instance, uint64_t *
 void *val_aligned_alloc(uint32_t alignment, uint32_t size);
 void val_memory_free_aligned(void *addr);
 
+void val_memory_map_add_mmio (uint64_t  Address, uint64_t  Length);
+
 uint32_t os_m001_entry(uint32_t num_hart);
 uint32_t os_m002_entry(uint32_t num_hart);
 uint32_t os_m003_entry(uint32_t num_hart);

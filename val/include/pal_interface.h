@@ -783,6 +783,8 @@ void     pal_mem_free_pages(void *page_base, uint32_t num_pages);
 void    *pal_aligned_alloc(uint32_t alignment, uint32_t size);
 void     pal_mem_free_aligned(void *buffer);
 
+void     pal_mem_map_add_mmio(uint64_t  Address, uint64_t  Length);
+
 uint32_t pal_mmio_read(uint64_t addr);
 uint64_t pal_mmio_read64(uint64_t addr);
 void     pal_mmio_write8(uint64_t addr, uint8_t data);

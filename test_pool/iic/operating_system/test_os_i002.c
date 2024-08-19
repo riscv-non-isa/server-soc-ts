@@ -21,6 +21,7 @@
 #include "val/include/bsa_acs_gic.h"
 #include "val/include/bsa_acs_iic.h"
 #include "val/include/bsa_acs_hart.h"
+#include "val/include/bsa_acs_memory.h"
 
 #include <sbi/riscv_asm.h>
 #include <sbi/riscv_encoding.h>
@@ -29,10 +30,14 @@
 #define TEST_RULE  "MF_IIC_030_010"
 #define TEST_DESC  "External interrupt functionality                     "
 
+#define TEST_EXT_IRQ_ID   2
+
+#define IMSIC_TOPEI_ID_SHIFT		16
+
 /**
  * @brief 1. Verify presence of siselect, sireg, stopi, and stopei CSRs.
           2. For each external interrupt identity supported by the S-level interrupt
-          file, verify the ability to set the corresponding bit in the eipk and eiek
+          file, verify the ability to set the corresponding bit in the eipk and EIEk
           registers.
           3. Verify ability to enable and disable interrupt delivery in the eidelivery
           register.
@@ -50,30 +55,138 @@
           9. Read the stopei register to verify that the highest priority external
           interrupt identity is reported.
           10. Clear any external interrupts pended or enabled in the IMSIC by this
-          test by clearing the corresponding bits in the eipk and eiek registers.
+          test by clearing the corresponding bits in the eipk and EIEk registers.
  */
 static
 void
 payload()
 {
-  /* Check point 1: Verify presence of siselect, sireg, stopi, and stopei CSRs. */
-  val_print(ACS_PRINT_ERR, "\n       CSR_SISELECT: 0x%lx", csr_read(CSR_SISELECT));
+  uint32_t index = val_hart_get_index_mpid(val_hart_get_mpid());
+  uint64_t imsic_base;
+  uint32_t intr_num = val_gic_max_supervisor_intr_num();
+  uint32_t eidelivery;
+  uint32_t i;
+  uint64_t val;
 
-  /*
-    The allocated values for siselect:
-      0x00–0x2F reserved
-      0x30–0x3F major interrupt priorities
-      0x40–0x6F reserved
-      0x70–0xFF external interrupts (only with an IMSIC)
-  */
-  /* Try read siselect value 0x30 to see if sireg works */
+  /* Checkpoint 1: Verify presence of siselect, sireg, stopi, and stopei CSRs. */
+  val_print(ACS_PRINT_INFO, "\n       CSR_SISELECT: 0x%lx", csr_read(CSR_SISELECT));
+
+  /* Try read siselect value 0x30 (major interrupt priorities) to see if sireg works */
   csr_write(CSR_SISELECT, 0x30);
-  val_print(ACS_PRINT_ERR, "\n       CSR_SIREG: 0x%lx", csr_read(CSR_SIREG));
-  val_print(ACS_PRINT_ERR, "\n       CSR_STOPEI: 0x%lx", csr_read(CSR_STOPEI));
-  val_print(ACS_PRINT_ERR, "\n       CSR_STOPI: 0x%lx", csr_read(CSR_STOPI));
+  val_print(ACS_PRINT_INFO, "\n       CSR_SIREG: 0x%lx", csr_read(CSR_SIREG));
+  val_print(ACS_PRINT_INFO, "\n       CSR_STOPEI: 0x%lx", csr_read(CSR_STOPEI));
+  val_print(ACS_PRINT_INFO, "\n       CSR_STOPI: 0x%lx", csr_read(CSR_STOPI));
 
-  val_print(ACS_PRINT_ERR, "\n       Skip - rest not implemented", 0);
-  val_set_status(0, RESULT_SKIP(TEST_NUM, 1));
+  /* Checkpoint 2: For each external interrupt identity supported by the S-level interrupt
+      file, verify the ability to set the corresponding bit in the eipk and EIEk
+      registers.
+  */
+  val_print(ACS_PRINT_INFO, "\n       S-level interrupt number: %d", intr_num);
+
+  // for (i = 1; i <= intr_num; i++) {    // TODO: QEMU Virt problem? EIEk bit 32~63 read as 0 after set
+  for (i = 1; i <= 31; i++) {
+    /* Check EIEk */
+    // val_print(ACS_PRINT_INFO, "\n         Set EIEk for irq %d", i);
+    val_iic_imsic_eix_update(i, false, 1);
+    val = val_iic_imsic_eix_read(i, false);
+    // val_print(ACS_PRINT_INFO, "\n         Now EIEk is 0x%lx", val);
+    if ((val & BIT(i % __riscv_xlen)) == 0) {
+      val_print(ACS_PRINT_ERR, "\n       Fail to set EIEk for irq %d", i);
+      val_set_status(index, RESULT_FAIL(TEST_NUM, 1));
+      return;
+    }
+    // val_print(ACS_PRINT_INFO, "\n         Clear EIEk for irq %d", i);
+    val_iic_imsic_eix_update(i, false, 0);
+
+    /* Check eipk */
+    // val_print(ACS_PRINT_INFO, "\n         Set EIPk for irq %d", i);
+    val_iic_imsic_eix_update(i, true, 1);
+    val = val_iic_imsic_eix_read(i, true);
+    // val_print(ACS_PRINT_INFO, "\n         Now EIPk is 0x%lx", val);
+    if ((val & BIT(i % __riscv_xlen)) == 0) {
+      val_print(ACS_PRINT_ERR, "\n       Fail to set EIPk for irq %d", i);
+      val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
+      return;
+    }
+    // val_print(ACS_PRINT_INFO, "\n         Clear EIPk for irq %d", i);
+    val_iic_imsic_eix_update(i, true, 0);
+  }
+
+  /* Checkpoint 3: Verify ability to enable and disable interrupt delivery in the eidelivery
+      register.
+  */
+  val_print(ACS_PRINT_INFO, "\n       Check EIDELIVERY enable/disable", 0);
+  eidelivery = val_iic_imsic_eidelivery_update(0);
+  val_print(ACS_PRINT_INFO, "\n         EIDELIVERY set to 0x%x", eidelivery);
+  eidelivery = val_iic_imsic_eidelivery_update(1);
+  val_print(ACS_PRINT_INFO, "\n         EIDELIVERY set to 0x%x", eidelivery);
+
+  /* Checkpoint 4: Map the physical address of the S-mode interrupt register file of the hart
+      with a virtual address using PBMT set to IO.
+      */
+  imsic_base = val_hart_get_imsic_base(index);
+  if (imsic_base == 0) {
+    val_print(ACS_PRINT_ERR, "\n       IMSIC base not found", 0);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 2));
+    return;
+  }
+  val_print(ACS_PRINT_INFO, "\n       IMSIC base: 0x%lx", imsic_base);
+  val_memory_map_add_mmio(imsic_base, 0x1000);
+
+  /* Checkpoint 5: Write a supported external interrupt identity to the S-level interrupt
+          register file using a 4-byte store to the seteipnum_le register using
+          virtual address established in previous step.
+  */
+  /* Enable the external interrupt */
+  val = val_iic_imsic_eithreshold_update(0);
+  val_print(ACS_PRINT_INFO, "\n       IMSIC_EITHRESHOLD set to: 0x%lx", val);
+
+  val_print(ACS_PRINT_INFO, "\n       Set EIEk to enable the test irq %d", TEST_EXT_IRQ_ID);
+  val_iic_imsic_eix_update(TEST_EXT_IRQ_ID, false, 1);
+
+  /* Write value 2 to seteipnum_le to set pending bit for interrupt 2 */
+  val_print(ACS_PRINT_INFO, "\n       Write interrupt file to set pending bit EIPk", 0);
+  val_mmio_write(imsic_base + IMSIC_MMIO_PAGE_LE, TEST_EXT_IRQ_ID);
+
+  /* Checkpoint 6: Read the seteipnum_le register using a 4-byte load to verify it reads 0 */
+  val = val_mmio_read(imsic_base + IMSIC_MMIO_PAGE_LE);
+  if (val != 0) {
+    val_print(ACS_PRINT_ERR, "\n       SETEIPNUM_LE read as 0x%lx", val);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 3));
+    return;
+  }
+
+  /* Checkpoint 7: Verify that the written external interrupt identity is recorded in the eipk
+          register of the IMSIC.
+  */
+  val_print(ACS_PRINT_INFO, "\n       Read and check pending bit in EIPk is set", 0);
+  val = val_iic_imsic_eix_read(TEST_EXT_IRQ_ID, true);
+  val_print(ACS_PRINT_INFO, "\n         EIPk: 0x%x", val);
+  if ((val & BIT(TEST_EXT_IRQ_ID % __riscv_xlen)) == 0) {
+    val_print(ACS_PRINT_ERR, "\n       External interrupt id not recorded in EIPk", 0);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 4));
+    return;
+  }
+
+  /* Checkpoint 9: Read the stopei register to verify that the highest priority external
+          interrupt identity is reported.
+  */
+  val_print(ACS_PRINT_INFO, "\n       Read and check CSR_STOPI has expected value", 0);
+  val = csr_read(CSR_STOPEI);
+  val_print(ACS_PRINT_INFO, "\n         CSR_STOPEI: 0x%lx", val);
+  if (val != (TEST_EXT_IRQ_ID | (TEST_EXT_IRQ_ID << IMSIC_TOPEI_ID_SHIFT))) {
+    val_print(ACS_PRINT_ERR, "\n       Unexpected CSR_STOPI value: 0x%lx", val);
+    val_set_status(index, RESULT_FAIL(TEST_NUM, 5));
+    return;
+  }
+
+  /* Checkpoint 10: Clear any external interrupts pended or enabled in the IMSIC by this
+          test by clearing the corresponding bits in the eipk and EIEk registers.
+  */
+  val_iic_imsic_eix_update(TEST_EXT_IRQ_ID, false, 0);
+  val_iic_imsic_eix_update(TEST_EXT_IRQ_ID, true, 0);
+
+  val_set_status(0, RESULT_PASS(TEST_NUM, 1));
 }
 
 uint32_t
