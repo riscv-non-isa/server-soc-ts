@@ -115,6 +115,31 @@ VOID     pal_hart_data_cache_ops_by_va(UINT64 addr, UINT32 type);
 #define CLEAN                 0x2
 #define INVALIDATE            0x3
 
+/**
+  @brief  IOMMU Info header - Summary of IOMMU subsytem
+**/
+typedef struct {
+  UINT32  num_of_iommu;
+} IOMMU_INFO_HDR;
+
+typedef struct {
+  UINT32  iommu_num;  ///< info entry index
+  UINT8   type;
+  UINT16  id;
+
+  /* IOMMU device specific */
+  UINT64  hardware_id;
+  UINT64  base_address;
+  UINT32  flags;
+
+  /* PCIe Root Complex specific */
+} IOMMU_INFO_ENTRY;
+
+typedef struct {
+  IOMMU_INFO_HDR    header;
+  IOMMU_INFO_ENTRY  iommu_info[];
+} IOMMU_INFO_TABLE;
+
 typedef struct {
   UINT32   gic_version;
   UINT32   num_gicd;

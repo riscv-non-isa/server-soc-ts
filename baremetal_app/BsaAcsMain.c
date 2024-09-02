@@ -65,6 +65,7 @@ createPeInfoTable(
 
 }
 
+
 uint32_t
 createGicInfoTable(
 )

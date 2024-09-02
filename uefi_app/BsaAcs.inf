@@ -159,6 +159,7 @@
   # ../test_pool/memory_map/operating_system/test_os_m001.c
   # ../test_pool/memory_map/operating_system/test_os_m002.c
   # ../test_pool/memory_map/operating_system/test_os_m003.c
+  ../test_pool/iommu/operating_system/test_os_iom001.c
   ../test_pool/iic/operating_system/test_os_i001.c
   ../test_pool/iic/operating_system/test_os_i002.c
   ../test_pool/iic/operating_system/test_os_i003.c

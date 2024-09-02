@@ -99,6 +99,28 @@ createPeInfoTable (
 
 }
 
+EFI_STATUS
+createIommuInfoTable(
+)
+{
+  EFI_STATUS  Status;
+  UINT64      *IommuInfoTable;
+
+  Status = gBS->AllocatePool ( EfiBootServicesData,
+                               IOMMU_INFO_TBL_SZ,
+                               (VOID **) &IommuInfoTable );
+
+  if (EFI_ERROR(Status))
+  {
+    Print(L"Allocate Pool failed %x\n", Status);
+    return Status;
+  }
+
+  Status = val_iommu_create_info_table(IommuInfoTable);
+
+  return Status;
+}
+
 
 EFI_STATUS
 createGicInfoTable (
@@ -269,6 +291,7 @@ freeBsaAcsMem()
 {
 
   val_hart_free_info_table();
+  val_iommu_free_info_table();
   val_gic_free_info_table();
   val_timer_free_info_table();
   val_wd_free_info_table();
@@ -606,6 +629,10 @@ ShellAppMain (
   if (Status)
     return Status;
 
+  Status = createIommuInfoTable();
+  if (Status)
+    return Status;
+
   Status = createGicInfoTable();
   if (Status)
     return Status;
@@ -639,6 +666,9 @@ ShellAppMain (
 
   /***  Starting Memory Map tests     ***/
   // Status |= val_memory_execute_tests(val_hart_get_num(), g_sw_view);
+
+  /***  Starting IOMMU tests            ***/
+  Status |= val_iommu_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting IIC tests            ***/
   Status |= val_iic_execute_tests(val_hart_get_num(), g_sw_view);

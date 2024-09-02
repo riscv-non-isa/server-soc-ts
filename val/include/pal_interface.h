@@ -246,6 +246,38 @@ uint64_t *pal_get_phy_mpidr_list_base(void);
 /* ********** HART INFO END **********/
 
 
+/** IOMMU Tests Related definitions **/
+
+/**
+  @brief  IOMMU Info header - Summary of IOMMU subsytem
+**/
+typedef struct {
+  uint32_t  num_of_iommu;
+} IOMMU_INFO_HDR;
+
+typedef struct {
+  uint32_t  iommu_num;  ///< info entry index
+  uint8_t   type;
+  uint16_t  id;
+
+  /* IOMMU device specific */
+  uint64_t  hardware_id;
+  uint64_t  base_address;
+  uint32_t  flags;
+
+  /* PCIe Root Complex specific */
+} IOMMU_INFO_ENTRY;
+
+typedef struct {
+  IOMMU_INFO_HDR    header;
+  IOMMU_INFO_ENTRY  iommu_info[];
+} IOMMU_INFO_TABLE;
+
+void pal_iommu_create_info_table(IOMMU_INFO_TABLE *iommu_info_table);
+
+/* ********** IOMMU INFO END **********/
+
+
 /** IIC Tests Related definitions **/
 
 /**
@@ -263,7 +295,7 @@ typedef struct {
   /* RV porting */
   UINT16   supervisor_intr_num;
   UINT16   guest_intr_num;
-}GIC_INFO_HDR;
+} GIC_INFO_HDR;
 
 typedef enum {
   ENTRY_TYPE_CPUIF = 0x1000,
@@ -273,7 +305,7 @@ typedef enum {
   ENTRY_TYPE_GICITS,
   ENTRY_TYPE_GIC_MSI_FRAME,
   ENTRY_TYPE_GICH
-}GIC_INFO_TYPE_e;
+} GIC_INFO_TYPE_e;
 
 /* Interrupt Trigger Type */
 typedef enum {

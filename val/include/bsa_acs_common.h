@@ -47,6 +47,7 @@
 #define ACS_EXERCISER_TEST_NUM_BASE  900
 #define ACS_QOS_TEST_NUM_BASE        1000
 #define ACS_MNG_TEST_NUM_BASE        1100
+#define ACS_IOMMU_TEST_NUM_BASE      1200
 #define STATE_BIT   28
 #define STATE_MASK 0xF
 
@@ -148,7 +149,8 @@ typedef enum {
     PERIPHERAL_MODULE,
     WD_MODULE,
     PCIE_MODULE,
-    EXERCISER_MODULE
+    EXERCISER_MODULE,
+    IOMMU_MODULE,
 } MODULE_ID_e;
 
 #endif
