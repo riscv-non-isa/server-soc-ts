@@ -29,7 +29,6 @@ uint32_t pcie_bdf_table_list_flag;
 
 uint64_t
 pal_get_mcfg_ptr(void);
-
 /**
   @brief   This API reads 32-bit data from PCIe config space pointed by Bus,
            Device, Function and register offset.
@@ -42,7 +41,7 @@ pal_get_mcfg_ptr(void);
   @return  success/failure
 **/
 uint32_t
-val_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
+val_pcie_read_cfg_width(uint32_t bdf, uint32_t offset, void *data, PCI_WIDTH_TYPE width)
 {
   uint32_t bus     = PCIE_EXTRACT_BDF_BUS(bdf);
   uint32_t dev     = PCIE_EXTRACT_BDF_DEV(bdf);
@@ -84,9 +83,40 @@ val_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
   cfg_addr = (bus * PCIE_MAX_DEV * PCIE_MAX_FUNC * 4096) + \
                (dev * PCIE_MAX_FUNC * 4096) + (func * 4096);
 
-  *data = pal_mmio_read(ecam_base + cfg_addr + offset);
+  switch (width) {
+    case PCI_WIDTH_UINT8:
+      *(uint8_t *)data = pal_mmio_read8(ecam_base + cfg_addr + offset);
+      break;
+    case PCI_WIDTH_UINT16:
+      *(uint16_t *)data = pal_mmio_read16(ecam_base + cfg_addr + offset);
+      break;
+    case PCI_WIDTH_UINT32:
+      *(uint32_t *)data = pal_mmio_read(ecam_base + cfg_addr + offset);
+      break;
+    case PCI_WIDTH_UINT64:
+      *(uint64_t *)data = pal_mmio_read64(ecam_base + cfg_addr + offset);
+      break;
+
+  }
   return 0;
 
+}
+
+/**
+  @brief   This API reads 32-bit data from PCIe config space pointed by Bus,
+           Device, Function and register offset.
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_pcie_create_info_table
+  @param   bdf    - concatenated Bus(8-bits), device(8-bits) & function(8-bits)
+  @param   offset - Register offset within a device PCIe config space
+  @param   *data  - 32-bit data read from the config space
+
+  @return  success/failure
+**/
+uint32_t
+val_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data)
+{
+  return val_pcie_read_cfg_width(bdf, offset, (void*)data, PCI_WIDTH_UINT32);
 }
 
 /**
@@ -275,10 +305,10 @@ uint64_t val_pcie_get_bdf_config_addr(uint32_t bdf)
 **/
 void val_pcie_enumerate(void)
 {
-  if (pal_bsa_pcie_enumerate()) {
-      val_bsa_pcie_enumerate();
-  }
-  pal_pcie_enumerate();
+  // if (pal_bsa_pcie_enumerate()) {
+  //     val_bsa_pcie_enumerate();
+  // }
+  // pal_pcie_enumerate();
 }
 
 /**
@@ -337,56 +367,12 @@ val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       }
   }
 
-  if (g_pcie_bdf_table->num_entries == 0) {
-      val_print(ACS_PRINT_WARN,
-                "\n       No PCIe Devices Found, Skipping PCIe tests...\n",
-                0);
-      return ACS_STATUS_SKIP;
-  }
-
-  if (g_sw_view[G_SW_OS]) {
-#if defined(TARGET_LINUX) || defined(ENABLE_OOB) || defined(TARGET_EMULATION)
-      status |= os_p061_entry(num_hart);
-      status |= os_p062_entry(num_hart);
-      status |= os_p063_entry(num_hart);
-      status |= os_p064_entry(num_hart);
-#endif
-#ifndef TARGET_LINUX
-      status |= os_p002_entry(num_hart);
-      status |= os_p003_entry(num_hart);
-#if defined(ENABLE_OOB) || defined(TARGET_EMULATION)
-      status |= os_p004_entry(num_hart);
-      status |= os_p005_entry(num_hart);
-#endif
-      status |= os_p006_entry(num_hart);
-      status |= os_p008_entry(num_hart);
-      status |= os_p009_entry(num_hart);
-      status |= os_p011_entry(num_hart);
-
-      status |= os_p017_entry(num_hart);
-      status |= os_p018_entry(num_hart);
-      status |= os_p019_entry(num_hart);
-      status |= os_p020_entry(num_hart);
-      status |= os_p021_entry(num_hart);
-      status |= os_p022_entry(num_hart);
-      status |= os_p024_entry(num_hart);
-      status |= os_p025_entry(num_hart);
-      status |= os_p026_entry(num_hart);
-      status |= os_p030_entry(num_hart);
-      status |= os_p031_entry(num_hart);
-      status |= os_p032_entry(num_hart);
-      status |= os_p033_entry(num_hart);
-      status |= os_p035_entry(num_hart);
-      status |= os_p036_entry(num_hart);
-      status |= os_p037_entry(num_hart);
-      status |= os_p038_entry(num_hart);
-      status |= os_p039_entry(num_hart);
-      status |= os_p040_entry(num_hart);
-      status |= os_p042_entry(num_hart);
-
-#endif
-
-  }
+  // if (g_pcie_bdf_table->num_entries == 0) {
+  //     val_print(ACS_PRINT_WARN,
+  //               "\n       No PCIe Devices Found, Skipping PCIe tests...\n",
+  //               0);
+  //     return ACS_STATUS_SKIP;
+  // }
 
   val_print_test_end(status, "PCIe");
 
@@ -400,140 +386,140 @@ val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
   @param   None
   @return  None
 **/
-static void
-val_pcie_print_device_info(void)
-{
-  uint32_t bdf;
-  uint32_t dp_type;
-  uint32_t tbl_index;
-  uint32_t ecam_index;
-  uint64_t ecam_base;
-  uint32_t ecam_start_bus;
-  uint32_t ecam_end_bus;
-  pcie_device_bdf_table *bdf_tbl_ptr;
-  uint32_t num_rciep = 0, num_rcec = 0;
-  uint32_t num_iep = 0, num_irp = 0;
-  uint32_t num_ep = 0, num_rp = 0;
-  uint32_t num_dp = 0, num_up = 0;
-  uint32_t num_pcie_pci = 0, num_pci_pcie = 0;
-  uint32_t bdf_counter;
+// static void
+// val_pcie_print_device_info(void)
+// {
+//   uint32_t bdf;
+//   uint32_t dp_type;
+//   uint32_t tbl_index;
+//   uint32_t ecam_index;
+//   uint64_t ecam_base;
+//   uint32_t ecam_start_bus;
+//   uint32_t ecam_end_bus;
+//   pcie_device_bdf_table *bdf_tbl_ptr;
+//   uint32_t num_rciep = 0, num_rcec = 0;
+//   uint32_t num_iep = 0, num_irp = 0;
+//   uint32_t num_ep = 0, num_rp = 0;
+//   uint32_t num_dp = 0, num_up = 0;
+//   uint32_t num_pcie_pci = 0, num_pci_pcie = 0;
+//   uint32_t bdf_counter;
 
-  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
-  tbl_index = 0;
-  ecam_index = 0;
+//   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+//   tbl_index = 0;
+//   ecam_index = 0;
 
-  if (bdf_tbl_ptr->num_entries == 0)
-  {
-    val_print(ACS_PRINT_ERR, " PCIE_INFO: No entries in BDF Table\n", 0);
-    return;
-  }
+//   if (bdf_tbl_ptr->num_entries == 0)
+//   {
+//     val_print(ACS_PRINT_ERR, " PCIE_INFO: No entries in BDF Table\n", 0);
+//     return;
+//   }
 
-  for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
-  {
-      bdf = bdf_tbl_ptr->device[tbl_index].bdf;
-      dp_type = val_pcie_device_port_type(bdf);
+//   for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
+//   {
+//       bdf = bdf_tbl_ptr->device[tbl_index].bdf;
+//       dp_type = val_pcie_device_port_type(bdf);
 
-      switch (dp_type)
-      {
-        case RCiEP:
-            num_rciep++;
-            break;
-        case RCEC:
-            num_rcec++;
-            break;
-        case EP:
-            num_ep++;
-            break;
-        case RP:
-            num_rp++;
-            break;
-        case iEP_EP:
-            num_iep++;
-            break;
-        case iEP_RP:
-            num_irp++;
-            break;
-        case UP:
-            num_up++;
-            break;
-        case DP:
-            num_dp++;
-            break;
-        case PCI_PCIE:
-            num_pci_pcie++;
-            break;
-        case PCIE_PCI:
-            num_pcie_pci++;
-            break;
-      }
-  }
+//       switch (dp_type)
+//       {
+//         case RCiEP:
+//             num_rciep++;
+//             break;
+//         case RCEC:
+//             num_rcec++;
+//             break;
+//         case EP:
+//             num_ep++;
+//             break;
+//         case RP:
+//             num_rp++;
+//             break;
+//         case iEP_EP:
+//             num_iep++;
+//             break;
+//         case iEP_RP:
+//             num_irp++;
+//             break;
+//         case UP:
+//             num_up++;
+//             break;
+//         case DP:
+//             num_dp++;
+//             break;
+//         case PCI_PCIE:
+//             num_pci_pcie++;
+//             break;
+//         case PCIE_PCI:
+//             num_pcie_pci++;
+//             break;
+//       }
+//   }
 
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of RCiEP           : %4d\n", num_rciep);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of RCEC            : %4d\n", num_rcec);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of EP              : %4d\n", num_ep);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of RP              : %4d\n", num_rp);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of iEP_EP          : %4d\n", num_iep);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of iEP_RP          : %4d\n", num_irp);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of UP of switch    : %4d\n", num_up);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of DP of switch    : %4d\n", num_dp);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of PCI/PCIe Bridge : %4d\n", num_pci_pcie);
-  val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of PCIe/PCI Bridge : %4d\n", num_pcie_pci);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of RCiEP           : %4d\n", num_rciep);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of RCEC            : %4d\n", num_rcec);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of EP              : %4d\n", num_ep);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of RP              : %4d\n", num_rp);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of iEP_EP          : %4d\n", num_iep);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of iEP_RP          : %4d\n", num_irp);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of UP of switch    : %4d\n", num_up);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of DP of switch    : %4d\n", num_dp);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of PCI/PCIe Bridge : %4d\n", num_pci_pcie);
+//   val_print(ACS_PRINT_TEST, " PCIE_INFO: Number of PCIe/PCI Bridge : %4d\n", num_pcie_pci);
 
-  while (ecam_index < (uint32_t)val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0))
-  {
-      ecam_base = val_pcie_get_info(PCIE_INFO_ECAM, ecam_index);
-      ecam_start_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_START_BUS, ecam_index);
-      ecam_end_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_END_BUS, ecam_index);
-      tbl_index = 0;
-      bdf_counter = 0;
+//   while (ecam_index < (uint32_t)val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0))
+//   {
+//       ecam_base = val_pcie_get_info(PCIE_INFO_ECAM, ecam_index);
+//       ecam_start_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_START_BUS, ecam_index);
+//       ecam_end_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_END_BUS, ecam_index);
+//       tbl_index = 0;
+//       bdf_counter = 0;
 
-      val_print(ACS_PRINT_INFO, "\n  ECAM %d:", ecam_index);
-      val_print(ACS_PRINT_INFO, "  Base 0x%llx\n", ecam_base);
+//       val_print(ACS_PRINT_INFO, "\n  ECAM %d:", ecam_index);
+//       val_print(ACS_PRINT_INFO, "  Base 0x%llx\n", ecam_base);
 
-      while (tbl_index < bdf_tbl_ptr->num_entries)
-      {
-          uint32_t seg_num;
-          uint32_t bus_num;
-          uint32_t dev_num;
-          uint32_t func_num;
-          uint32_t device_id;
-          uint32_t vendor_id;
-          uint32_t reg_value;
-          uint64_t dev_ecam_base;
-          uint32_t bdf;
+//       while (tbl_index < bdf_tbl_ptr->num_entries)
+//       {
+//           uint32_t seg_num;
+//           uint32_t bus_num;
+//           uint32_t dev_num;
+//           uint32_t func_num;
+//           uint32_t device_id;
+//           uint32_t vendor_id;
+//           uint32_t reg_value;
+//           uint64_t dev_ecam_base;
+//           uint32_t bdf;
 
-          bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
-          seg_num  = PCIE_EXTRACT_BDF_SEG(bdf);
-          bus_num  = PCIE_EXTRACT_BDF_BUS(bdf);
-          dev_num  = PCIE_EXTRACT_BDF_DEV(bdf);
-          func_num = PCIE_EXTRACT_BDF_FUNC(bdf);
+//           bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
+//           seg_num  = PCIE_EXTRACT_BDF_SEG(bdf);
+//           bus_num  = PCIE_EXTRACT_BDF_BUS(bdf);
+//           dev_num  = PCIE_EXTRACT_BDF_DEV(bdf);
+//           func_num = PCIE_EXTRACT_BDF_FUNC(bdf);
 
-          val_pcie_read_cfg(bdf, TYPE01_VIDR, &reg_value);
-          device_id = (reg_value >> TYPE01_DIDR_SHIFT) & TYPE01_DIDR_MASK;
-          vendor_id = (reg_value >> TYPE01_VIDR_SHIFT) & TYPE01_VIDR_MASK;
+//           val_pcie_read_cfg(bdf, TYPE01_VIDR, &reg_value);
+//           device_id = (reg_value >> TYPE01_DIDR_SHIFT) & TYPE01_DIDR_MASK;
+//           vendor_id = (reg_value >> TYPE01_VIDR_SHIFT) & TYPE01_VIDR_MASK;
 
-          dev_ecam_base = val_pcie_get_ecam_base(bdf);
+//           dev_ecam_base = val_pcie_get_ecam_base(bdf);
 
-          if ((ecam_base == dev_ecam_base) && (bus_num >= ecam_start_bus)
-              && (bus_num <= ecam_end_bus))
-          {
-              bdf_counter = 1;
-              bdf = PCIE_CREATE_BDF(seg_num, bus_num, dev_num, func_num);
-              val_print(ACS_PRINT_INFO, "  BDF: 0x%x\n", bdf);
-              val_print(ACS_PRINT_INFO, "  Seg: 0x%x, ", seg_num);
-              val_print(ACS_PRINT_INFO, "Bus: 0x%02x, ", bus_num);
-              val_print(ACS_PRINT_INFO, "Dev: 0x%02x, ", dev_num);
-              val_print(ACS_PRINT_INFO, "Func: 0x%x, ", func_num);
-              val_print(ACS_PRINT_INFO, "Dev ID: 0x%04x, ", device_id);
-              val_print(ACS_PRINT_INFO, "Vendor ID: 0x%04x\n", vendor_id);
-          }
-      }
-      if (bdf_counter == 0)
-          val_print(ACS_PRINT_INFO, "  No BDF devices in ECAM region index %d\n", ecam_index);
+//           if ((ecam_base == dev_ecam_base) && (bus_num >= ecam_start_bus)
+//               && (bus_num <= ecam_end_bus))
+//           {
+//               bdf_counter = 1;
+//               bdf = PCIE_CREATE_BDF(seg_num, bus_num, dev_num, func_num);
+//               val_print(ACS_PRINT_INFO, "  BDF: 0x%x\n", bdf);
+//               val_print(ACS_PRINT_INFO, "  Seg: 0x%x, ", seg_num);
+//               val_print(ACS_PRINT_INFO, "Bus: 0x%02x, ", bus_num);
+//               val_print(ACS_PRINT_INFO, "Dev: 0x%02x, ", dev_num);
+//               val_print(ACS_PRINT_INFO, "Func: 0x%x, ", func_num);
+//               val_print(ACS_PRINT_INFO, "Dev ID: 0x%04x, ", device_id);
+//               val_print(ACS_PRINT_INFO, "Vendor ID: 0x%04x\n", vendor_id);
+//           }
+//       }
+//       if (bdf_counter == 0)
+//           val_print(ACS_PRINT_INFO, "  No BDF devices in ECAM region index %d\n", ecam_index);
 
-      ecam_index++;
-  }
-}
+//       ecam_index++;
+//   }
+// }
 
 /**
   @brief   This API will call PAL layer to fill in the PCIe information
@@ -564,21 +550,20 @@ val_pcie_create_info_table(uint64_t *pcie_info_table)
   if (num_ecam == 0)
       return;
 
-  val_pcie_enumerate();
+  // val_pcie_enumerate();
 
   /* Create the list of valid Pcie Device Functions */
-  if (val_pcie_create_device_bdf_table()) {
-      val_print(ACS_PRINT_ERR, "   Create Bdf table failed.\n", 0);
-      return;
-  }
+  // if (val_pcie_create_device_bdf_table()) {
+  //     val_print(ACS_PRINT_ERR, "   Create Bdf table failed.\n", 0);
+  //     return;
+  // }
 
-  if (pal_pcie_check_device_list()) {
-    pcie_bdf_table_list_flag = 1;
-    val_print(ACS_PRINT_ERR, "Pcie device list doesn't match \
-                with platform pcie device hierarchy\n", 0);
-  }
+  // if (pal_pcie_check_device_list()) {
+  //   pcie_bdf_table_list_flag = 1;
+  //   val_print(ACS_PRINT_ERR, "Pcie device list doesn't match with platform pcie device hierarchy\n", 0);
+  // }
 
-  val_pcie_print_device_info();
+  // val_pcie_print_device_info();
 }
 
 /**
@@ -587,29 +572,29 @@ val_pcie_create_info_table(uint64_t *pcie_info_table)
   @param  None
   @return 0 if sanity check passes, 1 if sanity check fails
 **/
-static uint32_t val_pcie_populate_device_rootport(void)
-{
-  uint32_t bdf;
-  uint32_t rp_bdf;
-  uint32_t tbl_index;
-  pcie_device_bdf_table *bdf_tbl_ptr;
+// static uint32_t val_pcie_populate_device_rootport(void)
+// {
+//   uint32_t bdf;
+//   uint32_t rp_bdf;
+//   uint32_t tbl_index;
+//   pcie_device_bdf_table *bdf_tbl_ptr;
 
-  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
-  tbl_index = 0;
+//   bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+//   tbl_index = 0;
 
-  for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
-  {
-      bdf = bdf_tbl_ptr->device[tbl_index].bdf;
-      val_print(ACS_PRINT_DEBUG, "  Dev bdf 0x%06x", bdf);
+//   for (tbl_index = 0; tbl_index < bdf_tbl_ptr->num_entries; tbl_index++)
+//   {
+//       bdf = bdf_tbl_ptr->device[tbl_index].bdf;
+//       val_print(ACS_PRINT_DEBUG, "  Dev bdf 0x%06x", bdf);
 
-      /* Checks if the BDF has RootPort */
-      val_pcie_get_rootport(bdf, &rp_bdf);
+//       /* Checks if the BDF has RootPort */
+//       val_pcie_get_rootport(bdf, &rp_bdf);
 
-      bdf_tbl_ptr->device[tbl_index].rp_bdf = rp_bdf;
-      val_print(ACS_PRINT_DEBUG, " RP bdf 0x%06x\n", rp_bdf);
-  }
-  return 0;
-}
+//       bdf_tbl_ptr->device[tbl_index].rp_bdf = rp_bdf;
+//       val_print(ACS_PRINT_DEBUG, " RP bdf 0x%06x\n", rp_bdf);
+//   }
+//   return 0;
+// }
 
 /**
   @brief   This API creates the device bdf table from enumeration
@@ -622,110 +607,110 @@ uint32_t
 val_pcie_create_device_bdf_table()
 {
 
-  uint32_t num_ecam;
-  uint32_t seg_num;
-  uint32_t start_bus;
-  uint32_t end_bus;
-  uint32_t bus_index;
-  uint32_t dev_index;
-  uint32_t func_index;
-  uint32_t ecam_index;
-  uint32_t bdf;
-  uint32_t reg_value;
-  uint32_t cid_offset;
-  uint32_t p_cap;
-  uint32_t status;
+//   uint32_t num_ecam;
+//   uint32_t seg_num;
+//   uint32_t start_bus;
+//   uint32_t end_bus;
+//   uint32_t bus_index;
+//   uint32_t dev_index;
+//   uint32_t func_index;
+//   uint32_t ecam_index;
+//   uint32_t bdf;
+//   uint32_t reg_value;
+//   uint32_t cid_offset;
+//   uint32_t p_cap;
+//   uint32_t status;
 
-  /* if table is already present, return success */
-  if (g_pcie_bdf_table)
-      return PCIE_SUCCESS;
+//   /* if table is already present, return success */
+//   if (g_pcie_bdf_table)
+//       return PCIE_SUCCESS;
 
-  /* Allocate memory to store BDFs for the valid pcie device functions */
-  g_pcie_bdf_table = (pcie_device_bdf_table *) pal_aligned_alloc(MEM_ALIGN_8K,
-                                                                 PCIE_DEVICE_BDF_TABLE_SZ);
-  if (!g_pcie_bdf_table)
-  {
-      val_print(ACS_PRINT_ERR,
-        "       PCIe BDF table memory allocation failed\n", 0);
-      return 1;
-  }
+//   /* Allocate memory to store BDFs for the valid pcie device functions */
+//   g_pcie_bdf_table = (pcie_device_bdf_table *) pal_aligned_alloc(MEM_ALIGN_8K,
+//                                                                  PCIE_DEVICE_BDF_TABLE_SZ);
+//   if (!g_pcie_bdf_table)
+//   {
+//       val_print(ACS_PRINT_ERR,
+//         "       PCIe BDF table memory allocation failed\n", 0);
+//       return 1;
+//   }
 
-  g_pcie_bdf_table->num_entries = 0;
+//   g_pcie_bdf_table->num_entries = 0;
 
-  num_ecam = (uint32_t)val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
-  if (num_ecam == 0)
-  {
-      val_print(ACS_PRINT_ERR, "       No ECAMs discovered\n ", 0);
-      return 1;
-  }
+//   num_ecam = (uint32_t)val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0);
+//   if (num_ecam == 0)
+//   {
+//       val_print(ACS_PRINT_ERR, "       No ECAMs discovered\n ", 0);
+//       return 1;
+//   }
 
-  for (ecam_index = 0; ecam_index < num_ecam; ecam_index++)
-  {
-      /* Derive ecam specific information */
-      seg_num = (uint32_t)val_pcie_get_info(PCIE_INFO_SEGMENT, ecam_index);
-      start_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_START_BUS, ecam_index);
-      end_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_END_BUS, ecam_index);
+//   for (ecam_index = 0; ecam_index < num_ecam; ecam_index++)
+//   {
+//       /* Derive ecam specific information */
+//       seg_num = (uint32_t)val_pcie_get_info(PCIE_INFO_SEGMENT, ecam_index);
+//       start_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_START_BUS, ecam_index);
+//       end_bus = (uint32_t)val_pcie_get_info(PCIE_INFO_END_BUS, ecam_index);
 
-      /* Iterate over all buses, devices and functions in this ecam */
-      for (bus_index = start_bus; bus_index <= end_bus; bus_index++)
-      {
-          for (dev_index = 0; dev_index < PCIE_MAX_DEV; dev_index++)
-          {
-              for (func_index = 0; func_index < PCIE_MAX_FUNC; func_index++)
-              {
-                  /* Form bdf using seg, bus, device, function numbers */
-                  bdf = PCIE_CREATE_BDF(seg_num, bus_index, dev_index, func_index);
+//       /* Iterate over all buses, devices and functions in this ecam */
+//       for (bus_index = start_bus; bus_index <= end_bus; bus_index++)
+//       {
+//           for (dev_index = 0; dev_index < PCIE_MAX_DEV; dev_index++)
+//           {
+//               for (func_index = 0; func_index < PCIE_MAX_FUNC; func_index++)
+//               {
+//                   /* Form bdf using seg, bus, device, function numbers */
+//                   bdf = PCIE_CREATE_BDF(seg_num, bus_index, dev_index, func_index);
 
-                  /* Probe pcie device Function with this bdf */
-                  if (val_pcie_read_cfg(bdf, TYPE01_VIDR, &reg_value) == PCIE_NO_MAPPING)
-                  {
-                      /* Return if there is a bdf mapping issue */
-                      val_print(ACS_PRINT_ERR, "\n       BDF 0x%x mapping issue", bdf);
-                      return 1;
-                  }
+//                   /* Probe pcie device Function with this bdf */
+//                   if (val_pcie_read_cfg(bdf, TYPE01_VIDR, &reg_value) == PCIE_NO_MAPPING)
+//                   {
+//                       /* Return if there is a bdf mapping issue */
+//                       val_print(ACS_PRINT_ERR, "\n       BDF 0x%x mapping issue", bdf);
+//                       return 1;
+//                   }
 
-                  /* Store the Function's BDF if there was a valid response */
-                  if (reg_value != PCIE_UNKNOWN_RESPONSE)
-                  {
-                      /* Skip if the device is a host bridge */
-                      if (val_pcie_is_host_bridge(bdf))
-                          continue;
+//                   /* Store the Function's BDF if there was a valid response */
+//                   if (reg_value != PCIE_UNKNOWN_RESPONSE)
+//                   {
+//                       /* Skip if the device is a host bridge */
+//                       if (val_pcie_is_host_bridge(bdf))
+//                           continue;
 
-#ifndef TARGET_LINUX
-                      /* Enable memory access and bus master enable for all BDF's
-                       * For BM systems, these bits are enabled during enumeration in PAL
-                       * For linux, the driver takes care.
-                      */
-                      val_pcie_enable_bme(bdf);
-                      val_pcie_enable_msa(bdf);
-#endif
+// #ifndef TARGET_LINUX
+//                       /* Enable memory access and bus master enable for all BDF's
+//                        * For BM systems, these bits are enabled during enumeration in PAL
+//                        * For linux, the driver takes care.
+//                       */
+//                       val_pcie_enable_bme(bdf);
+//                       val_pcie_enable_msa(bdf);
+// #endif
 
-                      /* Skip if the device is a PCI legacy device */
-                      p_cap = val_pcie_find_capability(
-                        bdf,
-                        PCIE_CAP,
-                        CID_PCIECS,
-                        &cid_offset);
+//                       /* Skip if the device is a PCI legacy device */
+//                       p_cap = val_pcie_find_capability(
+//                         bdf,
+//                         PCIE_CAP,
+//                         CID_PCIECS,
+//                         &cid_offset);
 
-                      if (p_cap != PCIE_SUCCESS)
-                          continue;
+//                       if (p_cap != PCIE_SUCCESS)
+//                           continue;
 
-                      status = pal_pcie_check_device_valid(bdf);
-                      if (status)
-                          continue;
+//                       status = pal_pcie_check_device_valid(bdf);
+//                       if (status)
+//                           continue;
 
-                      g_pcie_bdf_table->device[g_pcie_bdf_table->num_entries++].bdf = bdf;
-                  }
-              }
-          }
-      }
-  }
+//                       g_pcie_bdf_table->device[g_pcie_bdf_table->num_entries++].bdf = bdf;
+//                   }
+//               }
+//           }
+//       }
+//   }
 
-  /* Sanity Check : Confirm all EP (normal, integrated) have a rootport */
-  val_pcie_populate_device_rootport();
+//   /* Sanity Check : Confirm all EP (normal, integrated) have a rootport */
+//   val_pcie_populate_device_rootport();
 
-  val_print(ACS_PRINT_TEST,
-    " PCIE_INFO: Number of BDFs found      :    %d\n", g_pcie_bdf_table->num_entries);
+//   val_print(ACS_PRINT_TEST,
+//     " PCIE_INFO: Number of BDFs found      :    %d\n", g_pcie_bdf_table->num_entries);
 
   return 0;
 }

@@ -143,6 +143,13 @@ typedef enum {
   PREFETCHABLE = 1
 } MEM_TYPE;
 
+typedef enum {
+  PCI_WIDTH_UINT8 = 0,
+  PCI_WIDTH_UINT16,
+  PCI_WIDTH_UINT32,
+  PCI_WIDTH_UINT64,
+} PCI_WIDTH_TYPE;
+
 typedef struct {
   uint32_t bdf;
   uint32_t rp_bdf;
@@ -156,6 +163,7 @@ typedef struct {
 void     val_pcie_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data);
 void     val_pcie_io_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data);
 uint32_t val_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data);
+uint32_t val_pcie_read_cfg_width(uint32_t bdf, uint32_t offset, void *data, PCI_WIDTH_TYPE width);
 uint32_t val_get_msi_vectors (uint32_t bdf, PERIPHERAL_VECTOR_LIST **mvector);
 uint64_t val_pcie_get_bdf_config_addr(uint32_t bdf);
 

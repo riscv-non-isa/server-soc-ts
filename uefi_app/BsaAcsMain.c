@@ -214,13 +214,12 @@ createWatchdogInfoTable(
 
 }
 
-/**** Reduced BSA
 EFI_STATUS
 createPcieVirtInfoTable(
 )
 {
   UINT64   *PcieInfoTable;
-  UINT64   *IoVirtInfoTable;
+  // UINT64   *IoVirtInfoTable;
 
   EFI_STATUS Status;
 
@@ -235,20 +234,21 @@ createPcieVirtInfoTable(
   }
   val_pcie_create_info_table(PcieInfoTable);
 
-  Status = gBS->AllocatePool (EfiBootServicesData,
-                              IOVIRT_INFO_TBL_SZ,
-                              (VOID **) &IoVirtInfoTable);
+  // Status = gBS->AllocatePool (EfiBootServicesData,
+  //                             IOVIRT_INFO_TBL_SZ,
+  //                             (VOID **) &IoVirtInfoTable);
 
-  if (EFI_ERROR(Status))
-  {
-    Print(L"Allocate Pool failed %x\n", Status);
-    return Status;
-  }
-  val_iovirt_create_info_table(IoVirtInfoTable);
+  // if (EFI_ERROR(Status))
+  // {
+  //   Print(L"Allocate Pool failed %x\n", Status);
+  //   return Status;
+  // }
+  // val_iovirt_create_info_table(IoVirtInfoTable);
 
   return Status;
 }
 
+/**** Reduced BSA
 EFI_STATUS
 createPeripheralInfoTable(
 )
@@ -295,7 +295,7 @@ freeBsaAcsMem()
   val_gic_free_info_table();
   val_timer_free_info_table();
   val_wd_free_info_table();
-  // val_pcie_free_info_table();
+  val_pcie_free_info_table();
   // val_iovirt_free_info_table();
   // val_peripheral_free_info_table();
   val_free_shared_mem();
@@ -655,7 +655,7 @@ ShellAppMain (
 
   // val_print(ACS_PRINT_TEST, "\n Create WDT Info Table\n", 0);
   // createWatchdogInfoTable();
- // createPcieVirtInfoTable();
+  createPcieVirtInfoTable();
  // createPeripheralInfoTable();
 
 
@@ -689,7 +689,7 @@ ShellAppMain (
   // Status |= val_wd_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting PCIe tests           ***/
-  // Status |= val_pcie_execute_tests(val_hart_get_num(), g_sw_view);
+  Status |= val_pcie_execute_tests(val_hart_get_num(), g_sw_view);
 
   /***  Starting PCIe Exerciser tests ***/
   // Status |= val_exerciser_execute_tests(g_sw_view);

@@ -94,6 +94,7 @@ pal_pcie_create_info_table(PCIE_INFO_TABLE *PcieTable)
   }
 
   if(PLATFORM_OVERRIDE_PCIE_ECAM_BASE) {
+      bsa_print(ACS_PRINT_DEBUG, L" Platform override PCIe ECAM base\n");
       PcieTable->block[i].ecam_base = PLATFORM_OVERRIDE_PCIE_ECAM_BASE;
       PcieTable->block[i].start_bus_num = PLATFORM_OVERRIDE_PCIE_START_BUS_NUM;
       PcieTable->block[i].segment_num = 0;

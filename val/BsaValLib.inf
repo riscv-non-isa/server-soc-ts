@@ -35,7 +35,7 @@
   src/acs_gic.c
   src/acs_gic_v2m.c
   src/acs_gic_support.c
-  # src/acs_pcie.c
+  src/acs_pcie.c
   # src/acs_iovirt.c
   # src/acs_smmu.c
   src/acs_test_infra.c
