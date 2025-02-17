@@ -24,6 +24,7 @@ RISC-V Server SoC Testsuit is distributed under Apache v2.0 License.
 ## Feedback, contributions, and support
 
  - For feedback, use the GitHub Issue Tracker that is associated with this repository.
+ - For support, send an email to "support-systemready-acs@arm.com" with details.
  - Arm licensees may contact Arm directly through their partner managers.
  - Arm welcomes code contributions through GitHub pull requests. See the GitHub documentation on how to raise pull requests.
 
