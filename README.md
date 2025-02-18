@@ -1,6 +1,6 @@
 # RISC-V Server SoC Compliance Test Suite
 
-## RISC-V Server SoC Compliance Suite
+## RISC-V Server SoC Compliance Test Suite
 
 This suite was build on RISC-V Server SoC Test
 Specification, Version v0.51.
