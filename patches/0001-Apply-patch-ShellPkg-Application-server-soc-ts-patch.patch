@@ -1,0 +1,1110 @@
+From 5e66645b69704b2b4f5c69aa8f8cd1291055b316 Mon Sep 17 00:00:00 2001
+From: Fu Siyuan <fusiyuan.fsy@alibaba-inc.com>
+Date: Mon, 15 Jul 2024 09:00:37 +0000
+Subject: [PATCH] Apply patch
+ ShellPkg/Application/server-soc-ts/patches/edk2-stable202302-server-soc-ts-acpi.diff
+
+ShellPkg: Add RISC-V RINTC and PLIC parser to acpiview cmd.
+
+Signed-off-by: Fu, Siyuan <siyuan.fu@linux.alibaba.com>
+
+Add ACPI RHCT table parser.
+
+Signed-off-by: Fu, Siyuan <siyuan.fu@linux.alibaba.com>
+
+UefiCpuPkg: fix parameter check in RISC-V RegisterCpuInterruptHandler.
+
+Signed-off-by: Fu, Siyuan <siyuan.fu@linux.alibaba.com>
+
+Add RHCT parser for more information.
+
+Signed-off-by: Fu, Siyuan <siyuan.fu@linux.alibaba.com>
+
+Add MADT IMSIC/APLIC parser.
+
+Signed-off-by: Fu, Siyuan <siyuan.fu@linux.alibaba.com>
+
+Add RiscVOpensbiLib to ShellPkg.dsc for IMSIC csr ops.
+
+Signed-off-by: Fu, Siyuan <siyuan.fu@linux.alibaba.com>
+
+Add ACPI RIMT table definition and shell parser.
+
+Signed-off-by: Fu, Siyuan <siyuan.fu@linux.alibaba.com>
+---
+ MdePkg/Include/IndustryStandard/Acpi65.h      | 230 +++++++++++++++++-
+ MdePkg/Include/RiscV64/ProcessorBind.h        |   9 +
+ .../UefiShellAcpiViewCommandLib/AcpiParser.h  |  39 +++
+ .../Parsers/Madt/MadtParser.c                 | 119 +++++++++
+ .../Parsers/Rhct/RhctParser.c                 | 225 +++++++++++++++++
+ .../Parsers/Rhct/RhctParser.h                 |  16 ++
+ .../Parsers/Rimt/RimtParser.c                 | 219 +++++++++++++++++
+ .../Parsers/Rimt/RimtParser.h                 |  16 ++
+ .../UefiShellAcpiViewCommandLib.c             |   4 +-
+ .../UefiShellAcpiViewCommandLib.inf           |   2 +
+ ShellPkg/ShellPkg.dsc                         |   9 +
+ .../CpuExceptionHandlerLib.c                  |   6 +-
+ 12 files changed, 889 insertions(+), 5 deletions(-)
+ create mode 100644 ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.c
+ create mode 100644 ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.h
+ create mode 100644 ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.c
+ create mode 100644 ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.h
+
+diff --git a/MdePkg/Include/IndustryStandard/Acpi65.h b/MdePkg/Include/IndustryStandard/Acpi65.h
+index b9616a3e29..496c8048ec 100644
+--- a/MdePkg/Include/IndustryStandard/Acpi65.h
++++ b/MdePkg/Include/IndustryStandard/Acpi65.h
+@@ -341,6 +341,10 @@ typedef struct {
+ #define EFI_ACPI_6_5_MSI_PIC                        0x15
+ #define EFI_ACPI_6_5_BIO_PIC                        0x16
+ #define EFI_ACPI_6_5_LPC_PIC                        0x17
++#define EFI_ACPI_6_5_RINTC                          0x18
++#define EFI_ACPI_6_5_IMSIC                          0x19
++#define EFI_ACPI_6_5_APLIC                          0x1A
++#define EFI_ACPI_6_5_PLIC                           0x1B
+ 
+ //
+ // APIC Structure Definitions
+@@ -723,6 +727,81 @@ typedef struct {
+   UINT8     Cascade;
+ } EFI_ACPI_6_5_LPC_PIC_STRUCTURE;
+ 
++///
++/// RISC-V Interrupt Controller (RINTC)
++///   https://drive.google.com/file/d/1R6k4MshhN3WTT-hwqAquu5nX6xSEqK2l/view
++///   https://drive.google.com/file/d/1oMGPyOD58JaPgMl1pKasT-VKsIKia7zR/view
++///
++typedef struct {
++  UINT8     Type;
++  UINT8     Length;
++  UINT8     Version;
++  UINT8     Reserved;
++  UINT32    Flags;
++  UINT64    HartId;
++  UINT32    AcpiProcessorUid;
++  UINT32    ExternalINTCId;
++  UINT64    IMSICBase;
++  UINT32    IMSICSize;
++} EFI_ACPI_6_5_RINTC_STRUCTURE;
++
++#define EFI_ACPI_6_5_RINTC_FLAGS_ENABLED          0x1
++#define EFI_ACPI_6_5_RINTC_FLAGS_ONLINE_CAPABLE   0x2
++
++///
++/// RISC-V Incoming MSI Controller (IMSIC)
++///   https://drive.google.com/file/d/1R6k4MshhN3WTT-hwqAquu5nX6xSEqK2l/view
++///
++typedef struct {
++  UINT8     Type;
++  UINT8     Length;
++  UINT8     Version;
++  UINT8     Reserved;
++  UINT32    Flags;
++  UINT16    SupervisorModeInterruptIdentityNumber;
++  UINT16    GuestModeInterruptIdentityNumber;
++  UINT8     GuestIndexBits;
++  UINT8     HartIndexBits;
++  UINT8     GroupIndexBits;
++  UINT8     HartIndexShift;
++} EFI_ACPI_6_5_IMSIC_STRUCTURE;
++
++///
++/// RISC-V Advanced Platform Level Interrupt Controller (APLIC)
++///   https://drive.google.com/file/d/1R6k4MshhN3WTT-hwqAquu5nX6xSEqK2l/view
++///
++typedef struct {
++  UINT8     Type;
++  UINT8     Length;
++  UINT8     Version;
++  UINT8     APLICId;
++  UINT32    Flags;
++  UINT64    HardwareID;
++  UINT16    IDCNumber;
++  UINT16    ExternalInterruptSources;
++  UINT32    GlobalSystemInterruptBase;
++  UINT64    APLICAddress;
++  UINT32    APLICSize;
++} EFI_ACPI_6_5_APLIC_STRUCTURE;
++
++///
++/// RISC-V Platform Level Interrupt Controller (PLIC)
++///   https://drive.google.com/file/d/1oMGPyOD58JaPgMl1pKasT-VKsIKia7zR/view
++///
++typedef struct {
++  UINT8     Type;
++  UINT8     Length;
++  UINT8     Version;
++  UINT8     PLICId;
++  UINT64    HardwareId;
++  UINT16    ExternalInterruptSources;
++  UINT16    MaxPriority;
++  UINT32    Flags;
++  UINT32    PLICSize;
++  UINT64    PLICAddress;
++  UINT32    GSIV;
++} EFI_ACPI_6_5_PLIC_STRUCTURE;
++
+ ///
+ /// Smart Battery Description Table (SBST)
+ ///
+@@ -1175,7 +1254,7 @@ typedef struct {
+   UINT16    Flags;
+   UINT16    Reserved1;
+   UINT32    NumberOfMemoryDevices;
+-  // UINT8                                   TypeSpecificData[];
++  // UINT8                                   TypeSpecificData≤≤≤≤≤;
+   // EFI_ACPI_6_5_PMTT_COMMON_MEMORY_DEVICE  MemoryDeviceStructure[NumberOfMemoryDevices];
+ } EFI_ACPI_6_5_PMTT_COMMON_MEMORY_DEVICE;
+ 
+@@ -2940,6 +3019,145 @@ typedef struct {
+ #define EFI_ACPI_6_5_PHAT_FIRMWARE_HEALTH_DATA_RECORD_UNKNOWN          0x02
+ #define EFI_ACPI_6_5_PHAT_FIRMWARE_HEALTH_DATA_RECORD_ADVISORY         0x03
+ 
++///
++/// RISC-V Hart Capabilities Table (RHCT) Table
++///   https://drive.google.com/file/d/1oMGPyOD58JaPgMl1pKasT-VKsIKia7zR/view
++///   https://drive.google.com/file/d/1sKbOa8m1UZw1JkquZYe3F1zQBN1xXsaf/view
++///
++typedef struct {
++  EFI_ACPI_DESCRIPTION_HEADER   Header;
++  UINT32    Flags;
++  UINT64    TimeBaseFrequency;
++  UINT32    RHCTNodeNumber;
++  UINT32    RHCTNodeOffset;
++  //EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_NODE_STRUCTURE  RHCTNode[];
++} EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_STRUCTURE;
++
++#define EFI_ACPI_6_5_RHCT_FLAGS_TIMER_CANNOT_WAKE_UP_CPU    0x0
++
++#define EFI_ACPI_6_5_RHCT_NODE_TYPE_ISA_STRING_NODE         0
++#define EFI_ACPI_6_5_RHCT_NODE_TYPE_CMO_EXTENSION_NODE      1
++#define EFI_ACPI_6_5_RHCT_NODE_TYPE_MMU_NODE                2
++#define EFI_ACPI_6_5_RHCT_NODE_TYPE_HART_INFO_NODE          65535
++
++///
++/// RHCT Node Header Structure
++///
++typedef struct {
++  UINT16    Type;
++  UINT16    Length;
++  UINT16    Revision;
++} EFI_ACPI_6_5_RHCT_NODE_HEADER;
++
++///
++/// RHCT ISA String Node Structure
++///
++typedef struct {
++  EFI_ACPI_6_5_RHCT_NODE_HEADER Header;
++  UINT16    ISALength;
++  UINT8     ISAString[];
++} EFI_ACPI_6_5_RHCT_ISA_STRING_NODE_STRUCTURE;
++
++///
++/// RHCT CMO Extension Node Structure
++///
++typedef struct {
++  EFI_ACPI_6_5_RHCT_NODE_HEADER Header;
++  UINT8     Reserved;
++  UINT8     CBOMBlockSize;
++  UINT8     CBOPBlockSize;
++  UINT8     CBOZBlockSize;
++} EFI_ACPI_6_5_RHCT_CMO_EXTENSION_NODE_STRUCTURE;
++
++///
++/// RHCT MMU Node Structure
++///
++typedef struct {
++  UINT16    Type;
++  UINT16    Length;
++  UINT16    Revision;
++  UINT8     Reserved;
++  UINT8     MMUType;
++} EFI_ACPI_6_5_RHCT_MMU_NODE_STRUCTURE;
++
++///
++/// RHCT HART Info Node Structure
++///
++typedef struct {
++  EFI_ACPI_6_5_RHCT_NODE_HEADER Header;
++  UINT16    OffsetNumber;
++  UINT32    AcpiProcessorUid;
++  UINT32    Offsets[];
++} EFI_ACPI_6_5_RHCT_HART_INFO_NODE_STRUCTURE;
++
++///
++/// RISC-V IO Mapping Table (RIMT) Table
++///
++typedef struct {
++  EFI_ACPI_DESCRIPTION_HEADER   Header;
++  UINT32    RimtDeviceNumber;
++  UINT32    RimtDeviceOffset;
++  UINT32    Reserved;
++  //EFI_ACPI_6_5_RIMT_DEVICE_STRUCTURE  RimtDevices[];
++} EFI_ACPI_6_5_RISC_V_IO_MAPPING_TABLE_STRUCTURE;
++
++#define EFI_ACPI_6_5_RIMT_DEVICE_TYPE_IOMMU               0
++#define EFI_ACPI_6_5_RIMT_DEVICE_TYPE_PCIE_ROOT_COMPLEX   1
++#define EFI_ACPI_6_5_RIMT_DEVICE_TYPE_Platform_DEVICE     2
++
++///
++/// RIMT Device Header Structure
++///
++typedef struct {
++  UINT8     Type;
++  UINT8     Revision;
++  UINT16    Length;
++  UINT16    Reserved;
++  UINT16    ID;
++} EFI_ACPI_6_5_RIMT_DEVICE_HEADER;
++
++///
++/// RIMT IOMMU Device Structure
++///
++typedef struct {
++  EFI_ACPI_6_5_RIMT_DEVICE_HEADER Header;
++  UINT64    HardwareID;
++  UINT64    BaseAddress;
++  UINT32    Flags;
++  UINT32    ProximityDomain;
++  UINT16    PcieSegmentNumber;
++  UINT16    PcieBDF;
++  UINT16    InterruptWireNumber;
++  UINT16    InterruptWireOffset;
++  //EFI_ACPI_6_5_RIMT_IOMMU_INTERRUPT_WIRE_STRUCTURE    InterruptWires[];
++} EFI_ACPI_6_5_RIMT_IOMMU_DEVICE_STRUCTURE;
++
++typedef struct {
++  UINT32    InterruptNumber;
++  UINT32    Flags;
++} EFI_ACPI_6_5_RIMT_IOMMU_INTERRUPT_WIRE_STRUCTURE;
++
++///
++/// RIMT PCIe Root Complex Device Binding Structure
++///
++typedef struct {
++  EFI_ACPI_6_5_RIMT_DEVICE_HEADER Header;
++  UINT32      Flags;
++  UINT16      Reserved;
++  UINT16      PcieSegmentNumber;
++  UINT16      IdMappingOffset;
++  UINT16      IdMappingNumber;
++  //EFI_ACPI_6_5_RIMT_ID_MAPPING_STRUCTURE    IdMappings[];
++} EFI_ACPI_6_5_RIMT_PCIE_ROOT_COMPLEX_DEVICE_BINDING_STRUCTURE;
++
++typedef struct {
++  UINT32      SourceIdBase;
++  UINT32      IdNumber;
++  UINT32      DestDeviceIdBase;
++  UINT32      DestIommuOffset;
++  UINT32      Flags;
++} EFI_ACPI_6_5_RIMT_ID_MAPPING_STRUCTURE;
++
+ //
+ // Known table signatures
+ //
+@@ -3264,6 +3482,16 @@ typedef struct {
+ ///
+ #define EFI_ACPI_6_5_XEN_PROJECT_TABLE_SIGNATURE  SIGNATURE_32('X', 'E', 'N', 'V')
+ 
++///
++/// "RHCT" RISC-V Hart Capabilities Table
++///
++#define EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_SIGNATURE  SIGNATURE_32('R', 'H', 'C', 'T')
++
++///
++/// "RIMT" RISC-V IO Mapping Table
++///
++#define EFI_ACPI_6_5_RISC_V_IO_MAPPING_TABLE_SIGNATURE  SIGNATURE_32('R', 'I', 'M', 'T')
++
+ #pragma pack()
+ 
+ #endif
+diff --git a/MdePkg/Include/RiscV64/ProcessorBind.h b/MdePkg/Include/RiscV64/ProcessorBind.h
+index 1d42d92de4..87c956aa55 100644
+--- a/MdePkg/Include/RiscV64/ProcessorBind.h
++++ b/MdePkg/Include/RiscV64/ProcessorBind.h
+@@ -152,6 +152,15 @@ typedef INT64 INTN __attribute__ ((aligned (8)));
+ /// Define this macro to unify the usage.
+ ///
+ #define ASM_GLOBAL  .globl
++
++#define GCC_ASM_EXPORT(func__)  \
++         .global  _CONCATENATE (__USER_LABEL_PREFIX__, func__)    ;\
++         .type ASM_PFX(func__), %function
++
++#define GCC_ASM_IMPORT(func__)  \
++         .extern  _CONCATENATE (__USER_LABEL_PREFIX__, func__)
++
++
+ #endif
+ 
+ /**
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiParser.h b/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiParser.h
+index 6468fe5d8c..c263a0ad08 100644
+--- a/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiParser.h
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiParser.h
+@@ -805,6 +805,45 @@ ParseAcpiMadt (
+   IN UINT8    AcpiTableRevision
+   );
+ 
++/**
++  This function parses the ACPI RHCT table.
++
++  This function also performs validation of the ACPI table fields.
++
++  @param [in] Trace              If TRUE, trace the ACPI fields.
++  @param [in] Ptr                Pointer to the start of the buffer.
++  @param [in] AcpiTableLength    Length of the ACPI table.
++  @param [in] AcpiTableRevision  Revision of the ACPI table.
++**/
++VOID
++EFIAPI
++ParseAcpiRhct (
++  IN BOOLEAN  Trace,
++  IN UINT8    *Ptr,
++  IN UINT32   AcpiTableLength,
++  IN UINT8    AcpiTableRevision
++  );
++
++
++/**
++  This function parses the ACPI RIMT table.
++
++  This function also performs validation of the RIMT table fields.
++
++  @param [in] Trace              If TRUE, trace the ACPI fields.
++  @param [in] Ptr                Pointer to the start of the buffer.
++  @param [in] AcpiTableLength    Length of the ACPI table.
++  @param [in] AcpiTableRevision  Revision of the ACPI table.
++**/
++VOID
++EFIAPI
++ParseAcpiRimt (
++  IN BOOLEAN  Trace,
++  IN UINT8    *Ptr,
++  IN UINT32   AcpiTableLength,
++  IN UINT8    AcpiTableRevision
++  );
++
+ /**
+   This function parses the ACPI MCFG table.
+   When trace is enabled this function parses the MCFG table and
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Madt/MadtParser.c b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Madt/MadtParser.c
+index 3a4f246347..f98b8990ad 100644
+--- a/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Madt/MadtParser.c
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Madt/MadtParser.c
+@@ -325,6 +325,73 @@ STATIC CONST ACPI_PARSER  LocalX2ApicNmi[] = {
+   { L"Reserved",           3, 9, L"0x%x%x%x", Dump3Chars, NULL, NULL, NULL }
+ };
+ 
++/**
++  An ACPI_PARSER array describing the RISC-V Interrupt Controller Structure.
++**/
++STATIC CONST ACPI_PARSER  RiscVIntc[] = {
++  { L"Type",               1, 0, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Length",             1, 1, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"Version",            1, 2, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"Reserved",           1, 3, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Flags",              4, 4, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Hard ID",            8, 8, L"0x%lx",    NULL,       NULL, NULL, NULL },
++  { L"ACPI Processor UID", 4,16, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"External INTC ID",   4,20, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"IMSIC Base",         8,24, L"0x%lx",    NULL,       NULL, NULL, NULL },
++  { L"IMSIC Size",         4,32, L"0x%x",     NULL,       NULL, NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RISC-V Incoming MSI Controller.
++**/
++STATIC CONST ACPI_PARSER  RiscVImsic[] = {
++  { L"Type",               1, 0, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Length",             1, 1, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"Version",            1, 2, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"Reserved",           1, 3, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Flags",              4, 4, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Supervisor Mode INTC Number",     2, 8, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Guest Mode INTC Number", 2,10, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Guest Index Bits",   1,12, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Hart Index Bits",    1,13, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Group Index Bits",   1,14, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Group Index Shift",  1,15, L"0x%x",     NULL,       NULL, NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RISC-V Advanced Platform Level Interrupt Controller.
++**/
++STATIC CONST ACPI_PARSER  RiscVAplic[] = {
++  { L"Type",               1, 0, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Length",             1, 1, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"Version",            1, 2, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"APLIC ID",           1, 3, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Flags",              4, 4, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Hard ID",            8, 8, L"0x%lx",    NULL,       NULL, NULL, NULL },
++  { L"IDC Number",         2,16, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"External INTC ID",   2,18, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Global System INTC Base",   4,20, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"APLIC Base",         8,24, L"0x%lx",    NULL,       NULL, NULL, NULL },
++  { L"APLIC Size",         4,32, L"0x%x",     NULL,       NULL, NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RISC-V Platform Level Interrupt Controller Structure.
++**/
++STATIC CONST ACPI_PARSER  RiscVPlatformLevelIntc[] = {
++  { L"Type",               1, 0, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Length",             1, 1, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"Version",            1, 2, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"PLIC ID",            1, 3, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Hardware ID",        8, 4, L"0x%lx",    NULL,       NULL, NULL, NULL },
++  { L"Ext INTC Sources",   2,12, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Max Priority",       2,14, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Flags",              4,16, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"PLIC Size",          4,20, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"PLIC Base",          8,24, L"0x%lx",    NULL,       NULL, NULL, NULL },
++  { L"Global IV BAR",      4,32, L"0x%x",     NULL,       NULL, NULL, NULL }
++};
++
+ /**
+   An ACPI_PARSER array describing the ACPI MADT Table.
+ **/
+@@ -572,6 +639,58 @@ ParseAcpiMadt (
+         break;
+       }
+ 
++      case EFI_ACPI_6_5_RINTC:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "RISC-V INTC",
++          InterruptContollerPtr,
++          *MadtInterruptControllerLength,
++          PARSER_PARAMS (RiscVIntc)
++          );
++        break;
++      }
++
++      case EFI_ACPI_6_5_IMSIC:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "RISC-V IMSIC",
++          InterruptContollerPtr,
++          *MadtInterruptControllerLength,
++          PARSER_PARAMS (RiscVImsic)
++          );
++        break;
++      }
++
++      case EFI_ACPI_6_5_APLIC:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "RISC-V APLIC",
++          InterruptContollerPtr,
++          *MadtInterruptControllerLength,
++          PARSER_PARAMS (RiscVAplic)
++          );
++        break;
++      }
++
++      case EFI_ACPI_6_5_PLIC:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "RISC-V Platform Level INTC",
++          InterruptContollerPtr,
++          *MadtInterruptControllerLength,
++          PARSER_PARAMS (RiscVPlatformLevelIntc)
++          );
++        break;
++      }
++
+       default:
+       {
+         IncrementErrorCount ();
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.c b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.c
+new file mode 100644
+index 0000000000..12cd88ad1c
+--- /dev/null
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.c
+@@ -0,0 +1,225 @@
++/** @file
++  RHCT table parser
++
++  Copyright (c) 2024, Alibaba Limited. All rights reserved.
++  SPDX-License-Identifier: BSD-2-Clause-Patent
++
++  @par Reference(s):
++    - RISC-V Hart Capabilities Table (RHCT) Table
++      https://drive.google.com/file/d/1oMGPyOD58JaPgMl1pKasT-VKsIKia7zR/view
++**/
++
++#include <IndustryStandard/Acpi.h>
++#include <Library/UefiLib.h>
++#include "AcpiParser.h"
++#include "AcpiTableParser.h"
++#include "AcpiViewConfig.h"
++#include "RhctParser.h"
++
++// Local Variables
++STATIC ACPI_DESCRIPTION_HEADER_INFO  AcpiHdrInfo;
++STATIC CONST UINT16                   *RhctNodeType;
++STATIC CONST UINT16                   *RhctNodeLength;
++STATIC CONST UINT16                   *IsaStringLength;
++STATIC CONST UINT16                   *Number;
++
++/**
++  An ACPI_PARSER array describing the ACPI RHCT Table.
++**/
++STATIC CONST ACPI_PARSER  RhctParser[] = {
++  PARSE_ACPI_HEADER (&AcpiHdrInfo),
++  { L"Reserved",           4,  36, L"0x%x",     NULL,       NULL, NULL, NULL },
++  { L"Time Base Frequency",8,  40, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"RHCT Node Number",   4,  48, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"RHCT Node Offset",   4,  52, L"0x%x",     NULL,       NULL, NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RHCT Node Header Structure.
++**/
++STATIC CONST ACPI_PARSER  RhctNodeHeaderParser[] = {
++  { L"Type",        2,  0, L"%d", NULL, (VOID **)&RhctNodeType,   NULL, NULL },
++  { L"Length",      2,  2, L"%d", NULL, (VOID **)&RhctNodeLength, NULL, NULL },
++  { L"Revision",    2,  4, L"%d", NULL, NULL,                     NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RHCT ISA String Node Structure.
++**/
++STATIC CONST ACPI_PARSER  RhctIsaStringNodeParser[] = {
++  { L"Type",        2,  0, L"%d", NULL, (VOID **)&RhctNodeType,   NULL, NULL },
++  { L"Length",      2,  2, L"%d", NULL, (VOID **)&RhctNodeLength, NULL, NULL },
++  { L"Revision",    2,  4, L"%d", NULL, NULL,                     NULL, NULL },
++  { L"ISA Length",  2,  6, L"%d", NULL, (VOID **)&IsaStringLength, NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RHCT CMO Extension Node Structure.
++**/
++STATIC CONST ACPI_PARSER  RhctCmoExtensionNodeParser[] = {
++  { L"Type",               2,  0, L"%d",   NULL, (VOID **)&RhctNodeType,   NULL, NULL },
++  { L"Length",             2,  2, L"%d",   NULL, (VOID **)&RhctNodeLength, NULL, NULL },
++  { L"Revision",           2,  4, L"%d",   NULL, NULL,                     NULL, NULL },
++  { L"Reserved",           1,  6, L"0x%x", NULL, NULL,                     NULL, NULL },
++  { L"CBOM Block Size",    1,  7, L"0x%x", NULL, NULL,                     NULL, NULL },
++  { L"CBOP Block Size",    1,  8, L"0x%x", NULL, NULL,                     NULL, NULL },
++  { L"CBOZ Block Size",    1,  9, L"0x%x", NULL, NULL,                     NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RHCT MMU Node Structure.
++**/
++STATIC CONST ACPI_PARSER  RhctMmuNodeParser[] = {
++  { L"Type",               2,  0, L"%d",   NULL, (VOID **)&RhctNodeType,   NULL, NULL },
++  { L"Length",             2,  2, L"%d",   NULL, (VOID **)&RhctNodeLength, NULL, NULL },
++  { L"Revision",           2,  4, L"%d",   NULL, NULL,                     NULL, NULL },
++  { L"Reserved",           1,  6, L"0x%x", NULL, NULL,                     NULL, NULL },
++  { L"MMU Type",           1,  7, L"0x%x", NULL, NULL,                     NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RHCT HART Info Node Structure.
++**/
++STATIC CONST ACPI_PARSER  RhctHartInfoNodeParser[] = {
++  { L"Type",                2,  0, L"%d", NULL, (VOID **)&RhctNodeType,   NULL, NULL },
++  { L"Length",              2,  2, L"%d", NULL, (VOID **)&RhctNodeLength, NULL, NULL },
++  { L"Revision",            2,  4, L"%d", NULL, NULL,                     NULL, NULL },
++  { L"Offsets Number",      2,  6, L"%d", NULL, (VOID**)&Number,          NULL, NULL },
++  { L"ACPI Processor UID",  4,  8, L"%d", NULL, NULL,                     NULL, NULL }
++};
++
++/**
++  This function parses the ACPI RHCT table.
++
++  This function also performs validation of the ACPI table fields.
++
++  @param [in] Trace              If TRUE, trace the ACPI fields.
++  @param [in] Ptr                Pointer to the start of the buffer.
++  @param [in] AcpiTableLength    Length of the ACPI table.
++  @param [in] AcpiTableRevision  Revision of the ACPI table.
++**/
++VOID
++EFIAPI
++ParseAcpiRhct (
++  IN BOOLEAN  Trace,
++  IN UINT8    *Ptr,
++  IN UINT32   AcpiTableLength,
++  IN UINT8    AcpiTableRevision
++  )
++{
++  UINT32  Offset;
++  UINT8   *RhctNodePtr;
++
++  Offset = ParseAcpi (
++             TRUE,
++             0,
++             "RHCT",
++             Ptr,
++             AcpiTableLength,
++             PARSER_PARAMS (RhctParser)
++             );
++
++  RhctNodePtr = Ptr + Offset;
++
++  while (Offset < AcpiTableLength) {
++    // Parse RHCT Node header to obtain Type and Length.
++    ParseAcpi (
++      FALSE,
++      0,
++      NULL,
++      RhctNodePtr,
++      AcpiTableLength - Offset,
++      PARSER_PARAMS (RhctNodeHeaderParser)
++      );
++
++    // Validate RHCT Node Structure length
++    if ((*RhctNodeLength == 0) ||
++        ((Offset + (*RhctNodeLength)) > AcpiTableLength))
++    {
++      IncrementErrorCount ();
++      Print (
++        L"ERROR: Invalid RHCT Node Structure length. " \
++        L"Length = %d. Offset = %d. AcpiTableLength = %d.\n",
++        *RhctNodeLength,
++        Offset,
++        AcpiTableLength
++        );
++      return;
++    }
++
++    switch (*RhctNodeType) {
++      case EFI_ACPI_6_5_RHCT_NODE_TYPE_ISA_STRING_NODE:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "ISA String Node",
++          RhctNodePtr,
++          *RhctNodeLength,
++          PARSER_PARAMS (RhctIsaStringNodeParser)
++          );
++
++        if (*IsaStringLength != 0) {
++          Print (L"    ISA String: %a\n", ((EFI_ACPI_6_5_RHCT_ISA_STRING_NODE_STRUCTURE *)RhctNodePtr)->ISAString);
++        }
++        break;
++      }
++
++      case EFI_ACPI_6_5_RHCT_NODE_TYPE_CMO_EXTENSION_NODE:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "CMO Extension Node",
++          RhctNodePtr,
++          *RhctNodeLength,
++          PARSER_PARAMS (RhctCmoExtensionNodeParser)
++          );
++        break;
++      }
++
++
++      case EFI_ACPI_6_5_RHCT_NODE_TYPE_MMU_NODE:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "MMU Node",
++          RhctNodePtr,
++          *RhctNodeLength,
++          PARSER_PARAMS (RhctMmuNodeParser)
++          );
++        break;
++      }
++
++      case EFI_ACPI_6_5_RHCT_NODE_TYPE_HART_INFO_NODE:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "HART Info Node",
++          RhctNodePtr,
++          *RhctNodeLength,
++          PARSER_PARAMS (RhctHartInfoNodeParser)
++          );
++        break;
++      }
++      default:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "Unknown Node",
++          RhctNodePtr,
++          AcpiTableLength - Offset,
++          PARSER_PARAMS (RhctNodeHeaderParser)
++          );
++        break;
++      }
++
++    }
++    RhctNodePtr += *RhctNodeLength;
++    Offset      += *RhctNodeLength;
++
++  }
++}
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.h b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.h
+new file mode 100644
+index 0000000000..45ed9f7aff
+--- /dev/null
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rhct/RhctParser.h
+@@ -0,0 +1,16 @@
++/** @file
++  Header file for RHCT table parser
++
++  Copyright (c) 2024, Alibaba Limited. All rights reserved.
++  SPDX-License-Identifier: BSD-2-Clause-Patent
++
++  @par Reference(s):
++    - RISC-V Hart Capabilities Table (RHCT) Table
++      https://drive.google.com/file/d/1oMGPyOD58JaPgMl1pKasT-VKsIKia7zR/view
++**/
++
++#ifndef RHCT_PARSER_H_
++#define RHCT_PARSER_H_
++
++
++#endif // RHCT_PARSER_H_
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.c b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.c
+new file mode 100644
+index 0000000000..14e18b2289
+--- /dev/null
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.c
+@@ -0,0 +1,219 @@
++/** @file
++  RHCT table parser
++
++  Copyright (c) 2024, Alibaba Limited. All rights reserved.
++  SPDX-License-Identifier: BSD-2-Clause-Patent
++
++  @par Reference(s):
++    - RISC-V IO Mapping Table (RIMT) Specification, Version v0.0.1 Draft
++**/
++
++#include <IndustryStandard/Acpi.h>
++#include <Library/UefiLib.h>
++#include "AcpiParser.h"
++#include "AcpiTableParser.h"
++#include "AcpiViewConfig.h"
++#include "RimtParser.h"
++
++STATIC ACPI_DESCRIPTION_HEADER_INFO  AcpiHdrInfo;
++STATIC CONST UINT8                    *RimtDeviceType;
++STATIC CONST UINT16                   *RimtDeviceLength;
++STATIC CONST UINT16                   *InterruptWireNumber;
++STATIC CONST UINT16                   *InterruptWireOffset;
++STATIC CONST UINT16                   *IdMappingNumber;
++STATIC CONST UINT16                   *IdMappingOffset;
++
++/**
++  An ACPI_PARSER array describing the ACPI RIMT Table.
++**/
++STATIC CONST ACPI_PARSER  RimtParser[] = {
++  PARSE_ACPI_HEADER (&AcpiHdrInfo),
++  { L"RIMT Dev Number",    4,  36, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"RIMT Dev Offset",    4,  40, L"%d",       NULL,       NULL, NULL, NULL },
++  { L"Reserved",           4,  44, L"%d",       NULL,       NULL, NULL, NULL },
++};
++
++/**
++  An ACPI_PARSER array describing the RIMT Device Header Structure.
++**/
++STATIC CONST ACPI_PARSER  RimtDeviceHeaderParser[] = {
++  { L"Type",        1,  0, L"%d", NULL, (VOID **)&RimtDeviceType,    NULL, NULL },
++  { L"Revision",    1,  1, L"%d", NULL, NULL,                        NULL, NULL },
++  { L"Length",      2,  2, L"%d", NULL, (VOID **)&RimtDeviceLength,  NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RIMT IOMMU Device Structure.
++**/
++STATIC CONST ACPI_PARSER  RimtIommuDevParser[] = {
++  { L"Type",               1,  0, L"%d",       NULL, (VOID **)&RimtDeviceType,    NULL, NULL },
++  { L"Revision",           1,  1, L"%d",       NULL, NULL,                        NULL, NULL },
++  { L"Length",             2,  2, L"%d",       NULL, (VOID **)&RimtDeviceLength,  NULL, NULL },
++  { L"Reserved",           2,  4, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"ID",                 2,  6, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Hardware ID",        8,  8, L"0x%lx",    NULL, NULL,                        NULL, NULL },
++  { L"Base Address",       8, 16, L"0x%lx",    NULL, NULL,                        NULL, NULL },
++  { L"Flags",              4, 24, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Proximity Domain",   4, 28, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"PCIe Segment Number",2, 32, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"PCIe B/D/F",         2, 34, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Interrupt Wire Number",  2, 36, L"0x%x", NULL, (VOID **)&InterruptWireNumber,  NULL, NULL },
++  { L"Interrupt Wire Offset",  2, 38, L"0x%x", NULL, (VOID **)&InterruptWireOffset,  NULL, NULL }
++};
++
++STATIC CONST ACPI_PARSER  RimtInterruptWireParser[] = {
++  { L"Interrupt Number",   4,  0, L"%d",       NULL, NULL,                        NULL, NULL },
++  { L"Flags",              4,  4, L"0x%x",     NULL, NULL,                        NULL, NULL }
++};
++
++/**
++  An ACPI_PARSER array describing the RIMT PCIe Root Complex Device Structure.
++**/
++STATIC CONST ACPI_PARSER  RimtPcieRootComplexDevParser[] = {
++  { L"Type",               1,  0, L"%d",       NULL, (VOID **)&RimtDeviceType,    NULL, NULL },
++  { L"Revision",           1,  1, L"%d",       NULL, NULL,                        NULL, NULL },
++  { L"Length",             2,  2, L"%d",       NULL, (VOID **)&RimtDeviceLength,  NULL, NULL },
++  { L"Reserved",           2,  4, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"ID",                 2,  6, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Flags",              4,  8, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Reserved",           2, 12, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Pcie Segment Number",2, 14, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"ID Mapping Offset",  2, 16, L"0x%x",     NULL, (VOID **)&IdMappingOffset,   NULL, NULL },
++  { L"ID Mapping Number",  2, 18, L"%d",       NULL, (VOID **)&IdMappingNumber,   NULL, NULL }
++};
++
++STATIC CONST ACPI_PARSER  RimtIdMappingParser[] = {
++  { L"Source Id Base",     4,  0, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Number of IDs",      4,  4, L"%d",       NULL, NULL,                        NULL, NULL },
++  { L"Dest Device ID Base",4,  8, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Dest IOMMU Offset",  4, 12, L"0x%x",     NULL, NULL,                        NULL, NULL },
++  { L"Flags",              4, 16, L"0x%x",     NULL, NULL,                        NULL, NULL },
++};
++
++/**
++  This function parses the ACPI RIMT table.
++
++  This function also performs validation of the RIMT table fields.
++
++  @param [in] Trace              If TRUE, trace the ACPI fields.
++  @param [in] Ptr                Pointer to the start of the buffer.
++  @param [in] AcpiTableLength    Length of the ACPI table.
++  @param [in] AcpiTableRevision  Revision of the ACPI table.
++**/
++VOID
++EFIAPI
++ParseAcpiRimt (
++  IN BOOLEAN  Trace,
++  IN UINT8    *Ptr,
++  IN UINT32   AcpiTableLength,
++  IN UINT8    AcpiTableRevision
++  )
++{
++  UINT32  Offset;
++  UINT8   *RimtDevPtr;
++  UINT32  Index;
++
++  Offset = ParseAcpi (
++             TRUE,
++             0,
++             "RIMT",
++             Ptr,
++             AcpiTableLength,
++             PARSER_PARAMS (RimtParser)
++             );
++
++  RimtDevPtr = Ptr + Offset;
++
++  while (Offset < AcpiTableLength) {
++    // Parse RIMT Device header to obtain Type and Length.
++    ParseAcpi (
++      FALSE,
++      0,
++      NULL,
++      RimtDevPtr,
++      AcpiTableLength - Offset,
++      PARSER_PARAMS (RimtDeviceHeaderParser)
++      );
++
++    // Validate RIMT Device Structure length
++    if ((*RimtDeviceLength == 0) ||
++        ((Offset + (*RimtDeviceLength)) > AcpiTableLength))
++    {
++      IncrementErrorCount ();
++      Print (
++        L"ERROR: Invalid RIMT Device Structure length. " \
++        L"Length = %d. Offset = %d. AcpiTableLength = %d.\n",
++        *RimtDeviceLength,
++        Offset,
++        AcpiTableLength
++        );
++      return;
++    }
++
++    switch (*RimtDeviceType) {
++      case EFI_ACPI_6_5_RIMT_DEVICE_TYPE_IOMMU:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "IOMMU Device",
++          RimtDevPtr,
++          *RimtDeviceLength,
++          PARSER_PARAMS (RimtIommuDevParser)
++          );
++
++        for (Index = 0; Index < *InterruptWireNumber; Index++) {
++          ParseAcpi (
++            TRUE,
++            4,
++            "Interrupt Wire",
++            RimtDevPtr + *InterruptWireOffset,
++            *RimtDeviceLength - *InterruptWireOffset,
++            PARSER_PARAMS (RimtInterruptWireParser)
++            );
++        }
++        break;
++      }
++
++      case EFI_ACPI_6_5_RIMT_DEVICE_TYPE_PCIE_ROOT_COMPLEX:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "PCIe Root Complex Device",
++          RimtDevPtr,
++          *RimtDeviceLength,
++          PARSER_PARAMS (RimtPcieRootComplexDevParser)
++          );
++        for (Index = 0; Index < *IdMappingNumber; Index++) {
++          ParseAcpi (
++            TRUE,
++            4,
++            "ID Mapping",
++            RimtDevPtr + *IdMappingOffset,
++            *RimtDeviceLength - *IdMappingOffset,
++            PARSER_PARAMS (RimtIdMappingParser)
++            );
++        }
++        break;
++      }
++
++      default:
++      {
++        ParseAcpi (
++          TRUE,
++          2,
++          "Unknown Device",
++          RimtDevPtr,
++          AcpiTableLength - Offset,
++          PARSER_PARAMS (RimtDeviceHeaderParser)
++          );
++        break;
++      }
++    }
++
++    RimtDevPtr  += *RimtDeviceLength;
++    Offset      += *RimtDeviceLength;
++
++  }
++}
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.h b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.h
+new file mode 100644
+index 0000000000..36b8f1b5c4
+--- /dev/null
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/Parsers/Rimt/RimtParser.h
+@@ -0,0 +1,16 @@
++/** @file
++  Header file for RIMT table parser
++
++  Copyright (c) 2024, Alibaba Limited. All rights reserved.
++  SPDX-License-Identifier: BSD-2-Clause-Patent
++
++  @par Reference(s):
++    - RISC-V Hart Capabilities Table (RHCT) Table
++      https://drive.google.com/file/d/1oMGPyOD58JaPgMl1pKasT-VKsIKia7zR/view
++**/
++
++#ifndef _RIMT_PARSER_H_
++#define _RIMT_PARSER_H_
++
++
++#endif // _RIMT_PARSER_H_
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.c b/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.c
+index 0bdf068fe0..c9a034d7c1 100644
+--- a/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.c
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.c
+@@ -74,7 +74,9 @@ ACPI_TABLE_PARSER  ParserList[] = {
+   { EFI_ACPI_6_2_SYSTEM_RESOURCE_AFFINITY_TABLE_SIGNATURE,                                               ParseAcpiSrat },
+   { EFI_ACPI_6_2_SECONDARY_SYSTEM_DESCRIPTION_TABLE_SIGNATURE,                                           ParseAcpiSsdt },
+   { EFI_ACPI_6_5_WINDOWS_SMM_SECURITY_MITIGATION_TABLE_SIGNATURE,                                        ParseAcpiWsmt },
+-  { EFI_ACPI_6_2_EXTENDED_SYSTEM_DESCRIPTION_TABLE_SIGNATURE,                                            ParseAcpiXsdt }
++  { EFI_ACPI_6_2_EXTENDED_SYSTEM_DESCRIPTION_TABLE_SIGNATURE,                                            ParseAcpiXsdt },
++  { EFI_ACPI_6_5_RISC_V_HART_CAPABILITIES_TABLE_SIGNATURE,                                               ParseAcpiRhct },
++  { EFI_ACPI_6_5_RISC_V_IO_MAPPING_TABLE_SIGNATURE,                                                      ParseAcpiRimt }
+ };
+ 
+ /**
+diff --git a/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.inf b/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.inf
+index e62366116c..14a113fcb8 100644
+--- a/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.inf
++++ b/ShellPkg/Library/UefiShellAcpiViewCommandLib/UefiShellAcpiViewCommandLib.inf
+@@ -47,6 +47,8 @@
+   Parsers/Pcct/PcctParser.h
+   Parsers/Pptt/PpttParser.c
+   Parsers/Pptt/PpttParser.h
++  Parsers/Rhct/RhctParser.c
++  Parsers/Rimt/RimtParser.c
+   Parsers/Rsdp/RsdpParser.c
+   Parsers/Slit/SlitParser.c
+   Parsers/Spcr/SpcrParser.c
+diff --git a/ShellPkg/ShellPkg.dsc b/ShellPkg/ShellPkg.dsc
+index 557b0ec0f3..33a3c86909 100644
+--- a/ShellPkg/ShellPkg.dsc
++++ b/ShellPkg/ShellPkg.dsc
+@@ -65,6 +65,12 @@
+   DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
+   ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
+ 
++  ####### ARM BSA ##############
++  BsaValLib|ShellPkg/Application/server-soc-ts/val/BsaValLib.inf
++  BsaPalLib|ShellPkg/Application/server-soc-ts/platform/pal_uefi_acpi/BsaPalLib.inf
++
++  RiscVOpensbiLib|Silicon/RISC-V/ProcessorPkg/Library/RiscVOpensbiLib/RiscVOpensbiLib.inf
++
+ [LibraryClasses.ARM,LibraryClasses.AARCH64]
+   #
+   # It is not possible to prevent the ARM compiler for generic intrinsic functions.
+@@ -161,5 +167,8 @@
+   ShellPkg/DynamicCommand/VariablePolicyDynamicCommand/VariablePolicyApp.inf
+   ShellPkg/Application/AcpiViewApp/AcpiViewApp.inf
+ 
++  ######### BSA #######
++  ShellPkg/Application/server-soc-ts/uefi_app/BsaAcs.inf
++
+ [BuildOptions]
+   *_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
+diff --git a/UefiCpuPkg/Library/BaseRiscV64CpuExceptionHandlerLib/CpuExceptionHandlerLib.c b/UefiCpuPkg/Library/BaseRiscV64CpuExceptionHandlerLib/CpuExceptionHandlerLib.c
+index 73a9dd5765..2b7ad351ee 100644
+--- a/UefiCpuPkg/Library/BaseRiscV64CpuExceptionHandlerLib/CpuExceptionHandlerLib.c
++++ b/UefiCpuPkg/Library/BaseRiscV64CpuExceptionHandlerLib/CpuExceptionHandlerLib.c
+@@ -230,7 +230,7 @@ RegisterCpuInterruptHandler (
+   IN EFI_CPU_INTERRUPT_HANDLER  InterruptHandler
+   )
+ {
+-  DEBUG ((DEBUG_INFO, "%a: Type:%x Handler: %x\n", __func__, ExceptionType, InterruptHandler));
++  // DEBUG ((DEBUG_INFO, "%a: Type:%x Handler: %x\n", __func__, ExceptionType, InterruptHandler));
+   if (EXCEPT_RISCV_IS_IRQ (ExceptionType)) {
+     if (EXCEPT_RISCV_IRQ_INDEX (ExceptionType) > EXCEPT_RISCV_MAX_IRQS) {
+       return EFI_UNSUPPORTED;
+@@ -248,9 +248,9 @@ RegisterCpuInterruptHandler (
+       return EFI_UNSUPPORTED;
+     }
+ 
+-    if (mExceptionHandlers[ExceptionType] != NULL) {
++    if (mExceptionHandlers[ExceptionType] != NULL && InterruptHandler != NULL) {
+       return EFI_ALREADY_STARTED;
+-    } else if (InterruptHandler == NULL) {
++    } else if (mExceptionHandlers[ExceptionType] == NULL && InterruptHandler == NULL) {
+       return EFI_INVALID_PARAMETER;
+     }
+ 
+-- 
+2.39.3 (Apple Git-146)
+

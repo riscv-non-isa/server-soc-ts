@@ -1,10 +1,9 @@
 # RISC-V Server SoC Compliance Test Suite
 
-- [ ] TODO add CI workflows
+## RISC-V Server SoC Compliance Suite
 
-## ARM Base System Architecture Compliance Suite (BSA-ACS)
-
-This suite was build on ARM BSA ACS (Architecture Compliance Suite), for more information about ARM BSA-ACS, please refer to [https://github.com/ARM-software/bsa-acs](https://github.com/ARM-software/bsa-acs).
+This suite was build on RISC-V Server SoC Test
+Specification, Version v0.51.
 
 
 ## RISC-V Server SoC Spec
@@ -17,157 +16,29 @@ The RISC-V server SoC specification defines a standardized set of capabilities t
 Along with the Server SoC Spec, there is a test spec which defines a set of tests to verify if the requirements specified in RISC-V Server SoC specification are implemented. This test suite will be designed based on the test spec. For more information about the test spec, please also refer to [https://github.com/riscv-non-isa/server-soc](https://github.com/riscv-non-isa/server-soc).
 
 
-## SoC Test Spec TODO List:
-
-- [X] Compile current ARM BSA with ARM toolchains.
-	* follow the ARM BSA compiling instructions (under Ubuntu 20.0)
-        * Using following commands to install the pre-prequest:
-	```bash
- 	sudo apt install git curl mtools gdisk gcc openssl automake autotools-dev libtool \
-                       bison flex bc uuid-dev python3 libglib2.0-dev libssl-dev autopoint libslirp-dev \
-                       make g++ gcc-riscv64-unknown-elf gettext
-	```
-- [X] Reduce the BSA UEFI test case to 1 (possibily the timer check one).
-    * _BSA UEFI Apps_: Following Tables reserved:
-      - HART
-        - val_hart_create_info_table（）
-          * pal_psci_get_conduit(void)  // Parse FADT table to check whether PSCI supported, return SMC or HVC.
-            - [X] **should ported to return SBI**
-          * pal_hart_create_info_table()  // Check MADT table, count the GICC Entry as the HART count. Fill in MPIDR from GICC entry.
-            - [X] **should ported to parse MADT and count the RINTC entry**
-            - PalAllocateSecondaryStack(gMpidrMax);
-              - [ ] **should be ported for multi-processor test**
-      - IIC
-        - pal_gic_create_info_table( ) // Parse MADT Table, check the APIC entry.
-
-      - Timer
-        - pal_timer_create_info_table() // Parse the GTDT Table.
-      - Watchdog
-        - pal_wd_create_info_table() // parse the GTDT Table.
-
-
-    * _BSA UEFI Apps_: Following tests reserved:
-      - HART
-        * val_hart_context_save ()  // save hart's stack pointer and elr register to global variables
-          - [*] **should be ported**
-        * val_hart_initialize_default_exception_handler() // Set exception handler
-          - [*] **should be ported a RV64 default handler**
-          - [ ] **only page fault is support in poc, should updated to catch any possible exceptions during test suite execution.**
-        * val_hart_default_esr() // Default handler, when exception occurs, dump error info and update elr to previously saved address
-          - [*] **should be ported**
-        * val_hart_context_restore()
-          - [ ] **should be ported**
-      - Timer
-        * num_hart = val_hart_get_num() // Return number of HART (HARTs)
-        * val_timer_execute_tests() // Will only execute *os\_t001\_entry*: "Check Counter Frequency".
-          - os_t001_entry(num_hart):
-            * val_initialize_test()
-              1. mpid = val_hart_reg_read(MPIDR_EL1) //Get the MPIDR register value.
-              2. index = val_hart_get_index_mpid (mpid ) // Return the HART index, and clean all the data caches whose mpid < HART index.
-              3. val_set_status() // Set up the status of the test (Skip,Pending, Fail etc).
-              4. val_hart_initialize_default_exception_handler( val_hart_default_esr )
-                1. val_hart_default_esr:
-                  1. val_set_status( FAIL )
-                  2. val_hart_update_elr()
-                2. pal_hart_install_esr(EXCEPT_AARCH64_SYNCHRONOUS_EXCEPTIONS, val_hart_default_esr)
-                  2. Cpu->RegisterInterruptHandler ()
-            * val_run_test_payload()
-              1. index = val_hart_get_index_mpid(val_hart_get_mpid())
-              2. val_execute_on_pe( )
-                * Do while: *smc_call == ARM_SMC_ID_PSCI_CPU_ON_AARCH64* and not *timeout*
-                  1. val_set_test_data()        //Set the TEST function pointer in a shared memory location.
-                  2. pal_hart_execute_payload( )  //
-                    1. SmcArgs->Arg2 = (uint64_t)ModuleEntryPoint;
-                    2. pal_hart_call_smc(ArmSmcArgs, gPsciConduit);
-                * val_set_status( )
-              3. val_wait_for_test_completion()
-                * Polling status in shared memory via val_get_status()
-            * payload()
-              1. val_timer_get_info() //read timer register.
-              2. val_set_status ();
-            * val_check_for_error( )
-            * val_report_status()
-
-    * _VAL_: Following modules reserved:
-      - HART
-      - IIC
-      - Timer
-      - Watchdog
-
-    * _PAL_: Following modules reserved:
-      - HART
-      - IIC
-      - Watchdog Timer
-
-- [ ] Porting the PAL API to RISC-V Architecture
-    * _VAL AArch64_:
-      - src/AArch64/PeRegSysSupport.S: Read various system registers using MRS
-        - [ ] **Required** as called in val\_hart\_get\_mpid()
-      - src/AArch64/PeTestSupport.S
-        * ArmCallWFI
-        * SpeProgramUnderProfiling
-        * DisableSpe
-        * ArmExecuteMemoryBarrier
-      - src/AArch64/ArchTimerSupport.S: Read various timer registers using MRS
-        - [ ] **Required** as called in val_timer_get_info()
-      - src/AArch64/GicSupport.S: Read/Write IIC registers using MRS or MSR
-        * No Required Now.
-    * _PAL AArch64_:
-      - src/AArch64/ArmSmc.S: Calling SMC, we should replace this with SBI call.
-        - No Required if only **execute on 1 HARTs**.
-      - src/AArch64/AcsTestInfra.S: (AMO instructions to clean and/or invalidate data cache by virtual address)
-        - [X] **Required** as called in val_set_status()/val_get_status()
-        * DataCacheCleanInvalidateVA
-          ```asm
-              dc  civac, x0  //Clean and Invalidate data cache by address to Point of Coherency.
-              dsb sy         //Full System Barrier.
-              isb            //Instruction Barrier.
-              ret
-          ```
-        * DataCacheCleanVA
-          ```asm
-              dc  cvac, x0  //Clean data cache by address to Point of Coherency.
-              dsb ish       //Inner Shareable is the required shareability domain Barrier.
-              isb           //Instruction Barrier.
-              ret
-          ```
-        * DataCacheInvalidateVA
-          ```asm
-              dc  ivac, x0  //invalidate data cache by address to Point of Coherency.
-              dsb ish       //Inner Shareable is the required shareability domain Barrier.
-              isb           //Instruction Barrier.
-              ret
-          ```
-      - src/AArch64/ModuleEntryPoint.S: This is the functions that a HART will execute when power on.
-      - src/pal_hart.c
-        * pal_hart_update_elr() // this is used in val_hart_default_esr() to change the exception return address
-        - [ ] **should be ported to update sepc in RV64**
-
-- [ ] Compile the Reduced BSA UEFI test case with BRS toolchains (https://github.com/intel/rv-brs-test-suite)
-	* Compiler Version: 9.3.0 (Ubuntu 20.04 apt-get install)
-- [ ] Run the Reduce BSA UEFI test case with Qemu model used by BRS toolchain (https://github.com/vlsunil/qemu.git: branch:riscv\_acpi\_b2\_v7).
-- [ ] Porting more PAL API and added more test cases.
-
 ## Compile Server SoC TestSuite
 ### 1. Build Env
-    Before you start the  build, ensure that the following requirements are met.
+    Before you start the build, ensure that the following requirements are met.
 
-- Ubuntu 20.04 (Currently Tested)
-- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 tag is edk2-stable202302
+- Ubuntu 22.04 (Currently Tested)
+- git clone the [EDK2 tree](https://github.com/tianocore/edk2). Recommended edk2 tag is edk2-stable202405
 - git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) to local <edk2_path>.
-- Install GCC-ARM 10.3 [toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads).
 - Install the build prerequisite packages to build EDK2.<br />
-	```bash
- 	sudo apt install git curl mtools gdisk gcc openssl automake autotools-dev libtool \
-                       bison flex bc uuid-dev python3 libglib2.0-dev libssl-dev autopoint libslirp-dev \
-                       make g++ gcc-riscv64-unknown-elf gettext
-	```
+  ```
+  apt install gcc-riscv64-linux-gnu acpica-tools \
+    git curl mtools gdisk gcc openssl automake autotools-dev libtool \
+    bison flex bc uuid-dev python3 \
+    libglib2.0-dev libssl-dev autopoint libslirp-dev \
+    make g++ gcc-riscv64-unknown-elf gettext \
+    gcc-aarch64-linux-gnu \
+    dosfstools
+  ```
 
 ### 2. Clone Repo and Patch the EDK2
 1.  cd local\_edk2\_path
 2.  git submodule update --init --recursive
 3.  git clone git@github.com:riscv-non-isa/server-soc-ts.git ShellPkg/Application/server-soc-ts
-4.  git apply ShellPkg/Application/server-soc-ts/patches/edk2-stable202302-server-soc-ts-acpi.diff
+4.  git apply ShellPkg/Application/server-soc-ts/patches/0001-Apply-patch-ShellPkg-Application-server-soc-ts-patch.patch
 
 ### 3. Build the TestSuite under UEFI
 1.  export GCC5\_RISCV64\_PREFIX= GCC10.3 toolchain path pointing to **/bin/riscv64-linux-gnu-** in case of x86 machine.
