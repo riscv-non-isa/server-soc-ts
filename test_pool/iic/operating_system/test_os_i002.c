@@ -34,6 +34,13 @@
 
 #define IMSIC_TOPEI_ID_SHIFT		16
 
+/* Supervisor Indirect CSR Access */
+#define CSR_SISELECT           0x150
+#define CSR_SIREG                  0x151
+/* Supervisor Interrupts */
+#define CSR_STOPEI          0x15C
+#define CSR_STOPI                  0xDB0
+
 /**
  * @brief 1. Verify presence of siselect, sireg, stopi, and stopei CSRs.
           2. For each external interrupt identity supported by the S-level interrupt

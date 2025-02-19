@@ -667,9 +667,6 @@ ShellAppMain (
   /***  Starting Memory Map tests     ***/
   // Status |= val_memory_execute_tests(val_hart_get_num(), g_sw_view);
 
-  /***  Starting IOMMU tests            ***/
-  Status |= val_iommu_execute_tests(val_hart_get_num(), g_sw_view);
-
   /***  Starting IIC tests            ***/
   Status |= val_iic_execute_tests(val_hart_get_num(), g_sw_view);
 
@@ -699,6 +696,9 @@ ShellAppMain (
 
   /***  Starting MNG tests          ***/
   Status |= val_mng_execute_tests(val_hart_get_num(), g_sw_view);
+
+  /***  Starting IOMMU tests            ***/
+  Status |= val_iommu_execute_tests(val_hart_get_num(), g_sw_view);
 
 print_test_status:
   val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------", 0);

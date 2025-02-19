@@ -10,6 +10,13 @@
 #define IMSIC_EIP0			    0x80
 #define IMSIC_EIE0			    0xc0
 
+/* Supervisor Indirect CSR Access */
+#define CSR_SISELECT           0x150
+#define CSR_SIREG                  0x151
+/* Supervisor Interrupts */
+#define CSR_STOPEI          0x15C
+#define CSR_STOPI                  0xDB0
+
 #define imsic_csr_write(__c, __v)	\
 do { \
 	csr_write(CSR_SISELECT, __c); \
