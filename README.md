@@ -1,10 +1,7 @@
 # RISC-V Server SoC Compliance Test Suite
 
-## RISC-V Server SoC Compliance Test Suite
-
-This suite was build on RISC-V Server SoC Test
-Specification, **Version v0.51**.
-
+1. This suite is built for RISC-V Server SoC Test Specification, **Version v0.51**.
+2. This suite is built on ARM BSA ACS (Architecture Compliance Suite) framework, for more information about ARM BSA-ACS, please refer to https://github.com/ARM-software/bsa-acs.
 
 ## RISC-V Server SoC Spec
 
@@ -153,6 +150,17 @@ Refer test_result/riscv_qemu_virt.md for EDK2 RISC-V QEMU virt platform test res
     * NA - Not applicable，means no test is needed\
     * Blocked - Test (or test result confirm) is blocked due to QEMU/FW/OS issue or missing features.
     * Pending - Need further investigation
+
+## Next Steps
+### Qemu Model of the Server SoC Reference Machine
+Right now around 40% testcase failed or skipped due to the generic virtual platform **virt** lacks the required models in Server SoC, e.g., RCiEP devices. We need a more realistic server SoC reference machine in qemu. This would not only benefit the SoC testsuite, but also a good reference model for SoC and firmware development.
+### EDK II for the Server SoC Reference Machine
+The **RiscVVirt** is incomplete which leads to the failure of some cases. A more comprehensive UEFI package need for the testsuite, and also a good start point for EDK II product.
+### PCIe testcard for the Server SoC Reference Machine
+PCIe is an important component in Server SoC and that's why there are multiple rules in Server SoC spec. However, PCIe subsystem in Qemu is very abstract and far from real SoC. To make Server SoC testsuite more comprehensive, we need a platform with more detailed Root Complex and End Point Device.  There maybe two solutions:
+1. Integrated a more dedicated PCIe EP model in SystemC, which are more close to real hardware.
+2. Design an open source FPGA PCIe EP, which can generate various packets for the compliance test.
+
 --------------------------------------------------------------------------------------------
 
 ## License
