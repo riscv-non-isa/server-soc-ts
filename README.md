@@ -147,6 +147,7 @@ Refer test_result/riscv_qemu_virt.md for EDK2 RISC-V QEMU virt platform test res
 
 | Status       | Count     | Note                                      |
 | -----------  | --------  | ------------------------------            |
+| Complete     | 13        | Test case development has been completed.                                                |
 | TBI          | 36        | To be implemented，means a test is feasible in UEFI ACPI PAL but not implemented.        |
 | NA           | 20        | Not applicable，means no test is needed                                                  |
 | Blocked      | 46        | Test (or test result confirm) is blocked due to QEMU/FW/OS issue or missing features.    |
