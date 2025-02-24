@@ -1,0 +1,220 @@
+/** @file
+ * Copyright (c) 2019-2023, Arm Limited or its affiliates. All rights reserved.
+ * SPDX-License-Identifier : Apache-2.0
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
+#include "val/include/bsa_acs_val.h"
+#include "val/include/val_interface.h"
+
+#include "val/include/bsa_acs_pcie.h"
+#include "val/include/bsa_acs_hart.h"
+#include "val/include/bsa_acs_memory.h"
+
+#define TEST_NUM   (ACS_PCIE_TEST_NUM_BASE + 35)
+#define TEST_RULE  "PCI_SM_02"
+#define TEST_DESC  "Check Function level reset            "
+
+static
+uint32_t is_flr_failed(uint32_t bdf)
+{
+  uint32_t reg_value;
+  uint32_t check_failed;
+
+  check_failed = 0;
+
+  /* Check the Bus Master Enable bit is cleared */
+  val_pcie_read_cfg(bdf, TYPE01_CR, &reg_value);
+  if (((reg_value >> CR_BME_SHIFT) & CR_BME_MASK) != 0)
+  {
+      val_print(ACS_PRINT_ERR, "\n BME is not cleared", 0);
+      check_failed++;
+  }
+
+  /* Check the Memory Space Enable bit is cleared */
+  val_pcie_read_cfg(bdf, TYPE01_CR, &reg_value);
+  if (((reg_value >> CR_MSE_SHIFT) & CR_MSE_MASK) != 0)
+  {
+      val_print(ACS_PRINT_ERR, "\n MSE is not cleared", 0);
+      check_failed++;
+  }
+
+  return check_failed;
+}
+
+static
+void
+payload(void)
+{
+
+  uint32_t bdf;
+  uint32_t hart_index;
+  uint32_t tbl_index;
+  uint32_t reg_value;
+  uint32_t dp_type;
+  uint32_t cap_base;
+  uint32_t flr_cap;
+  uint32_t base_cc;
+  uint32_t test_fails;
+  uint32_t test_skip = 1;
+  uint32_t idx;
+  uint32_t timeout;
+  uint32_t status;
+  addr_t config_space_addr;
+  void *func_config_space;
+  pcie_device_bdf_table *bdf_tbl_ptr;
+
+  hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
+  bdf_tbl_ptr = val_pcie_bdf_table_ptr();
+
+  tbl_index = 0;
+  test_fails = 0;
+
+  /* Check for all the function present in bdf table */
+  while (tbl_index < bdf_tbl_ptr->num_entries)
+  {
+      bdf = bdf_tbl_ptr->device[tbl_index++].bdf;
+      dp_type = val_pcie_device_port_type(bdf);
+
+      /* Skip check for Storage devices as the
+       * logs will not be stored if FLR is done*/
+      val_pcie_read_cfg(bdf, TYPE01_RIDR, &reg_value);
+      base_cc = reg_value >> TYPE01_BCC_SHIFT;
+      if (base_cc == MAS_CC)
+          continue;
+
+      /* Check entry is normal EP */
+      if (dp_type == EP)
+      {
+
+          val_print(ACS_PRINT_DEBUG, "\n       BDF 0x%x ", bdf);
+
+          /* Read FLR capability bit value */
+          if (val_pcie_find_capability(bdf, PCIE_CAP, CID_PCIECS, &cap_base) != PCIE_SUCCESS) {
+              val_print(ACS_PRINT_DEBUG, "\n       PCIe Express Capability not present ", 0);
+              continue;
+          }
+          val_pcie_read_cfg(bdf, cap_base + DCAPR_OFFSET, &reg_value);
+          flr_cap = (reg_value >> DCAPR_FLRC_SHIFT) & DCAPR_FLRC_MASK;
+
+          /* If FLR capability is not set, move to next entry */
+          if (!flr_cap)
+              continue;
+
+          /* Allocate 4KB of space for saving function configuration space */
+          func_config_space = NULL;
+          func_config_space = val_aligned_alloc(MEM_ALIGN_4K, PCIE_CFG_SIZE);
+
+          /* If memory allocation fail, fail the test */
+          if (func_config_space == NULL)
+          {
+              val_print(ACS_PRINT_ERR, "\n       Memory allocation fail", 0);
+              val_set_status(hart_index, RESULT_FAIL(TEST_NUM, test_fails));
+              return;
+          }
+
+          /* Get function configuration space address */
+          config_space_addr = val_pcie_get_bdf_config_addr(bdf);
+          val_print(ACS_PRINT_INFO, "  config space addr 0x%x", config_space_addr);
+
+          /* Save the function config space to restore after FLR */
+          for (idx = 0; idx < PCIE_CFG_SIZE / 4; idx++) {
+              *((uint32_t *)func_config_space + idx) = *((uint32_t *)config_space_addr + idx);
+          }
+
+          /* Initiate FLR by setting the FLR bit */
+          val_pcie_read_cfg(bdf, cap_base + DCTLR_OFFSET, &reg_value);
+          reg_value = reg_value | DCTLR_FLR_SET;
+          val_pcie_write_cfg(bdf, cap_base + DCTLR_OFFSET, reg_value);
+
+          /* Wait for 100 ms */
+          status = val_time_delay_ms(100 * ONE_MILLISECOND);
+          if (status)
+          {
+              val_print(ACS_PRINT_ERR, "\n       Failed to time delay for BDF 0x%x ", bdf);
+              val_memory_free_aligned(func_config_space);
+              val_set_status(hart_index, RESULT_FAIL(TEST_NUM, 01));
+              return;
+          }
+
+          /* If test runs for atleast an endpoint */
+          test_skip = 0;
+
+          /* If Vendor Id is 0xFF after max FLR period, wait
+           * for 1 ms and read again. Keep polling for 5 secs */
+          timeout = (5 * TIMEOUT_LARGE);
+          while (timeout-- > 0)
+          {
+              val_pcie_read_cfg(bdf, 0, &reg_value);
+              if ((reg_value & TYPE01_VIDR_MASK) == TYPE01_VIDR_MASK)
+              {
+                  status = val_time_delay_ms(ONE_MILLISECOND);
+                  continue;
+              }
+              else
+                  break;
+          }
+
+          /* Vendor Id must not be 0xFF after max timeout period */
+          val_pcie_read_cfg(bdf, 0, &reg_value);
+          if ((reg_value & TYPE01_VIDR_MASK) == TYPE01_VIDR_MASK)
+          {
+              val_print(ACS_PRINT_ERR, "\n       BDF 0x%x not present", bdf);
+              test_fails++;
+              val_memory_free_aligned(func_config_space);
+              continue;
+          }
+
+          if (is_flr_failed(bdf))
+              test_fails++;
+
+          /* Initialize the function config space */
+          for (idx = 0; idx < PCIE_CFG_SIZE / 4; idx++) {
+              *((uint32_t *)config_space_addr + idx) = *((uint32_t *)func_config_space + idx);
+          }
+
+          val_memory_free_aligned(func_config_space);
+      }
+  }
+
+  if (test_skip == 1) {
+      val_print(ACS_PRINT_DEBUG,
+        "\n       No EP type device found with PCIe Express Cap support. Skipping test", 0);
+      val_set_status(hart_index, RESULT_SKIP(TEST_NUM, 1));
+  }
+  else if (test_fails)
+      val_set_status(hart_index, RESULT_FAIL(TEST_NUM, test_fails));
+  else
+      val_set_status(hart_index, RESULT_PASS(TEST_NUM, 1));
+}
+
+uint32_t
+os_p035_entry(uint32_t num_hart)
+{
+
+  uint32_t status = ACS_STATUS_FAIL;
+
+  num_hart = 1;  //This test is run on single processor
+
+  status = val_initialize_test(TEST_NUM, TEST_DESC, num_hart);
+  if (status != ACS_STATUS_SKIP)
+      val_run_test_payload(TEST_NUM, num_hart, payload, 0);
+
+  /* get the result from all HART and check for failure */
+  status = val_check_for_error(TEST_NUM, num_hart, TEST_RULE);
+
+  val_report_status(0, BSA_ACS_END(TEST_NUM), NULL);
+
+  return status;
+}

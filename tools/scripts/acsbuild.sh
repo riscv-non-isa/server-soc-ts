@@ -1,0 +1,1 @@
+build -a RISCV64 -t GCC5 -p ShellPkg/ShellPkg.dsc -m ShellPkg/Application/server-soc-ts/uefi_app/BsaAcs.inf
