@@ -145,11 +145,13 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
 ## Current Test Result
 Refer test_result/riscv_qemu_virt.md for EDK2 RISC-V QEMU virt platform test result.
 
-    Status:
-    * TBI - To be implemented，means a test is feasible in UEFI ACPI PAL but not implemented.
-    * NA - Not applicable，means no test is needed\
-    * Blocked - Test (or test result confirm) is blocked due to QEMU/FW/OS issue or missing features.
-    * Pending - Need further investigation
+| Status       | Count     | Note                                      |
+| -----------  | --------  | ------------------------------            |
+| TBI          | 36        | To be implemented，means a test is feasible in UEFI ACPI PAL but not implemented.        |
+| NA           | 20        | Not applicable，means no test is needed                                                  |
+| Blocked      | 46        | Test (or test result confirm) is blocked due to QEMU/FW/OS issue or missing features.    |
+| Pending      | 3         | Need further investigation                                                               |
+
 
 ## Next Steps
 ### Qemu Model of the Server SoC Reference Machine
