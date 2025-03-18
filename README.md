@@ -31,9 +31,9 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
     ```
     export WORKSPACE=`pwd`
     ```
-- git clone the [EDK2 tree](https://github.com/tianocore/edk2) to $WORKSPACE\edk2. Recommended edk2 tag is edk2-stable202405
-- git clone the [EDK2-Platforms tree](https://github.com/tianocore/edk2-platforms.git) to $WORKSPACE\edk2-platforms. Recommended edk2-platforms commit is ba73190ddccc0d0e8c9ff4d3cac1f10bde8b0f71
-- git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) $WORKSPACE\edk2-libc
+- git clone the [EDK2 tree](https://github.com/tianocore/edk2) to $WORKSPACE/edk2. Recommended edk2 tag is edk2-stable202405
+- git clone the [EDK2-Platforms tree](https://github.com/tianocore/edk2-platforms.git) to $WORKSPACE/edk2-platforms. Recommended edk2-platforms commit is ba73190ddccc0d0e8c9ff4d3cac1f10bde8b0f71
+- git clone the [EDK2 port of libc](https://github.com/tianocore/edk2-libc) $WORKSPACE/edk2-libc
 - Install the build prerequisite packages to build EDK2.<br />
   ```
   apt install gcc-riscv64-linux-gnu acpica-tools \
@@ -45,13 +45,13 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
   ```
 
 ### 2. Clone server-soc-ts repo and Patch the EDK2
-1.  cd $WORKSPACE\edk2
+1.  cd $WORKSPACE/edk2
 2.  git submodule update --init --recursive
 3.  git clone git@github.com:riscv-non-isa/server-soc-ts.git ShellPkg/Application/server-soc-ts
 4.  git apply ShellPkg/Application/server-soc-ts/patches/0001-Apply-patch-ShellPkg-Application-server-soc-ts-patch.patch
 
 ### 3. Patch the EDK2-Platforms
-1.  cd $WORKSPACE\edk2-platforms
+1.  cd $WORKSPACE/edk2-platforms
 2.  git submodule update --init --recursive
 3.  Checkout opensbi commmit a731c7e36988c3308e1978ecde491f2f6182d490
     ```
@@ -71,7 +71,7 @@ Along with the Server SoC Spec, there is a test spec which defines a set of test
     source edk2/edksetup.sh
 
     #Build basetool
-    make -C BaseTools/Source/C
+    make -C edk2/BaseTools/Source/C
 
     #Build the TestSuite application
     source edk2/ShellPkg/Application/server-soc-ts/tools/scripts/acsbuild.sh
