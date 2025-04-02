@@ -63,6 +63,7 @@ val_iic_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       status |= os_i003_entry(num_hart);
       status |= os_i004_entry(num_hart);
       status |= os_i005_entry(num_hart);
+      status |= os_i006_entry(num_hart);
       // status |= os_v2m001_entry(num_hart);
       // status |= os_v2m002_entry(num_hart);
       // status |= os_v2m003_entry(num_hart);
@@ -657,4 +658,24 @@ uint32_t
 val_gic_max_guest_intr_num(void)
 {
   return g_gic_info_table->header.guest_intr_num;
+}
+
+uint32_t
+val_aplic_idc_num(void)
+{
+  return g_gic_info_table->header.IDCNumber;
+}
+
+uint64_t
+val_aplic_base(void)
+{
+  return g_gic_info_table->header.APLICAddress;
+
+}
+
+uint16_t
+val_aplic_extern_intr_src(void)
+{
+  return g_gic_info_table->header.ExternalInterruptSources;
+
 }

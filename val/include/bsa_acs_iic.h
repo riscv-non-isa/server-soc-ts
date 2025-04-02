@@ -35,6 +35,8 @@ uint32_t
 os_i004_entry(uint32_t num_hart);
 uint32_t
 os_i005_entry(uint32_t num_hart);
+uint32_t
+os_i006_entry(uint32_t num_hart);
 
 void val_iic_imsic_eix_array_update (uint32_t base_id, uint32_t num_id, bool pend, bool val);
 void val_iic_imsic_eix_update (uint32_t id, bool pend, bool val);

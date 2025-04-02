@@ -49,6 +49,7 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
 {
   EFI_ACPI_6_1_GIC_STRUCTURE    *Entry = NULL;
   EFI_ACPI_6_5_IMSIC_STRUCTURE  *ImsicEntry = NULL;
+  EFI_ACPI_6_5_APLIC_STRUCTURE  *AplicEntry = NULL;
   GIC_INFO_ENTRY                *GicEntry = NULL;
   UINT32                         Length= 0;
   UINT32                         TableLength;
@@ -106,9 +107,12 @@ pal_gic_create_info_table(GIC_INFO_TABLE *GicTable)
       GicTable->header.guest_intr_num = ImsicEntry->GuestModeInterruptIdentityNumber;
     }
 
-    if (Entry->Type == EFI_ACPI_6_5_PLIC) {
-      GicEntry->type = ENTRY_TYPE_PLIC;
-      bsa_print(ACS_PRINT_INFO, L"   RISC-V PLIC is found, record field TBD\n");
+    if (Entry->Type == EFI_ACPI_6_5_APLIC) {
+      bsa_print(ACS_PRINT_INFO, L"   RISC-V APLIC is found\n");
+      AplicEntry = (EFI_ACPI_6_5_APLIC_STRUCTURE *) Entry;
+      GicTable->header.IDCNumber = AplicEntry->IDCNumber;
+      GicTable->header.ExternalInterruptSources = AplicEntry->ExternalInterruptSources;
+      GicTable->header.APLICAddress = AplicEntry->APLICAddress;
     }
 
     Length += Entry->Length;

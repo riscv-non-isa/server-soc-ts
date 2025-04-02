@@ -293,8 +293,14 @@ typedef struct {
   uint32_t num_gich;
 
   /* RV porting */
+  /* EFI_ACPI_6_5_IMSIC_STRUCTURE */
   UINT16   supervisor_intr_num;
   UINT16   guest_intr_num;
+
+  /* EFI_ACPI_6_5_APLIC_STRUCTURE */
+  UINT16   IDCNumber;
+  UINT16   ExternalInterruptSources;
+  UINT64   APLICAddress;
 } GIC_INFO_HDR;
 
 typedef enum {
