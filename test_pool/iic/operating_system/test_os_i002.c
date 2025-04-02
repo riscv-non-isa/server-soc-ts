@@ -178,11 +178,11 @@ payload()
   /* Checkpoint 9: Read the stopei register to verify that the highest priority external
           interrupt identity is reported.
   */
-  val_print(ACS_PRINT_INFO, "\n       Read and check CSR_STOPI has expected value", 0);
+  val_print(ACS_PRINT_INFO, "\n       Read and check CSR_STOPEI has expected value", 0);
   val = csr_read(CSR_STOPEI);
   val_print(ACS_PRINT_INFO, "\n         CSR_STOPEI: 0x%lx", val);
   if (val != (TEST_EXT_IRQ_ID | (TEST_EXT_IRQ_ID << IMSIC_TOPEI_ID_SHIFT))) {
-    val_print(ACS_PRINT_ERR, "\n       Unexpected CSR_STOPI value: 0x%lx", val);
+    val_print(ACS_PRINT_ERR, "\n       Unexpected CSR_STOPEI value: 0x%lx", val);
     val_set_status(index, RESULT_FAIL(TEST_NUM, 5));
     return;
   }
