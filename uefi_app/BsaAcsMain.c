@@ -703,8 +703,9 @@ ShellAppMain (
 print_test_status:
   val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------", 0);
   val_print(ACS_PRINT_TEST, "\n     Total Tests run  = %4d", g_bsa_tests_total);
-  val_print(ACS_PRINT_TEST, "\n     Tests Passed  = %4d", g_bsa_tests_pass);
-  val_print(ACS_PRINT_TEST, "\n     Tests Failed = %4d\n", g_bsa_tests_fail);
+  val_print(ACS_PRINT_TEST, "\n     Tests Passed     = %4d", g_bsa_tests_pass);
+  val_print(ACS_PRINT_TEST, "\n     Tests Failed     = %4d", g_bsa_tests_fail);
+  val_print(ACS_PRINT_TEST, "\n     Tests Skipped    = %4d\n", g_bsa_tests_total - g_bsa_tests_pass - g_bsa_tests_fail);
   val_print(ACS_PRINT_TEST, "\n     -------------------------------------------------------", 0);
 
   freeBsaAcsMem();
