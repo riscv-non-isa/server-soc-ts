@@ -23,6 +23,9 @@
  #include "val/include/bsa_acs_hart.h"
  #include "val/include/bsa_acs_memory.h"
 
+ #include <sbi/riscv_asm.h>
+ #include <sbi/riscv_encoding.h>
+
  #define TEST_NUM   (ACS_GIC_TEST_NUM_BASE + 6)
  #define TEST_RULE  "ME_IIC_080_010"
  #define TEST_DESC  "APLIC Functionality Test"
@@ -31,10 +34,7 @@
  #define GENMSI_OFFSET   			0x3000
  #define targeti_OFFSET  			0x3004
  #define DOMAINCFG_DM				0x4
- #define EIID						0x3
-
- #define HSTATUS_VGEIN_SHIFT		12
- #define HSTATUS_VGEIN				0x0003f000UL
+ #define EIID						0x9
 
  #define TARGET_GUEST_INDEX_SHIFT 	12
  #define TARGET_GUEST_INDEX 		0x0003f000UL
@@ -107,8 +107,9 @@
 	val_iic_imsic_eix_update(EIID, true, 0); //CLEAR the EIID.
 	val_print(ACS_PRINT_INFO, "\n       Check pending bit in EIPk is CLEAR", 0);
 	val = val_iic_imsic_eix_read(EIID, true);
-	val_print(ACS_PRINT_INFO, "\n         EIPk: 0x%x", (val & EIID));
-	//Write EIID=3 at the genmsi register.
+	val_print(ACS_PRINT_INFO, "\n         EIPk: 0x%x", (val	));
+
+	//Write EIID at the genmsi register.
 	val_mmio_write(aplic_base + GENMSI_OFFSET, EIID);
 	//verify the write by reading the register.
 	val = val_mmio_read(aplic_base + GENMSI_OFFSET);
@@ -122,8 +123,8 @@
 	val_print(ACS_PRINT_ERR, " with EIID %d", EIID);
 
 	val_print(ACS_PRINT_INFO, "\n       Read and check pending bit in EIPk is set", 0);
-	if (EIID != val){
-		val = val_iic_imsic_eix_read(EIID, true);
+	val = val_iic_imsic_eix_read(EIID, true);
+	if (!(val >> (EIID % __riscv_xlen))){
 		val_print(ACS_PRINT_INFO, "\n       Pending bit is not set in EIPK for EIID: %d", val);
 		val_set_status(index, RESULT_FAIL(TEST_NUM, 6));
 		return;
@@ -151,7 +152,7 @@
 	val_print(ACS_PRINT_INFO, "\n       Total External Interrupt Sources are: %d", ext_intr_src);
 
 	//Step 3: Find all these values are supported by the guest index field of target[i] registers.
-	for (int i = 0; i < ext_intr_src; i++){
+	for (int i = 1; i < ext_intr_src; i++){
 		for (val =1; val < vgein; val++){
 			val_mmio_write(aplic_base + targeti_OFFSET + i*4, 0);											//Clear Target[i] register.
 			val_mmio_write(aplic_base + targeti_OFFSET + i*4, (val << TARGET_GUEST_INDEX_SHIFT));			//Write Target[i] register.
@@ -167,7 +168,7 @@
 		}
 	}
 
-	val_print(ACS_PRINT_INFO, "\n       Target[0 ... %d]", ext_intr_src - 1);
+	val_print(ACS_PRINT_INFO, "\n       Target[1 ... %d]", ext_intr_src - 1);
 	val_print(ACS_PRINT_INFO, " supports all the values from 0 to %d", vgein - 1);
 
 	val_set_status(index, RESULT_PASS(TEST_NUM, 1));
