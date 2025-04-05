@@ -165,6 +165,7 @@
   ../test_pool/iic/operating_system/test_os_i003.c
   ../test_pool/iic/operating_system/test_os_i004.c
   ../test_pool/iic/operating_system/test_os_i005.c
+  ../test_pool/iic/operating_system/test_os_i006.c
   # ../test_pool/gic/operating_system/test_os_g001.c
   # ../test_pool/gic/operating_system/test_os_g002.c
   # ../test_pool/gic/operating_system/test_os_g003.c

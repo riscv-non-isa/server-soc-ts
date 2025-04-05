@@ -139,6 +139,9 @@ void val_gic_free_msi(uint32_t bdf, uint32_t device_id, uint32_t its_id,
 uint32_t val_gic_max_supervisor_intr_num(void);
 uint32_t val_gic_max_guest_intr_num(void);
 
+uint32_t val_aplic_idc_num(void);
+uint64_t val_aplic_base(void);
+uint16_t val_aplic_extern_intr_src(void);
 /* GICv2m APIs */
 typedef enum {
   V2M_MSI_FRAME_ID = 1,
